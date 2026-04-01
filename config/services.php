@@ -37,7 +37,7 @@ return [
 
     'firebase' => [
         'project_id' => env('FIREBASE_PROJECT_ID', 'syscarnet'),
-        'key_file' => env('FIREBASE_SMC_JSON_PATH'),
+        'key_file' => env('FIREBASE_CREDENTIALS') ? base_path(env('FIREBASE_CREDENTIALS')) : null,
     ],
 
 ];

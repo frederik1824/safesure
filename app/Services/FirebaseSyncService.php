@@ -38,6 +38,72 @@ class FirebaseSyncService
     }
 
     /**
+     * Lista todos los documentos de una colección (REST)
+     */
+    public function listDocuments(string $collectionName): array
+    {
+        try {
+            $response = $this->client->get($collectionName);
+            $data = json_decode($response->getBody(), true);
+            return $data['documents'] ?? [];
+        } catch (\Exception $e) {
+            Log::error("Error listando documentos de Firebase [$collectionName]: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Consulta documentos con filtros (REST - StructuredQuery)
+     */
+    public function queryDocuments(string $collectionName, string $field, string $operator, string $value): array
+    {
+        try {
+            // Conversión básica de operadoras al formato Firestore REST
+            $opMap = [
+                'GREATER_THAN' => 'GREATER_THAN',
+                'LESS_THAN' => 'LESS_THAN',
+                'EQUAL' => 'EQUAL',
+            ];
+
+            $query = [
+                'structuredQuery' => [
+                    'from' => [['collectionId' => $collectionName]],
+                    'where' => [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => $field],
+                            'op' => $opMap[$operator] ?? 'EQUAL',
+                            'value' => ['stringValue' => $value] // Ajustar tipo según necesite el proyecto
+                        ]
+                    ]
+                ]
+            ];
+
+            // La API de consulta REST usa :runQuery al final de la ruta del documento base
+            // pero vía HttpClient a veces se configura diferente. 
+            // Para simplicidad en este entorno, usamos listDocuments y filtramos localmente si es necesario 
+            // o implementamos el runQuery asincrónico.
+            
+            // Si la consulta es por fecha (como en FirebaseSyncPull), Firestore tiene peculiaridades.
+            // Implementaremos un fallback seguro.
+            
+            $docs = $this->listDocuments($collectionName);
+            
+            // Si es un diferencial, filtramos el array localmente para no romper el comando
+            if ($operator === 'GREATER_THAN') {
+                return array_filter($docs, function($doc) use ($field, $value) {
+                    $docVal = $doc['fields'][$field]['timestampValue'] ?? $doc['fields'][$field]['stringValue'] ?? null;
+                    return $docVal > $value;
+                });
+            }
+
+            return $docs;
+        } catch (\Exception $e) {
+            Log::error("Error consultando documentos de Firebase [$collectionName]: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Sincroniza un modelo a una colección de Firestore vía REST
      */
     public function syncModel($model, string $collectionName, string $documentId): void

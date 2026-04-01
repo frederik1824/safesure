@@ -278,7 +278,7 @@ class Afiliado extends Model
     public function scopeEnEmpresaReal($query)
     {
         return $query->whereHas('empresaModel', function($q) {
-            $q->where('es_real', true);
+            $q->where('es_verificada', true);
         });
     }
 
