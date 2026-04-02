@@ -6,25 +6,9 @@
 /public/storage
 /public/build
 /storage/logs
-/storage/framework/sessions
-/storage/framework/views
-/storage/framework/cache
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-
-# Debug/Temporary Scripts
-/debug_*.php
-/fix_*.php
-/test_*.php
-/check_*.php
-/list_*.php
-/reset_*.php
-/audit_*.php
-/final_check.php
-/read_docx.php
-/*.txt
-/*.bat
-/sys_safe_carnet.json
+# Storage maintenance for deployments
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/app/public/*
+!**/ .gitkeep

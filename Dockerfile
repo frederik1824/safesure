@@ -31,6 +31,9 @@ WORKDIR $APP_HOME
 # Copy project files
 COPY . .
 
+# Ensure storage and bootstrap/cache directories exist
+RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/app/public bootstrap/cache
+
 # Set permissions
 RUN chown -R www-data:www-data $APP_HOME/storage $APP_HOME/bootstrap/cache
 
