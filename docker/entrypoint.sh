@@ -14,10 +14,21 @@ if [ ! -f "/var/www/html/$(basename ${FIREBASE_CREDENTIALS:-none})" ] && [ ! -f 
     echo "Warning: Firebase JSON file NOT found at current FIREBASE_CREDENTIALS path. Sync will fail."
 fi
 
-# Run migrations (Safe for development, remove for strict manual control if needed)
-php artisan migrate --force
+# Run migrations but don't exit if they fail (prevents container crash)
+php artisan migrate --force || echo "Migrations failed, check DB connection"
+
+# Clear caches for a fresh start
+php artisan cache:clear
 
 # Start PHP-FPM and Nginx
-echo "Starting PHP-FPM and Nginx..."
+echo "Starting PHP-FPM..."
 php-fpm -D
+
+# Wait for FPM to start
+echo "Waiting for PHP-FPM to be ready..."
+while ! nc -z 127.0.0.1 9000; do
+  sleep 1
+done
+
+echo "Starting Nginx..."
 nginx -g 'daemon off;'
