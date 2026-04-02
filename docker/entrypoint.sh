@@ -1,17 +1,23 @@
 #!/bin/bash
 
-# Clear Laravel caches if needed (useful for Dokploy environment changes)
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
+# Clear Laravel caches and then cache them for production speed
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan event:cache
 
 # Symbol link for storage
 php artisan storage:link --force
 
-# Always run migrations in production (use with caution or handle manually if preferred)
-# Remove the next line if you prefer manual migration control from VPS console
-# php artisan migrate --force
+# Verification of credentials (safety check)
+if [ ! -f "/var/www/html/$(basename ${FIREBASE_CREDENTIALS:-none})" ] && [ ! -f "${FIREBASE_CREDENTIALS:-none}" ]; then
+    echo "Warning: Firebase JSON file NOT found at current FIREBASE_CREDENTIALS path. Sync will fail."
+fi
 
-# Start Nginx & PHP-FPM
+# Run migrations (Safe for development, remove for strict manual control if needed)
+php artisan migrate --force
+
+# Start PHP-FPM and Nginx
+echo "Starting PHP-FPM and Nginx..."
 php-fpm -D
 nginx -g 'daemon off;'
