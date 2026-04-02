@@ -17,6 +17,9 @@ fi
 # Run migrations but don't exit if they fail (prevents container crash)
 php artisan migrate --force || echo "Migrations failed, check DB connection"
 
+# Fix database permissions (Critical for SQLite writing)
+chown -R www-data:www-data /var/www/html/database
+
 # Clear caches for a fresh start
 php artisan cache:clear
 
