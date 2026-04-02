@@ -42,11 +42,15 @@ class FirebaseSyncService
      */
     public function listDocuments(string $collectionName): array
     {
+        if (!$this->client) {
+            throw new \RuntimeException("El cliente de Firebase no ha sido inicializado. Verifica tu archivo JSON de credenciales.");
+        }
+
         try {
             $response = $this->client->get($collectionName);
             $data = json_decode($response->getBody(), true);
             return $data['documents'] ?? [];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Error listando documentos de Firebase [$collectionName]: " . $e->getMessage());
             return [];
         }
@@ -97,7 +101,7 @@ class FirebaseSyncService
             }
 
             return $docs;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Error consultando documentos de Firebase [$collectionName]: " . $e->getMessage());
             return [];
         }
@@ -133,7 +137,7 @@ class FirebaseSyncService
                 Log::error("Error REST Firebase [{$collectionName}/{$documentId}]: " . $response->getBody());
             }
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Error sincronizando a Firebase (REST DATA) [{$collectionName}/{$documentId}]: " . $e->getMessage());
         }
     }

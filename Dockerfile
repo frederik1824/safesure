@@ -35,7 +35,7 @@ COPY . .
 RUN chown -R www-data:www-data $APP_HOME/storage $APP_HOME/bootstrap/cache
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-req=ext-grpc
 
 # Install JS dependencies and build assets
 RUN npm install && npm run build
