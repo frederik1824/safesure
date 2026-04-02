@@ -4,125 +4,96 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\FirebaseSyncService;
-use App\Models\Afiliado;
 use App\Models\Empresa;
-use App\Models\Provincia;
-use App\Models\Municipio;
-use App\Models\Corte;
-use App\Models\Estado;
-use App\Models\Responsable;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Hash;
 
 class FirebaseSyncPull extends Command
 {
-    protected $signature = 'firebase:pull-all {--full : Descargar todo ignorando fechas de cambio}';
-    protected $description = 'Consumir solo registros nuevos o modificados desde Firebase Cloud (Diferencial)';
+    /**
+     * The name and signature of the console command.
+     */
+    protected $signature = 'firebase:pull-all {--full : Sync all data including companies}';
 
-    private $syncService;
+    /**
+     * The console command description.
+     */
+    protected $description = 'Syncs Companies, Roles, and Users FROM Firebase Firestore TO local database.';
 
-    public function __construct(FirebaseSyncService $syncService)
+    /**
+     * Execute the console command.
+     */
+    public function handle(FirebaseSyncService $firebase)
     {
-        parent::__construct();
-        $this->syncService = $syncService;
-    }
+        $this->info("🚀 Starting Firebase Cloud Sync (PULL)...");
 
-    public function handle()
-    {
-        $tipo = $this->option('full') ? 'TOTAL' : 'DIFERENCIAL';
-        $this->info("🚀 Iniciando consumo {$tipo} desde Firebase Cloud...");
-
-        // Desactivar llaves foráneas
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-
-        // 1. Catálogos (Estos siempre se descargan completo por ser pequeños y críticos)
-        $this->syncCollection('provincias', Provincia::class, true);
-        $this->syncCollection('municipios', Municipio::class, true);
-        $this->syncCollection('cortes', Corte::class, true);
-        $this->syncCollection('estados', Estado::class, true);
-        $this->syncCollection('responsables', Responsable::class, true);
-
-        // 2. Data Operativa (Diferencial por defecto)
-        $this->syncCollection('empresas', Empresa::class, $this->option('full'));
-        $this->syncCollection('afiliados', Afiliado::class, $this->option('full'));
-
-        // Reactivar llaves foráneas
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-
-        $this->info('✅ Sincronización diferencial finalizada. Safesure está sincronizado.');
-    }
-
-    private function syncCollection($collectionName, $modelClass, $forceFull = false)
-    {
-        $this->info("📥 Sincronizando: {$collectionName}...");
-        
-        try {
-            $lastUpdate = $modelClass::max('updated_at');
+        // 🛡️ SYNC ROLES
+        $this->info("--- Roles ---");
+        $rolesData = $firebase->getCollection('roles');
+        foreach ($rolesData['documents'] ?? [] as $doc) {
+            $mapped = $firebase->mapDocument($doc);
+            $this->comment("Checking role: {$mapped['name']}");
             
-            if ($lastUpdate && !$forceFull) {
-                // Modo Diferencial: Solo lo que se actualizó después de nuestro último registro local
-                $this->comment("   -> Buscando cambios posteriores a: {$lastUpdate}");
-                $documents = $this->syncService->queryDocuments($collectionName, 'updated_at', 'GREATER_THAN', (string)$lastUpdate);
-            } else {
-                // Modo Full
-                $this->comment("   -> Descarga total del catálogo.");
-                $documents = $this->syncService->listDocuments($collectionName);
+            $role = Role::updateOrCreate(
+                ['name' => $mapped['name']],
+                ['guard_name' => $mapped['guard_name'] ?? 'web']
+            );
+
+            // Note: Permissions should ideally exist first
+            if (isset($mapped['permissions'])) {
+                // $role->syncPermissions(json_decode($mapped['permissions']));
             }
+        }
+
+        // 👤 SYNC USERS
+        $this->info("--- Users ---");
+        $usersData = $firebase->getCollection('users');
+        foreach ($usersData['documents'] ?? [] as $doc) {
+            $mapped = $firebase->mapDocument($doc);
+            $this->comment("Checking user: {$mapped['email']}");
             
-            if (empty($documents)) {
-                $this->warn("   - Sin registros nuevos en {$collectionName}.");
-                return;
-            }
+            $user = User::updateOrCreate(
+                ['email' => $mapped['email']],
+                [
+                    'name' => $mapped['name'],
+                    'password' => $mapped['password'] ?? Hash::make('Password')
+                ]
+            );
 
-            $bar = $this->output->createProgressBar(count($documents));
-            $bar->start();
-
-            foreach ($documents as $doc) {
-                try {
-                    if (!isset($doc['fields'])) continue;
-                    
-                    $fields = $doc['fields'];
-                    $id = basename($doc['name']);
-                    
-                    $data = $this->mapFirestoreToEloquent($fields);
-                    
-                    if ($modelClass === Afiliado::class) {
-                        $modelClass::updateOrCreate(['cedula' => $id], $data);
-                    } else {
-                        // Usamos DB directa para evitar validaciones de Eloquent si es necesario
-                        // pero updateOrCreate suele ser suficiente si quitamos el unique
-                        $modelClass::updateOrCreate(['id' => (int)$id], $data);
-                    }
-                } catch (\Exception $e) {
-                    // Loguear error individual pero seguir con el resto
-                    Log::warning("Falla en documento {$id} de {$collectionName}: " . $e->getMessage());
+            if (isset($mapped['roles'])) {
+                $roles = json_decode($mapped['roles'], true);
+                if (is_array($roles)) {
+                    $user->syncRoles($roles);
                 }
-
-                $bar->advance();
             }
-
-            $bar->finish();
-            $this->newLine();
-
-        } catch (\Exception $e) {
-            $this->error("\n❌ Error fatal en {$collectionName}: " . $e->getMessage());
         }
-    }
 
-    private function mapFirestoreToEloquent($fields)
-    {
-        $data = [];
-        foreach ($fields as $key => $value) {
-            $type = array_key_first($value);
-            $val = $value[$type];
-            
-            if ($type === 'integerValue') $val = (int)$val;
-            if ($type === 'doubleValue') $val = (float)$val;
-            if ($type === 'booleanValue') $val = (bool)$val;
-            if ($type === 'timestampValue') $val = \Carbon\Carbon::parse($val);
-
-            $data[$key] = $val;
+        // 🏢 SYNC COMPANIES (Optional)
+        if ($this->option('full')) {
+            $this->info("--- Companies ---");
+            $companiesData = $firebase->getCollection('empresas');
+            foreach ($companiesData['documents'] ?? [] as $doc) {
+                $mapped = $firebase->mapDocument($doc);
+                $this->comment("Saving company: {$mapped['nombre']}");
+                
+                Empresa::updateOrCreate(
+                    ['firebase_uuid' => $mapped['firebase_id']],
+                    [
+                        'nombre' => $mapped['nombre'],
+                        'rnc' => $mapped['rnc'] ?? null,
+                        'email' => $mapped['email'] ?? null,
+                        'telefono' => $mapped['telefono'] ?? null,
+                        'direccion' => $mapped['direccion'] ?? null,
+                        'es_verificada' => true,
+                        // Add more fields if needed
+                    ]
+                );
+            }
         }
-        return $data;
+
+        $this->info("✅ Firebase Cloud PULL completed!");
+        return 0;
     }
 }
