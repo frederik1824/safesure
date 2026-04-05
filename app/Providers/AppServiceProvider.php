@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('app.env') === 'production') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         \Illuminate\Database\Eloquent\Model::preventLazyLoading(! app()->isProduction());
 
         // Implicitly grant "Super-Admin" role all permissions
