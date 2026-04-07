@@ -5,12 +5,27 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
+    <!-- Metaetiquetas de Reputación para Antivirus -->
+    <meta name="description" content="Plataforma de Gestión y Logística SysSAFE Carnet - Control de Admisión y Entrega de Carnets.">
+    <meta name="keywords" content="logistica, seguros, carnet, gestion, cmd, safesure">
+    <meta name="author" content="SysSAFE Dev Team">
+    <meta name="robots" content="index, follow">
+
+    <!-- OpenGraph (Para redes y filtros de seguridad) -->
+    <meta property="og:title" content="{{ config('app.name', 'ARS CMD Dashboard') }}">
+    <meta property="og:description" content="Portal oficial de gestión de carnets y logística ARS CMD.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    
+    <!-- Favicon (Esencial para reputación) -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logo_safe.png') }}">
+
     <title>{{ config('app.name', 'ARS CMD Dashboard') }}</title>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
     <!-- Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
