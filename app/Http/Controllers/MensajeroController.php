@@ -22,7 +22,7 @@ class MensajeroController extends Controller
     {
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
-            'cedula' => 'required|string|unique:mensajeros,cedula',
+            'cedula' => 'nullable|string|unique:mensajeros,cedula',
             'telefono' => 'nullable|string|max:20',
             'vehiculo_placa' => 'nullable|string|max:20',
             'vehiculo_tipo' => 'required|in:Motor,Carro,Camioneta',
@@ -44,7 +44,7 @@ class MensajeroController extends Controller
     {
         $data = $request->validate([
             'nombre' => 'required|string|max:255',
-            'cedula' => 'required|string|unique:mensajeros,cedula,' . $mensajero->id,
+            'cedula' => 'nullable|string|unique:mensajeros,cedula,' . $mensajero->id,
             'telefono' => 'nullable|string|max:20',
             'vehiculo_placa' => 'nullable|string|max:20',
             'vehiculo_tipo' => 'required|in:Motor,Carro,Camioneta',

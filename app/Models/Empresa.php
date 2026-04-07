@@ -13,6 +13,14 @@ class Empresa extends Model
 {
     use Auditable, HasUuids, SoftDeletes;
     
+    /**
+     * Define which columns should be generated as UUIDs.
+     */
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
+
     protected static function boot()
     {
         parent::boot();

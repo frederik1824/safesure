@@ -45,9 +45,9 @@
                             <span class="material-symbols-outlined text-sm text-primary">badge</span>
                             Cédula (ID)
                         </label>
-                        <input type="text" name="cedula" value="{{ old('cedula', $mensajero->cedula) }}" required
+                        <input type="text" name="cedula" value="{{ old('cedula', $mensajero->cedula) }}"
                                class="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
-                               placeholder="000-0000000-0">
+                               placeholder="000-0000000-0 (Opcional)">
                         @error('cedula') <p class="text-rose-500 text-xs font-bold pl-2">{{ $message }}</p> @enderror
                     </div>
 

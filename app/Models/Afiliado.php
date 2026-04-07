@@ -15,6 +15,14 @@ class Afiliado extends Model
     use Auditable, HasUuids, SoftDeletes;
 
     /**
+     * Define which columns should be generated as UUIDs.
+     */
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
+    }
+
+    /**
      * Get the route key for the model.
      */
     public function getRouteKeyName(): string

@@ -49,19 +49,42 @@ Para el paso inicial, exportamos los datos de XAMPP e inyectamos el archivo `.sq
 
 El sistema cuenta con un motor de sincronización bidireccional:
 
-### Descargar desde Firebase (Pull)
-Usa este comando en el servidor para traer empresas, roles y usuarios:
+### 🔄 Sincronización de Datos Reales (Firestore)
+
+Una vez el sistema esté desplegado, el flujo de datos para mover la "Fuente de Verdad" (CMD) hacia la Nube y Producción es el siguiente:
+
+### 1. Limpieza de Firebase (Borrar Datos Obsoletos)
+Si hay errores en los datos de la nube, límpialos desde la carpeta local **`sys_safe_carnet`**:
+```powershell
+php artisan firebase:wipe
+```
+*Este comando borra todas las empresas, afiliados y roles de Firebase para empezar de cero.*
+
+### 2. Subida desde CMD (Source of Truth)
+En la carpeta local **`sys_carnet`**, usa los comandos divididos por seguridad y control:
+
+*   **Subir Empresas**:
+    ```powershell
+    php artisan firebase:push --companies
+    ```
+*   **Subir Afiliados (6,000+ registros)**:
+    ```powershell
+    php artisan firebase:push --affiliates
+    ```
+    *Nota: Este proceso puede tardar unos minutos. Incluye una barra de progreso.*
+
+### 3. Descarga en Producción (VPS)
+Para actualizar el servidor con los datos reales subidos, entra a tu SSH y ejecuta:
+
 ```bash
 docker exec -it $(docker ps -q --filter "name=systemcarnet") php artisan firebase:pull-all --full
 ```
 
-### Subir a Firebase (Push)
-Usa este comando en tu PC Local para subir tus cambios de XAMPP a la nube:
+### 🛠️ Reparación Post-Importación (Fix 404)
+Si tras importar datos masivamente los enlaces de los afiliados o empresas dan **Error 404**, es porque les falta el identificador seguro (UUID). Ejecuta este comando para repararlos:
 ```bash
-php artisan firebase:push
+php artisan db:fix-uuids
 ```
-
----
 
 ## 🔧 Comandos de Mantenimiento Comunes
 
@@ -81,5 +104,11 @@ php artisan storage:link --force
 
 ---
 
+---
+
+## 💡 Notas de Configuración Especiales
+- **Mensajeros**: La cédula ahora es un campo **opcional** (nullable). Se puede registrar solo con nombre y vehículo si es necesario.
+- **Seguridad de Rutas**: Todas las rutas públicas usan UUIDs. El comando `db:fix-uuids` es vital para mantener la integridad tras migraciones manuales de SQL.
+
 **¡Despliegue completado con éxito!** 🎉
-*Documentado por: Antigravity AI el 02 de Abril de 2026.*
+*Documentado por: Antigravity AI el 07 de Abril de 2026 (Actualización de UUIDs y Mensajeros).*

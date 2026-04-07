@@ -325,7 +325,7 @@
                                     <a href="{{ route('afiliados.show', $afiliado) }}" class="p-2 text-slate-400 hover:text-primary transition-colors" title="Detalle"><span class="material-symbols-outlined text-[1.25rem]">visibility</span></a>
                                     <a href="{{ route('afiliados.edit', $afiliado) }}" class="p-2 text-slate-400 hover:text-primary transition-colors" title="Editar"><span class="material-symbols-outlined text-[1.25rem]">edit</span></a>
                                     @if($afiliado->estado?->nombre !== 'Completado')
-                                    <button type="button" onclick="quickComplete({{ $afiliado->id }}, '{{ $afiliado->nombre_completo }}')" class="p-2 text-slate-400 hover:text-emerald-500 transition-colors" title="Marcar Completado">
+                                    <button type="button" onclick="quickComplete('{{ $afiliado->uuid }}', '{{ $afiliado->nombre_completo }}')" class="p-2 text-slate-400 hover:text-emerald-500 transition-colors" title="Marcar Completado">
                                         <span class="material-symbols-outlined text-[1.25rem]">check_circle</span>
                                     </button>
                                     @endif
@@ -687,7 +687,7 @@
         }
 
         // Acciones Individuales
-        function quickComplete(id, name) {
+        function quickComplete(uuid, name) {
             Swal.fire({
                 title: 'Finalizar Carnetización',
                 html: `<p class="text-sm">¿Estás seguro de marcar como <strong>Completado</strong> a:<br><span class="text-primary font-bold">${name}</span>?</p>`,
@@ -701,7 +701,7 @@
                 if (result.isConfirmed) {
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = `/afiliados/${id}/estado_single`;
+                    form.action = `/afiliados/${uuid}/estado_single`;
                     
                     const csrf = document.createElement('input');
                     csrf.type = 'hidden';

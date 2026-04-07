@@ -4,113 +4,215 @@ namespace App\Services;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 /**
- * Service to sync companies, roles, and other data between local and Firebase.
- * Uses Firestore REST API to avoid complex gRPC builds in production.
+ * Service to sync data with Firebase Firestore using the REST API.
+ * This version uses manual JWT signing (RS256) to authenticate, 
+ * avoiding the need for the gRPC extension or heavy Google SDKs.
  */
 class FirebaseSyncService
 {
-    protected $baseUrl;
     protected $client;
     protected $projectId;
+    protected $credentials;
+    protected $accessToken;
 
-    /**
-     * @param string|null $credentialsPath Custom path, or uses ENV if null
-     */
-    public function __construct($credentialsPath = null)
+    public function __construct()
     {
         $this->projectId = env('FIREBASE_PROJECT_ID', 'syscarnet');
-        $this->baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
-
-        $jsonPath = $credentialsPath ?? base_path(env('FIREBASE_CREDENTIALS', 'storage/app/firebase-auth.json'));
+        $jsonPath = base_path(env('FIREBASE_CREDENTIALS', 'firebase-auth.json'));
 
         if (!file_exists($jsonPath)) {
-            Log::warning("Firebase Sync: Credentials file NOT FOUND at {$jsonPath}. Client disabled.");
-            $this->client = null;
+            Log::warning("Firebase Sync: Credentials file NOT FOUND at {$jsonPath}.");
             return;
         }
 
-        try {
-            // Get Google Auth Token via Service Account JSON
-            // In a production environment, we'd use Google\Auth to get the Bearer token
-            // For now, we assume public but initialized client
-            $this->client = new Client([
-                'timeout' => 10.0,
-                'verify' => false, // For internal network environments if needed
-            ]);
-        } catch (\Throwable $e) {
-            Log::error("Firebase Sync: Initialization failed: " . $e->getMessage());
-            $this->client = null;
-        }
+        $this->credentials = json_decode(file_get_contents($jsonPath), true);
+        $this->client = new Client(['timeout' => 15.0]);
     }
 
     /**
-     * Basic GET collection from Firestore
+     * Gets an OAuth2 Access Token from Google using the Service Account JSON
      */
-    public function getCollection(string $collection): array
+    protected function getAccessToken(): ?string
     {
-        if (!$this->client) {
-            return ['error' => 'Firebase client not initialized'];
+        // Check cache first to avoid repetitive auth calls
+        if ($token = Cache::get('firebase_access_token')) {
+            return $token;
         }
 
         try {
-            $response = $this->client->get("{$this->baseUrl}/{$collection}");
-            return json_decode($response->getBody()->getContents(), true);
+            $now = time();
+            $header = base64_encode(json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
+            $payload = base64_encode(json_encode([
+                'iss' => $this->credentials['client_email'],
+                'scope' => 'https://www.googleapis.com/auth/datastore',
+                'aud' => 'https://oauth2.googleapis.com/token',
+                'iat' => $now,
+                'exp' => $now + 3600
+            ]));
+
+            // Helper for base64UrlEncode
+            $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], $header);
+            $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], $payload);
+
+            $signatureInput = $base64UrlHeader . "." . $base64UrlPayload;
+            $signature = '';
+            
+            openssl_sign($signatureInput, $signature, $this->credentials['private_key'], 'sha256');
+            $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+
+            $jwt = $signatureInput . "." . $base64UrlSignature;
+
+            $response = $this->client->post('https://oauth2.googleapis.com/token', [
+                'form_params' => [
+                    'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    'assertion' => $jwt
+                ]
+            ]);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+            $token = $data['access_token'];
+
+            // Cache for 55 minutes
+            Cache::put('firebase_access_token', $token, 3300);
+            return $token;
+
         } catch (\Throwable $e) {
-            Log::error("Firebase Sync Error ({$collection}): " . $e->getMessage());
-            return ['error' => $e->getMessage()];
+            Log::error("Firebase Auth Error: " . $e->getMessage());
+            return null;
         }
     }
 
     /**
-     * Maps Firestore document to a flat array
+     * Retrieve all documents from a Firestore collection via REST (Handles Pagination)
      */
-    public function mapDocument(array $doc): array
+    public function getCollection(string $collectionName): array
+    {
+        $token = $this->getAccessToken();
+        if (!$token) return [];
+
+        $results = [];
+        $pageToken = null;
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
+            
+            do {
+                $query = $pageToken ? "?pageToken={$pageToken}" : "";
+                $response = $this->client->get("{$baseUrl}/{$collectionName}{$query}", [
+                    'headers' => ['Authorization' => "Bearer {$token}"]
+                ]);
+
+                $data = json_decode($response->getBody()->getContents(), true);
+                
+                foreach ($data['documents'] ?? [] as $doc) {
+                    $results[] = $this->mapFirestoreRestDoc($doc);
+                }
+
+                $pageToken = $data['nextPageToken'] ?? null;
+
+            } while ($pageToken);
+
+            return $results;
+
+        } catch (\Throwable $e) {
+            Log::error("Firebase Sync Error (GET $collectionName): " . $e->getMessage());
+            return $results;
+        }
+    }
+
+    /**
+     * Compatibility alias for Push (used by Observers)
+     */
+    public function syncData(array $data, string $collection, string $documentId)
+    {
+        return $this->push($collection, $documentId, $data);
+    }
+
+    /**
+     * Triggers a sync for an Eloquent model (used by legacy components)
+     */
+    public function syncModel($model, string $collectionName, string $documentId): void
+    {
+        $this->push($collectionName, $documentId, $model->toArray());
+    }
+
+    /**
+     * Pushes a local data array to a Firestore collection via REST (PATCH)
+     */
+    public function push(string $collection, string $documentId, array $data)
+    {
+        $token = $this->getAccessToken();
+        if (!$token) return false;
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
+            $formattedData = ['fields' => $this->formatForFirestoreRest($data)];
+
+            $this->client->patch("{$baseUrl}/{$collection}/{$documentId}", [
+                'headers' => ['Authorization' => "Bearer {$token}"],
+                'json' => $formattedData
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error("Firebase Push Error ({$collection}/{$documentId}): " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Deletes a document from Firestore via REST (DELETE)
+     */
+    public function deleteDocument(string $collection, string $documentId)
+    {
+        $token = $this->getAccessToken();
+        if (!$token) return false;
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
+            $this->client->delete("{$baseUrl}/{$collection}/{$documentId}", [
+                'headers' => ['Authorization' => "Bearer {$token}"]
+            ]);
+            return true;
+        } catch (\Throwable $e) {
+            Log::error("Firebase Delete Error ({$collection}/{$documentId}): " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Maps a Firestore REST API document (with typed fields) to a flat array
+     */
+    protected function mapFirestoreRestDoc(array $doc): array
     {
         $fields = $doc['fields'] ?? [];
         $mapped = [];
 
-        // Extract ID from the path: projects/.../documents/collection/ID
         $nameParts = explode('/', $doc['name'] ?? '');
         $mapped['firebase_id'] = end($nameParts);
 
         foreach ($fields as $key => $values) {
-            // Firestore returns keys like: "stringValue", "integerValue", etc.
-            $mapped[$key] = reset($values);
+            // Firestore REST returns: "stringValue": "...", "integerValue": "...", etc.
+            $val = reset($values);
+            $type = key($values);
+
+            if ($type === 'integerValue') $val = (int)$val;
+            if ($type === 'doubleValue') $val = (float)$val;
+            if ($type === 'booleanValue') $val = (bool)$val;
+            
+            $mapped[$key] = $val;
         }
 
         return $mapped;
     }
 
     /**
-     * Pushes a local data array to a Firestore collection
+     * Formats a flat array into Firestore REST's typed field structure
      */
-    public function push(string $collection, string $documentId, array $data)
-    {
-        if (!$this->client) {
-            return ['error' => 'Firebase client not initialized'];
-        }
-
-        try {
-            // Firestore REST API requires data wrapped in 'fields' with typed values
-            $formattedData = ['fields' => $this->formatForFirestore($data)];
-            
-            $response = $this->client->patch("{$this->baseUrl}/{$collection}/{$documentId}", [
-                'json' => $formattedData
-            ]);
-
-            return json_decode($response->getBody()->getContents(), true);
-        } catch (\Throwable $e) {
-            Log::error("Firebase Push Error ({$collection}): " . $e->getMessage());
-            return ['error' => $e->getMessage()];
-        }
-    }
-
-    /**
-     * Converts a flat associative array into Firestore's typed 'fields' structure
-     */
-    private function formatForFirestore(array $data): array
+    protected function formatForFirestoreRest(array $data): array
     {
         $fields = [];
         foreach ($data as $key => $value) {
@@ -118,10 +220,11 @@ class FirebaseSyncService
                 $fields[$key] = ['nullValue' => null];
             } elseif (is_bool($value)) {
                 $fields[$key] = ['booleanValue' => $value];
-            } elseif (is_int($value) || is_float($value)) {
-                $fields[$key] = ['doubleValue' => (float)$value];
+            } elseif (is_int($value)) {
+                $fields[$key] = ['integerValue' => (string)$value];
+            } elseif (is_float($value)) {
+                $fields[$key] = ['doubleValue' => $value];
             } elseif (is_array($value)) {
-                // For simplicity, treat arrays as JSON strings for now
                 $fields[$key] = ['stringValue' => json_encode($value)];
             } else {
                 $fields[$key] = (string)$value === '' ? ['nullValue' => null] : ['stringValue' => (string)$value];
