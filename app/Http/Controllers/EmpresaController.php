@@ -24,7 +24,8 @@ class EmpresaController extends Controller
     {
         $stats = [
             'total' => Empresa::count(),
-            'reales' => Empresa::where('es_verificada', true)->count(),
+            'reales' => Empresa::where('es_real', true)->count(),
+            'verificadas' => Empresa::where('es_verificada', true)->count(),
             'filiales' => Empresa::where('es_filial', true)->count(),
         ];
 
@@ -71,9 +72,8 @@ class EmpresaController extends Controller
     public function show(Empresa $empresa)
     {
         // Real-time pull from Firebase for Empresas
-        if ($empresa->rnc) {
-            $documentId = preg_replace('/[^0-9]/', '', $empresa->rnc);
-            if ($remoteData = $this->firebaseSync->pull('empresas', $documentId)) {
+        if ($empresa->uuid) {
+            if ($remoteData = $this->firebaseSync->pull('empresas', $empresa->uuid)) {
                 $this->firebaseSync->syncLocalModel($empresa, $remoteData);
             }
         }
@@ -113,9 +113,8 @@ class EmpresaController extends Controller
     public function edit(Empresa $empresa)
     {
         // Real-time pull before editing
-        if ($empresa->rnc) {
-            $documentId = preg_replace('/[^0-9]/', '', $empresa->rnc);
-            if ($remoteData = $this->firebaseSync->pull('empresas', $documentId)) {
+        if ($empresa->uuid) {
+            if ($remoteData = $this->firebaseSync->pull('empresas', $empresa->uuid)) {
                 $this->firebaseSync->syncLocalModel($empresa, $remoteData);
             }
         }

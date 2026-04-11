@@ -60,6 +60,7 @@
                         <span class="material-symbols-outlined text-[16px]">badge</span> {{ $afiliado->cedula }}
                     </p>
                     
+                    <div class="inline-flex items-center px-4 py-2 border rounded-full {{ $afiliado->status_color_class }} shadow-sm">
                         <div class="w-1.5 h-1.5 rounded-full mr-2 
                             {{ (str_contains($afiliado->status_color_class, 'emerald') || str_contains($afiliado->status_color_class, 'blue')) ? 'bg-current' : 'bg-current animate-pulse' }}"></div>
                         <span class="text-[0.65rem] font-black uppercase tracking-widest">{{ $afiliado->estado?->nombre ?? 'Sin Estado' }}</span>

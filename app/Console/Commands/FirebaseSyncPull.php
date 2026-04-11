@@ -63,11 +63,12 @@ class FirebaseSyncPull extends Command
             $this->info("--- Companies ---");
             $companiesData = $firebase->getCollection('empresas');
             foreach ($companiesData as $mapped) {
-                // RNC acts as unique ID for Companies in Firebase context
-                Empresa::updateOrCreate(
-                    ['rnc' => $mapped['rnc']],
-                    array_intersect_key($mapped, array_flip((new Empresa)->getFillable()))
-                );
+                if (isset($mapped['uuid'])) {
+                    Empresa::updateOrCreate(
+                        ['uuid' => $mapped['uuid']],
+                        array_intersect_key($mapped, array_flip((new Empresa)->getFillable()))
+                    );
+                }
             }
 
             $this->info("--- Affiliates (Real-time Mirror) ---");

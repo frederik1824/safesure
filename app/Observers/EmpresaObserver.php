@@ -24,8 +24,8 @@ class EmpresaObserver
             // Cargar el promotor para transparencia con CMD
             $empresa->load('promotor');
             
-            // Limpiamos el RNC para usarlo como ID único en Firestore
-            $documentId = preg_replace('/[^0-9]/', '', $empresa->rnc);
+            // Usamos el UUID como identificador único en Firebase para máxima compatibilidad con CMD
+            $documentId = $empresa->uuid;
             
             // Creamos un payload enriquecido para Firebase (SOLO ATRIBUTOS PLANOS)
             $data = $empresa->getAttributes();
@@ -59,7 +59,7 @@ class EmpresaObserver
     public function deleted(Empresa $empresa): void
     {
         if ($empresa->rnc) {
-            $documentId = preg_replace('/[^0-9]/', '', $empresa->rnc);
+            $documentId = $empresa->uuid;
             $this->syncService->deleteDocument('empresas', $documentId);
         }
     }

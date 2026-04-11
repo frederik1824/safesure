@@ -375,7 +375,7 @@ class AfiliadoController extends Controller
             );
 
             DB::commit();
-            return redirect()->route('afiliados.index')->with('success', 'Afiliado actualizado correctamente.');
+            return back()->with('success', 'Afiliado actualizado correctamente.');
         } catch (Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage());
