@@ -23,8 +23,9 @@ class FirebaseSyncPull extends Command
      */
     protected $signature = 'firebase:pull-all 
                             {--full : Sync all data including companies and affiliates} 
-                            {--hours= : Sync only records modified in the last N hours}
+                            {--hours= : Sync only records created in the last N hours}
                             {--reales : Sync only verified real companies}
+                            {--verificadas : Sync only verified companies}
                             {--debug : Output field names for debugging}';
     
     /**
@@ -77,32 +78,22 @@ class FirebaseSyncPull extends Command
         });
 
         // 4. SYNC COMPANIES & AFILIADOS (Heavy Data)
-        if ($this->option('full') || $since || $this->option('reales')) {
+        if ($this->option('full') || $since || $this->option('reales') || $this->option('verificadas')) {
             $this->info("--- Companies ---");
             $filters = [];
-            if ($since) $filters['updated_at'] = $since;
+            if ($since) $filters['created_at'] = $since;
             if ($this->option('reales')) $filters['es_real'] = true;
+            if ($this->option('verificadas')) $filters['es_verificada'] = true;
 
             $companiesData = empty($filters) ? $firebase->getCollection('empresas') : $firebase->search('empresas', $filters);
             
-            // Fallback to created_at if since is set but no results found
-            if (empty($companiesData) && $since) {
-                $this->warn("   No results with updated_at. Trying created_at...");
-                $companiesData = $firebase->search('empresas', ['created_at' => $since], 'created_at');
-            }
-
             if ($this->option('debug') && !empty($companiesData)) $this->line("Fields: " . implode(', ', array_keys($companiesData[0])));
 
             $this->processCollection($firebase, Empresa::class, $companiesData, 'uuid');
 
             $this->info("--- Affiliates (Real-time Mirror) ---");
-            $affiliatesFilters = $since ? ['updated_at' => $since] : [];
+            $affiliatesFilters = $since ? ['created_at' => $since] : [];
             $afiliadosData = empty($affiliatesFilters) ? $firebase->getCollection('afiliados') : $firebase->search('afiliados', $affiliatesFilters);
-
-            if (empty($afiliadosData) && $since) {
-                $this->warn("   No results with updated_at. Trying created_at...");
-                $afiliadosData = $firebase->search('afiliados', ['created_at' => $since], 'created_at');
-            }
 
             if ($this->option('debug') && !empty($afiliadosData)) $this->line("Fields: " . implode(', ', array_keys($afiliadosData[0])));
 
@@ -116,11 +107,8 @@ class FirebaseSyncPull extends Command
     protected function syncCollection($firebase, $collection, $modelClass, $uniqueFields, $since = null)
     {
         $this->info("--- Syncing Catalog: {$collection} ---");
-        $data = $since ? $firebase->search($collection, ['updated_at' => $since]) : $firebase->getCollection($collection);
-        
-        if (empty($data) && $since) {
-             $data = $firebase->search($collection, ['created_at' => $since], 'created_at');
-        }
+        $data = $since ? $firebase->search($collection, ['created_at' => $since]) : $firebase->getCollection($collection);
+
         
         $bar = $this->output->createProgressBar(count($data));
         $bar->start();

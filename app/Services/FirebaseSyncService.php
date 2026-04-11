@@ -152,7 +152,7 @@ class FirebaseSyncService
      * Search documents using Structured Query (Incremental Sync)
      * Supports multiple filters (field => value)
      */
-    public function search(string $collection, array $filters = [], string $orderBy = 'updated_at'): array
+    public function search(string $collection, array $filters = [], string $orderBy = 'created_at'): array
     {
         $token = $this->getAccessToken();
         if (!$token) return [];
@@ -175,7 +175,11 @@ class FirebaseSyncService
                         ]
                     ];
                 } else {
-                    // Default to string comparison (>=) for dates
+                    // Si el valor parece una fecha, usamos el formato ISO que usa Firebase
+                    if (preg_match('/^\d{4}-\d{2}-\d{2}/', $value)) {
+                        $value = \Carbon\Carbon::parse($value)->toIso8601ZuluString('microsecond');
+                    }
+
                     $filterList[] = [
                         'fieldFilter' => [
                             'field' => ['fieldPath' => $field],
