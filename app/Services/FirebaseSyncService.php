@@ -152,7 +152,7 @@ class FirebaseSyncService
      * Search documents using Structured Query (Incremental Sync)
      * Supports multiple filters (field => value)
      */
-    public function search(string $collection, array $filters = [], string $orderBy = 'created_at'): array
+    public function search(string $collection, array $filters = [], string $orderBy = null): array
     {
         $token = $this->getAccessToken();
         if (!$token) return [];
@@ -165,7 +165,11 @@ class FirebaseSyncService
             ];
 
             $filterList = [];
+            $firstFilterField = null;
+
             foreach ($filters as $field => $value) {
+                if ($firstFilterField === null) $firstFilterField = $field;
+
                 if (is_bool($value)) {
                     $filterList[] = [
                         'fieldFilter' => [
@@ -196,9 +200,11 @@ class FirebaseSyncService
                 $structuredQuery['where'] = $filterList[0];
             }
 
-            if ($orderBy && count($filterList) > 0) {
+            // En Firestore, el primer orderBy debe ser el mismo que el campo del filtro de rango
+            $sortField = $orderBy ?? $firstFilterField;
+            if ($sortField) {
                 $structuredQuery['orderBy'] = [
-                    ['field' => ['fieldPath' => $orderBy], 'direction' => 'ASCENDING']
+                    ['field' => ['fieldPath' => $sortField], 'direction' => 'ASCENDING']
                 ];
             }
 
