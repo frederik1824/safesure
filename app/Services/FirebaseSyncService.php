@@ -21,14 +21,25 @@ class FirebaseSyncService
     public function __construct()
     {
         $this->projectId = env('FIREBASE_PROJECT_ID', 'syscarnet');
-        $jsonPath = base_path(env('FIREBASE_CREDENTIALS', 'firebase-auth.json'));
+        
+        // 1. Intentar cargar desde variable de entorno (JSON directo)
+        $rawJson = env('FIREBASE_CREDENTIALS_JSON');
+        
+        if ($rawJson) {
+            $this->credentials = json_decode($rawJson, true);
+        } else {
+            // 2. Fallback al archivo físico si no hay variable de entorno
+            $jsonPath = base_path(env('FIREBASE_CREDENTIALS', 'firebase-auth.json'));
+            if (file_exists($jsonPath)) {
+                $this->credentials = json_decode(file_get_contents($jsonPath), true);
+            }
+        }
 
-        if (!file_exists($jsonPath)) {
-            Log::warning("Firebase Sync: Credentials file NOT FOUND at {$jsonPath}.");
+        if (!$this->credentials) {
+            Log::warning("Firebase Sync: No se encontraron credenciales válidas (verifica FIREBASE_CREDENTIALS_JSON o el archivo físico).");
             return;
         }
 
-        $this->credentials = json_decode(file_get_contents($jsonPath), true);
         $this->client = new Client(['timeout' => 15.0]);
     }
 

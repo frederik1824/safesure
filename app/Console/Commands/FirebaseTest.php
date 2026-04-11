@@ -37,9 +37,10 @@ class FirebaseTest extends Command
         } else {
             $this->error('❌ FALLÓ la conexión. Revisa los logs de Laravel (storage/logs/laravel.log) para ver el error detallado.');
             $this->line('Causas comunes:');
-            $this->line('1. El archivo JSON de credenciales no existe en la ruta especificada.');
-            $this->line('2. El JSON está mal formado o no tiene la "private_key".');
-            $this->line('3. El ID del proyecto en el .env no coincide con el del JSON.');
+            $this->line('1. La variable FIREBASE_CREDENTIALS_JSON no está definida en Dokploy.');
+            $this->line('2. El archivo JSON de credenciales no existe (si no usas la variable de entorno).');
+            $this->line('3. El JSON está mal formado o no tiene la "private_key".');
+            $this->line('4. El ID del proyecto en el .env no coincide con el del JSON.');
         }
 
         return $success ? 0 : 1;
