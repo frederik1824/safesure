@@ -26,6 +26,11 @@ Route::middleware('auth')->group(function () {
         Route::resource('responsables', \App\Http\Controllers\ResponsableController::class);
         Route::resource('estados', \App\Http\Controllers\EstadoController::class);
         Route::resource('proveedores', \App\Http\Controllers\ProveedorController::class);
+        
+        // Centro de Sincronización Firebase
+        Route::get('firebase-sync', [\App\Http\Controllers\FirebaseSyncController::class, 'index'])->name('admin.sync.index');
+        Route::post('firebase-sync/trigger', [\App\Http\Controllers\FirebaseSyncController::class, 'trigger'])->name('admin.sync.trigger');
+        
         Route::get('auditoria', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('admin.audit.index');
     });
 
