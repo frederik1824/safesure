@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Empresa;
 use App\Services\FirebaseSyncService;
+use Illuminate\Support\Facades\Log;
 
 class EmpresaObserver
 {
@@ -41,10 +42,14 @@ class EmpresaObserver
             }
 
             // Sincronizar toda la data enriquecida
-            $this->syncService->syncData($data, 'empresas', $documentId);
+            $success = $this->syncService->syncData($data, 'empresas', $documentId);
             
-            // Actualizar marca de tiempo sin disparar eventos
-            $empresa->updateQuietly(['firebase_synced_at' => now()]);
+            if ($success) {
+                // Actualizar marca de tiempo sin disparar eventos
+                $empresa->updateQuietly(['firebase_synced_at' => now()]);
+            } else {
+                Log::error("Firebase Sync: No se pudo sincronizar la empresa RNC: {$empresa->rnc}.");
+            }
         }
     }
 

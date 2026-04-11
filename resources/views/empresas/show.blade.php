@@ -12,6 +12,10 @@
             </nav>
             <div class="flex items-center gap-4">
                 <h2 class="text-3xl font-black text-slate-800 tracking-tight leading-none">{{ $empresa->nombre }}</h2>
+                <div class="px-2.5 py-1 bg-slate-900/5 text-slate-500 border border-slate-900/10 rounded-lg text-[0.6rem] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                    <span class="material-symbols-outlined text-[14px]">cloud_done</span>
+                    Real-time Sync
+                </div>
                 @if($empresa->es_verificada)
                     <span class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-600 flex items-center justify-center border border-blue-500/20 shadow-sm" title="Empresa Verificada">
                         <span class="material-symbols-outlined text-sm">verified_user</span>
@@ -48,10 +52,16 @@
                             <p class="text-[0.6rem] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">RNC Contribuyente</p>
                             <p class="text-xl font-black text-slate-700 tracking-tighter">{{ $empresa->rnc ?? 'S/R' }}</p>
                             <div class="flex flex-wrap gap-2 mt-2">
-                                @if($empresa->es_filial)
                                 <span class="px-2 py-0.5 bg-purple-50 text-purple-600 text-[0.55rem] font-black uppercase tracking-widest border border-purple-100 rounded-md">Filial</span>
                                 @endif
                                 <span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[0.55rem] font-black uppercase tracking-widest border border-slate-200 rounded-md">{{ $empresa->estado_contacto ?? 'Nuevo' }}</span>
+                                
+                                @if($empresa->firebase_synced_at)
+                                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[0.55rem] font-black uppercase tracking-widest border border-emerald-100 rounded-md flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[10px]">cloud_sync</span>
+                                    Sync: {{ $empresa->firebase_synced_at->diffForHumans() }}
+                                </span>
+                                @endif
                                 
                                 {{-- SLA Status Badge --}}
                                 @php $sla = $empresa->sla_status; @endphp

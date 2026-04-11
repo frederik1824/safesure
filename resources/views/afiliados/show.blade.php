@@ -6,7 +6,11 @@
         <nav class="flex items-center gap-2">
             <a href="{{ route('afiliados.index') }}" class="text-xs text-slate-500 hover:text-primary transition-colors uppercase tracking-wider font-bold">Afiliados</a>
             <span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
-            <span class="text-xs text-primary uppercase tracking-wider font-extrabold">Detalle de Perfil</span>
+            <span class="text-xs text-primary uppercase tracking-wider font-extrabold mr-2">Detalle de Perfil</span>
+            <div class="px-2.5 py-1 bg-slate-900/5 text-slate-500 border border-slate-900/10 rounded-lg text-[0.6rem] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                <span class="material-symbols-outlined text-[14px]">cloud_done</span>
+                Real-time Sync
+            </div>
         </nav>
         <div class="flex gap-3">
             @if(strtolower($afiliado->estado?->nombre) !== 'completado')
@@ -56,11 +60,17 @@
                         <span class="material-symbols-outlined text-[16px]">badge</span> {{ $afiliado->cedula }}
                     </p>
                     
-                    <div class="inline-flex items-center px-4 py-2 border rounded-full {{ $afiliado->status_color_class }} shadow-sm">
                         <div class="w-1.5 h-1.5 rounded-full mr-2 
                             {{ (str_contains($afiliado->status_color_class, 'emerald') || str_contains($afiliado->status_color_class, 'blue')) ? 'bg-current' : 'bg-current animate-pulse' }}"></div>
                         <span class="text-[0.65rem] font-black uppercase tracking-widest">{{ $afiliado->estado?->nombre ?? 'Sin Estado' }}</span>
                     </div>
+
+                    @if($afiliado->firebase_synced_at)
+                        <div class="mt-2 text-[0.55rem] font-bold text-slate-400 uppercase tracking-tighter flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-[10px]">sync</span>
+                            Sincronizado: {{ $afiliado->firebase_synced_at->diffForHumans() }}
+                        </div>
+                    @endif
 
                     @if($afiliado->reasignado)
                         <div class="mt-3 inline-flex items-center px-3 py-1 bg-rose-50 text-rose-600 border border-rose-100 rounded-full shadow-sm mx-auto">

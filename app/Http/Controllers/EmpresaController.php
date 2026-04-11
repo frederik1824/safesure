@@ -10,6 +10,13 @@ use App\Http\Requests\UpdateEmpresaRequest;
 use Illuminate\Support\Facades\DB;
 class EmpresaController extends Controller
 {
+    protected $firebaseSync;
+
+    public function __construct(\App\Services\FirebaseSyncService $firebaseSync)
+    {
+        $this->firebaseSync = $firebaseSync;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -63,6 +70,14 @@ class EmpresaController extends Controller
      */
     public function show(Empresa $empresa)
     {
+        // Real-time pull from Firebase for Empresas
+        if ($empresa->rnc) {
+            $documentId = preg_replace('/[^0-9]/', '', $empresa->rnc);
+            if ($remoteData = $this->firebaseSync->pull('empresas', $documentId)) {
+                $this->firebaseSync->syncLocalModel($empresa, $remoteData);
+            }
+        }
+
         $afiliados = $empresa->afiliados()
             ->with(['estado', 'responsable'])
             ->latest()
@@ -97,6 +112,14 @@ class EmpresaController extends Controller
      */
     public function edit(Empresa $empresa)
     {
+        // Real-time pull before editing
+        if ($empresa->rnc) {
+            $documentId = preg_replace('/[^0-9]/', '', $empresa->rnc);
+            if ($remoteData = $this->firebaseSync->pull('empresas', $documentId)) {
+                $this->firebaseSync->syncLocalModel($empresa, $remoteData);
+            }
+        }
+
         $provincias = \App\Models\Provincia::orderBy('nombre')->get();
         $municipios = $empresa->provincia_id ? \App\Models\Municipio::where('provincia_id', $empresa->provincia_id)->orderBy('nombre')->get() : collect();
         $promotores = \App\Models\User::orderBy('name')->get();

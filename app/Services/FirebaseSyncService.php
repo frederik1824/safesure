@@ -175,6 +175,59 @@ class FirebaseSyncService
     }
 
     /**
+     * Pulls a single document from Firestore and returns it as a flat array
+     */
+    public function pull(string $collection, string $documentId): ?array
+    {
+        $token = $this->getAccessToken();
+        if (!$token) return null;
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
+            $response = $this->client->get("{$baseUrl}/{$collection}/{$documentId}", [
+                'headers' => ['Authorization' => "Bearer {$token}"]
+            ]);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+            return $this->mapFirestoreRestDoc($data);
+
+        } catch (\Throwable $e) {
+            if ($e->getCode() !== 404) {
+                Log::error("Firebase Pull Error ({$collection}/{$documentId}): " . $e->getMessage());
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Compares local model with remote data and updates local if remote is newer
+     */
+    public function syncLocalModel($model, array $remoteData): bool
+    {
+        $remoteUpdatedAt = isset($remoteData['updated_at']) ? \Carbon\Carbon::parse($remoteData['updated_at']) : null;
+        $localUpdatedAt = $model->updated_at;
+
+        // If remote is newer or local is significantly older, we update
+        if ($remoteUpdatedAt && (!$localUpdatedAt || $remoteUpdatedAt->gt($localUpdatedAt->addSeconds(2)))) {
+            // Remove meta fields that shouldn't be mass assigned directly
+            unset($remoteData['firebase_id']);
+            
+            // We use forceFill if we want to bypass fillable for certain system fields, 
+            // but for safety we'll just use fill and filter
+            $fillableData = array_intersect_key($remoteData, array_flip($model->getFillable()));
+            
+            // Special handling for firebase_synced_at to prevent infinite loops
+            $model->fill($fillableData);
+            $model->firebase_synced_at = now();
+            $model->saveQuietly();
+            
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Deletes a document from Firestore via REST (DELETE)
      */
     public function deleteDocument(string $collection, string $documentId)

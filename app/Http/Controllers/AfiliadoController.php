@@ -17,11 +17,13 @@ class AfiliadoController extends Controller
 {
     protected $afiliadoService;
     protected $evidenciaService;
+    protected $firebaseSync;
 
-    public function __construct(AfiliadoService $afiliadoService, EvidenciaService $evidenciaService)
+    public function __construct(AfiliadoService $afiliadoService, EvidenciaService $evidenciaService, \App\Services\FirebaseSyncService $firebaseSync)
     {
         $this->afiliadoService = $afiliadoService;
         $this->evidenciaService = $evidenciaService;
+        $this->firebaseSync = $firebaseSync;
     }
 
     /**
@@ -287,12 +289,22 @@ class AfiliadoController extends Controller
      */
     public function show(\App\Models\Afiliado $afiliado)
     {
+        // Real-time pull from Firebase to identify CMD changes
+        if ($remoteData = $this->firebaseSync->pull('afiliados', $afiliado->cedula)) {
+            $this->firebaseSync->syncLocalModel($afiliado, $remoteData);
+        }
+        
         $afiliado->load(['corte', 'responsable', 'estado', 'empresaModel', 'evidenciasAfiliado', 'historialEstados.user', 'notas.user']);
         return view('afiliados.show', compact('afiliado'));
     }
 
     public function edit(\App\Models\Afiliado $afiliado)
     {
+        // Real-time pull before editing to avoid overwriting newer CMD data
+        if ($remoteData = $this->firebaseSync->pull('afiliados', $afiliado->cedula)) {
+            $this->firebaseSync->syncLocalModel($afiliado, $remoteData);
+        }
+        
         $cortes = \App\Models\Corte::all();
         $estados = \App\Models\Estado::all();
         
