@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Afiliado;
 use App\Services\FirebaseSyncService;
+use Illuminate\Support\Facades\Log;
 
 class AfiliadoObserver
 {
@@ -42,10 +43,14 @@ class AfiliadoObserver
             }
 
             // Sincronizar con Firebase pasando el array enriquecido
-            $this->syncService->syncData($data, 'afiliados', $documentId);
+            $success = $this->syncService->syncData($data, 'afiliados', $documentId);
             
-            // Actualizar el campo local de sincronización sin disparar eventos
-            $afiliado->updateQuietly(['firebase_synced_at' => now()]);
+            if ($success) {
+                // Actualizar el campo local de sincronización solo si tuvo éxito
+                $afiliado->updateQuietly(['firebase_synced_at' => now()]);
+            } else {
+                Log::error("Firebase Sync: No se pudo sincronizar el afiliado {$afiliado->cedula}. Revisa los logs de Firebase.");
+            }
         }
     }
 
