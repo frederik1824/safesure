@@ -39,5 +39,6 @@ class AppServiceProvider extends ServiceProvider
         // Registro de Observadores para Sincronización con Firebase (Safesure Integration)
         \App\Models\Afiliado::observe(\App\Observers\AfiliadoObserver::class);
         \App\Models\Empresa::observe(\App\Observers\EmpresaObserver::class);
+        \App\Models\User::observe(\App\Observers\UserObserver::class);
     }
 }
