@@ -23,7 +23,9 @@ class FirebaseSyncPull extends Command
      */
     protected $signature = 'firebase:pull-all 
                             {--full : Sync all data including companies and affiliates} 
-                            {--hours= : Sync only records modified in the last N hours}';
+                            {--hours= : Sync only records modified in the last N hours}
+                            {--reales : Sync only verified real companies}
+                            {--debug : Output field names for debugging}';
     
     /**
      * @var string
@@ -45,13 +47,14 @@ class FirebaseSyncPull extends Command
         $this->info("🚀 Starting Universal Firebase Cloud Sync (PULL)...");
 
         // 1. SYNC STATIC/CATALOG DATA
-        // Catalogs are small, so we can always pull them if needed, or use search if supported
         $this->syncCollection($firebase, 'cortes', Corte::class, ['nombre'], $since);
         $this->syncCollection($firebase, 'estados', Estado::class, ['nombre'], $since);
 
         // 2. SYNC ROLES
         $this->info("--- Roles ---");
-        $rolesData = $since ? $firebase->search('roles', $since) : $firebase->getCollection('roles');
+        $rolesData = $since ? $firebase->search('roles', ['updated_at' => $since]) : $firebase->getCollection('roles');
+        if ($this->option('debug') && !empty($rolesData)) $this->line("Fields: " . implode(', ', array_keys($rolesData[0])));
+        
         foreach ($rolesData as $mapped) {
             Role::updateOrCreate(
                 ['name' => $mapped['name']],
@@ -61,7 +64,9 @@ class FirebaseSyncPull extends Command
 
         // 3. SYNC USERS
         $this->info("--- Users ---");
-        $usersData = $since ? $firebase->search('users', $since) : $firebase->getCollection('users');
+        $usersData = $since ? $firebase->search('users', ['updated_at' => $since]) : $firebase->getCollection('users');
+        if ($this->option('debug') && !empty($usersData)) $this->line("Fields: " . implode(', ', array_keys($usersData[0])));
+
         $this->processCollection($firebase, User::class, $usersData, 'email', function($mapped) {
             return [
                 'name' => $mapped['name'],
@@ -72,13 +77,35 @@ class FirebaseSyncPull extends Command
         });
 
         // 4. SYNC COMPANIES & AFILIADOS (Heavy Data)
-        if ($this->option('full') || $since) {
+        if ($this->option('full') || $since || $this->option('reales')) {
             $this->info("--- Companies ---");
-            $companiesData = $since ? $firebase->search('empresas', $since) : $firebase->getCollection('empresas');
+            $filters = [];
+            if ($since) $filters['updated_at'] = $since;
+            if ($this->option('reales')) $filters['es_real'] = true;
+
+            $companiesData = empty($filters) ? $firebase->getCollection('empresas') : $firebase->search('empresas', $filters);
+            
+            // Fallback to created_at if since is set but no results found
+            if (empty($companiesData) && $since) {
+                $this->warn("   No results with updated_at. Trying created_at...");
+                $companiesData = $firebase->search('empresas', ['created_at' => $since], 'created_at');
+            }
+
+            if ($this->option('debug') && !empty($companiesData)) $this->line("Fields: " . implode(', ', array_keys($companiesData[0])));
+
             $this->processCollection($firebase, Empresa::class, $companiesData, 'uuid');
 
             $this->info("--- Affiliates (Real-time Mirror) ---");
-            $afiliadosData = $since ? $firebase->search('afiliados', $since) : $firebase->getCollection('afiliados');
+            $affiliatesFilters = $since ? ['updated_at' => $since] : [];
+            $afiliadosData = empty($affiliatesFilters) ? $firebase->getCollection('afiliados') : $firebase->search('afiliados', $affiliatesFilters);
+
+            if (empty($afiliadosData) && $since) {
+                $this->warn("   No results with updated_at. Trying created_at...");
+                $afiliadosData = $firebase->search('afiliados', ['created_at' => $since], 'created_at');
+            }
+
+            if ($this->option('debug') && !empty($afiliadosData)) $this->line("Fields: " . implode(', ', array_keys($afiliadosData[0])));
+
             $this->processCollection($firebase, Afiliado::class, $afiliadosData, 'cedula');
         }
 
@@ -89,7 +116,11 @@ class FirebaseSyncPull extends Command
     protected function syncCollection($firebase, $collection, $modelClass, $uniqueFields, $since = null)
     {
         $this->info("--- Syncing Catalog: {$collection} ---");
-        $data = $since ? $firebase->search($collection, $since) : $firebase->getCollection($collection);
+        $data = $since ? $firebase->search($collection, ['updated_at' => $since]) : $firebase->getCollection($collection);
+        
+        if (empty($data) && $since) {
+             $data = $firebase->search($collection, ['created_at' => $since], 'created_at');
+        }
         
         $bar = $this->output->createProgressBar(count($data));
         $bar->start();

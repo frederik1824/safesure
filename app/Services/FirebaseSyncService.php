@@ -148,7 +148,11 @@ class FirebaseSyncService
     /**
      * Search documents using Structured Query (Incremental Sync)
      */
-    public function search(string $collection, string $updatedSince = null): array
+    /**
+     * Search documents using Structured Query (Incremental Sync)
+     * Supports multiple filters (field => value)
+     */
+    public function search(string $collection, array $filters = [], string $orderBy = 'updated_at'): array
     {
         $token = $this->getAccessToken();
         if (!$token) return [];
@@ -160,16 +164,37 @@ class FirebaseSyncService
                 'from' => [['collectionId' => $collection]],
             ];
 
-            if ($updatedSince) {
-                $structuredQuery['where'] = [
-                    'fieldFilter' => [
-                        'field' => ['fieldPath' => 'updated_at'],
-                        'op' => 'GREATER_THAN_OR_EQUAL',
-                        'value' => ['stringValue' => $updatedSince]
-                    ]
-                ];
+            $filterList = [];
+            foreach ($filters as $field => $value) {
+                if (is_bool($value)) {
+                    $filterList[] = [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => $field],
+                            'op' => 'EQUAL',
+                            'value' => ['booleanValue' => $value]
+                        ]
+                    ];
+                } else {
+                    // Default to string comparison (>=) for dates
+                    $filterList[] = [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => $field],
+                            'op' => 'GREATER_THAN_OR_EQUAL',
+                            'value' => ['stringValue' => (string)$value]
+                        ]
+                    ];
+                }
+            }
+
+            if (count($filterList) > 1) {
+                $structuredQuery['where'] = ['compositeFilter' => ['op' => 'AND', 'filters' => $filterList]];
+            } elseif (count($filterList) === 1) {
+                $structuredQuery['where'] = $filterList[0];
+            }
+
+            if ($orderBy && count($filterList) > 0) {
                 $structuredQuery['orderBy'] = [
-                    ['field' => ['fieldPath' => 'updated_at'], 'direction' => 'ASCENDING']
+                    ['field' => ['fieldPath' => $orderBy], 'direction' => 'ASCENDING']
                 ];
             }
 
