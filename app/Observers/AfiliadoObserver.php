@@ -24,8 +24,8 @@ class AfiliadoObserver
             // Aseguramos que las relaciones críticas estén cargadas para la transparencia con CMD
             $afiliado->load(['estado', 'responsable', 'corte']);
             
-            // Limpiamos la cédula para usarla como ID único en Firestore
-            $documentId = preg_replace('/[^0-9]/', '', $afiliado->cedula);
+            // Usamos la cédula con guiones para mantener compatibilidad
+            $documentId = $afiliado->cedula;
             
             // Creamos un payload enriquecido para Firebase (SOLO ATRIBUTOS PLANOS)
             $data = $afiliado->getAttributes();
@@ -60,7 +60,7 @@ class AfiliadoObserver
     public function deleted(Afiliado $afiliado): void
     {
         if ($afiliado->cedula) {
-            $documentId = preg_replace('/[^0-9]/', '', $afiliado->cedula);
+            $documentId = $afiliado->cedula;
             $this->syncService->deleteDocument('afiliados', $documentId);
         }
     }
