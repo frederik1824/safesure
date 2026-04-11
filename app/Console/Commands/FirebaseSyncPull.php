@@ -14,23 +14,44 @@ use App\Models\Municipio;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class FirebaseSyncPull extends Command
 {
-    protected $signature = 'firebase:pull-all {--full : Sync all data including companies and affiliates}';
-    protected $description = 'Syncs all entities FROM Firebase Firestore TO local database (Bidirectional Support).';
+    /**
+     * @var string
+     */
+    protected $signature = 'firebase:pull-all 
+                            {--full : Sync all data including companies and affiliates} 
+                            {--hours= : Sync only records modified in the last N hours}';
+    
+    /**
+     * @var string
+     */
+    protected $description = 'Syncs all entities FROM Firebase Firestore TO local database (Supports Incremental Sync).';
 
     public function handle(FirebaseSyncService $firebase)
     {
+        $hours = $this->option('hours');
+        $since = $hours ? Carbon::now()->subHours($hours)->toDateTimeString() : null;
+
+        if ($since) {
+            $this->info("⏳ Performing Incremental Sync (Since: {$since})");
+        } else {
+            $this->warn("⚠️ Performing FULL Sync. This consumes significant Firebase quota!");
+            if (!$this->confirm('Do you want to continue?', true)) return 1;
+        }
+
         $this->info("🚀 Starting Universal Firebase Cloud Sync (PULL)...");
 
-        // 1. SYNC STATIC/CATALOG DATA (Cortes, Estados)
-        $this->syncCatalog($firebase, 'cortes', Corte::class, ['nombre']);
-        $this->syncCatalog($firebase, 'estados', Estado::class, ['nombre']);
+        // 1. SYNC STATIC/CATALOG DATA
+        // Catalogs are small, so we can always pull them if needed, or use search if supported
+        $this->syncCollection($firebase, 'cortes', Corte::class, ['nombre'], $since);
+        $this->syncCollection($firebase, 'estados', Estado::class, ['nombre'], $since);
 
         // 2. SYNC ROLES
         $this->info("--- Roles ---");
-        $rolesData = $firebase->getCollection('roles');
+        $rolesData = $since ? $firebase->search('roles', $since) : $firebase->getCollection('roles');
         foreach ($rolesData as $mapped) {
             Role::updateOrCreate(
                 ['name' => $mapped['name']],
@@ -40,72 +61,81 @@ class FirebaseSyncPull extends Command
 
         // 3. SYNC USERS
         $this->info("--- Users ---");
-        $usersData = $firebase->getCollection('users');
-        foreach ($usersData as $mapped) {
-            $user = User::updateOrCreate(
-                ['email' => $mapped['email']],
-                [
-                    'name' => $mapped['name'],
-                    'password' => $mapped['password'] ?? Hash::make('Password'),
-                    'phone' => $mapped['phone'] ?? null,
-                    'position' => $mapped['position'] ?? null,
-                ]
-            );
-
-            if (isset($mapped['roles'])) {
-                $roles = is_array($mapped['roles']) ? $mapped['roles'] : json_decode($mapped['roles'], true);
-                if (is_array($roles)) $user->syncRoles($roles);
-            }
-        }
+        $usersData = $since ? $firebase->search('users', $since) : $firebase->getCollection('users');
+        $this->processCollection($firebase, User::class, $usersData, 'email', function($mapped) {
+            return [
+                'name' => $mapped['name'],
+                'password' => $mapped['password'] ?? Hash::make('Password'),
+                'phone' => $mapped['phone'] ?? null,
+                'position' => $mapped['position'] ?? null,
+            ];
+        });
 
         // 4. SYNC COMPANIES & AFILIADOS (Heavy Data)
-        if ($this->option('full')) {
+        if ($this->option('full') || $since) {
             $this->info("--- Companies ---");
-            $companiesData = $firebase->getCollection('empresas');
-            foreach ($companiesData as $mapped) {
-                if (isset($mapped['uuid'])) {
-                    Empresa::updateOrCreate(
-                        ['uuid' => $mapped['uuid']],
-                        array_intersect_key($mapped, array_flip((new Empresa)->getFillable()))
-                    );
-                }
-            }
+            $companiesData = $since ? $firebase->search('empresas', $since) : $firebase->getCollection('empresas');
+            $this->processCollection($firebase, Empresa::class, $companiesData, 'uuid');
 
             $this->info("--- Affiliates (Real-time Mirror) ---");
-            $afiliadosData = $firebase->getCollection('afiliados');
-            $bar = $this->output->createProgressBar(count($afiliadosData));
-            $bar->start();
-            
-            foreach ($afiliadosData as $mapped) {
-                if (isset($mapped['cedula'])) {
-                    // We use updateOrCreate but respect updated_at in syncLocalModel logic if we were calling it individually
-                    // For bulk pull, we assume Firebase is the source of truth
-                    $afiliado = Afiliado::where('cedula', $mapped['cedula'])->first();
-                    if ($afiliado) {
-                        $firebase->syncLocalModel($afiliado, $mapped);
-                    } else {
-                        Afiliado::create(array_intersect_key($mapped, array_flip((new Afiliado)->getFillable())));
-                    }
-                }
-                $bar->advance();
-            }
-            $bar->finish();
-            $this->info("");
+            $afiliadosData = $since ? $firebase->search('afiliados', $since) : $firebase->getCollection('afiliados');
+            $this->processCollection($firebase, Afiliado::class, $afiliadosData, 'cedula');
         }
 
         $this->info("✅ Firebase Cloud PULL completed!");
         return 0;
     }
 
-    protected function syncCatalog($firebase, $collection, $modelClass, $uniqueFields)
+    protected function syncCollection($firebase, $collection, $modelClass, $uniqueFields, $since = null)
     {
         $this->info("--- Syncing Catalog: {$collection} ---");
-        $data = $firebase->getCollection($collection);
+        $data = $since ? $firebase->search($collection, $since) : $firebase->getCollection($collection);
+        
+        $bar = $this->output->createProgressBar(count($data));
+        $bar->start();
+
         foreach ($data as $mapped) {
             $criteria = [];
-            foreach ($uniqueFields as $field) $criteria[$field] = $mapped[$field];
+            foreach ($uniqueFields as $field) $criteria[$field] = $mapped[$field] ?? null;
             
+            // Si no hay criterios de unicidad válidos, saltamos
+            if (empty(array_filter($criteria))) {
+                $bar->advance();
+                continue;
+            }
+
             $modelClass::updateOrCreate($criteria, $mapped);
+            $bar->advance();
         }
+        $bar->finish();
+        $this->info("");
+    }
+
+    protected function processCollection($firebase, $modelClass, $data, $uniqueKey, $transformCallback = null)
+    {
+        if (empty($data)) {
+            $this->line("   No recent updates found.");
+            return;
+        }
+
+        $bar = $this->output->createProgressBar(count($data));
+        $bar->start();
+
+        foreach ($data as $mapped) {
+            if (isset($mapped[$uniqueKey])) {
+                $model = (new $modelClass)->where($uniqueKey, $mapped[$uniqueKey])->first();
+                if ($model) {
+                    $firebase->syncLocalModel($model, $mapped);
+                } else {
+                    $attributes = $transformCallback ? $transformCallback($mapped) : $mapped;
+                    // Filter attributes based on fillable
+                    $fillable = array_intersect_key($mapped, array_flip((new $modelClass)->getFillable()));
+                    $modelClass::create(array_merge($fillable, $attributes));
+                }
+            }
+            $bar->advance();
+        }
+        $bar->finish();
+        $this->info("");
     }
 }

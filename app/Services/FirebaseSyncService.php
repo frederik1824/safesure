@@ -106,15 +106,26 @@ class FirebaseSyncService
 
         $results = [];
         $pageToken = null;
+        $retries = 0;
 
         try {
             $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
             
             do {
                 $query = $pageToken ? "?pageToken={$pageToken}" : "";
-                $response = $this->client->get("{$baseUrl}/{$collectionName}{$query}", [
-                    'headers' => ['Authorization' => "Bearer {$token}"]
-                ]);
+                
+                try {
+                    $response = $this->client->get("{$baseUrl}/{$collectionName}{$query}", [
+                        'headers' => ['Authorization' => "Bearer {$token}"]
+                    ]);
+                } catch (\GuzzleHttp\Exception\ClientException $e) {
+                    if ($e->getResponse()->getStatusCode() == 429 && $retries < 3) {
+                        $retries++;
+                        sleep(pow(2, $retries)); // Exponential backoff
+                        continue;
+                    }
+                    throw $e;
+                }
 
                 $data = json_decode($response->getBody()->getContents(), true);
                 
@@ -131,6 +142,55 @@ class FirebaseSyncService
         } catch (\Throwable $e) {
             Log::error("Firebase Sync Error (GET $collectionName): " . $e->getMessage());
             return $results;
+        }
+    }
+
+    /**
+     * Search documents using Structured Query (Incremental Sync)
+     */
+    public function search(string $collection, string $updatedSince = null): array
+    {
+        $token = $this->getAccessToken();
+        if (!$token) return [];
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents:runQuery";
+            
+            $structuredQuery = [
+                'from' => [['collectionId' => $collection]],
+            ];
+
+            if ($updatedSince) {
+                $structuredQuery['where'] = [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'updated_at'],
+                        'op' => 'GREATER_THAN_OR_EQUAL',
+                        'value' => ['stringValue' => $updatedSince]
+                    ]
+                ];
+                $structuredQuery['orderBy'] = [
+                    ['field' => ['fieldPath' => 'updated_at'], 'direction' => 'ASCENDING']
+                ];
+            }
+
+            $response = $this->client->post($baseUrl, [
+                'headers' => ['Authorization' => "Bearer {$token}"],
+                'json' => ['structuredQuery' => $structuredQuery]
+            ]);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+            $results = [];
+
+            foreach ($data as $item) {
+                if (isset($item['document'])) {
+                    $results[] = $this->mapFirestoreRestDoc($item['document']);
+                }
+            }
+
+            return $results;
+        } catch (\Throwable $e) {
+            Log::error("Firebase Search Error ($collection): " . $e->getMessage());
+            return [];
         }
     }
 
