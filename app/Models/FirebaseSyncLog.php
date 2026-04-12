@@ -14,14 +14,17 @@ class FirebaseSyncLog extends Model
         'type',
         'status',
         'records_synced',
+        'total_records',
         'message',
         'started_at',
-        'completed_at'
+        'completed_at',
+        'last_heartbeat_at'
     ];
 
     protected $casts = [
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'last_heartbeat_at' => 'datetime',
     ];
 
     public function user()

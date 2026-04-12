@@ -14,6 +14,7 @@ use App\Models\Municipio;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class FirebaseSyncPull extends Command
@@ -26,8 +27,12 @@ class FirebaseSyncPull extends Command
                             {--hours= : Sync only records modified in the last N hours}
                             {--reales : Sync only verified real companies}
                             {--verificadas : Sync only verified companies}
+                            {--log-id= : Database log ID to update progress}
                             {--debug : Output field names for debugging}';
     
+    protected $syncLog;
+    protected $globalSynced = 0;
+
     /**
      * @var string
      */
@@ -45,74 +50,101 @@ class FirebaseSyncPull extends Command
             if (!$this->confirm('Do you want to continue?', true)) return 1;
         }
 
-        $this->info("🚀 Starting Universal Firebase Cloud Sync (PULL)...");
+        $lock = Cache::lock('firebase_sync_lock', 7200); // 2 hours lock
 
-        // 1. SYNC STATIC/CATALOG DATA
-        $this->syncCollection($firebase, 'cortes', Corte::class, ['nombre'], $since);
-        $this->syncCollection($firebase, 'estados', Estado::class, ['nombre'], $since);
-
-        // 2. SYNC ROLES
-        $this->info("--- Roles ---");
-        $rolesData = $since ? $firebase->search('roles', ['updated_at' => $since]) : $firebase->getCollection('roles');
-        if ($this->option('debug') && !empty($rolesData)) $this->line("Fields: " . implode(', ', array_keys($rolesData[0])));
-        
-        foreach ($rolesData as $mapped) {
-            Role::updateOrCreate(
-                ['name' => $mapped['name']],
-                ['guard_name' => $mapped['guard_name'] ?? 'web']
-            );
+        if (!$lock->get()) {
+            $this->error("⚠️ A synchronization is already in progress.");
+            return 1;
         }
 
-        // 3. SYNC USERS
-        $this->info("--- Users ---");
-        $usersData = $since ? $firebase->search('users', ['updated_at' => $since]) : $firebase->getCollection('users');
-        if ($this->option('debug') && !empty($usersData)) $this->line("Fields: " . implode(', ', array_keys($usersData[0])));
+        try {
+            $this->info("🚀 Starting Universal Firebase Cloud Sync (PULL)...");
 
-        $this->processCollection($firebase, User::class, $usersData, 'email', function($mapped) {
-            return [
-                'name' => $mapped['name'],
-                'password' => $mapped['password'] ?? Hash::make('Password'),
-                'phone' => $mapped['phone'] ?? null,
-                'position' => $mapped['position'] ?? null,
-            ];
-        });
-
-        // 4. SYNC COMPANIES & AFILIADOS (Heavy Data)
-        if ($this->option('full') || $since || $this->option('reales') || $this->option('verificadas')) {
-            $this->info("--- Companies ---");
-            $filters = [];
-            if ($since) $filters['updated_at'] = $since;
-            if ($this->option('reales')) $filters['es_real'] = true;
-            if ($this->option('verificadas')) $filters['es_verificada'] = true;
-
-            $companiesData = empty($filters) ? $firebase->getCollection('empresas') : $firebase->search('empresas', $filters);
+            $logId = $this->option('log-id');
             
-            // Fallback to created_at if no results (some older records might only have created_at)
-            if (empty($companiesData) && $since) {
-                $this->warn("   No results with updated_at. Trying created_at...");
-                $companiesData = $firebase->search('empresas', ['created_at' => $since]);
+            // Auto-create log if run via console without ID
+            if (!$logId) {
+                $this->syncLog = \App\Models\FirebaseSyncLog::create([
+                    'user_id' => 1, // System/Admin
+                    'type' => ($since ? 'Incremental' : 'Full') . ' (SSH)',
+                    'status' => 'started',
+                    'started_at' => now(),
+                ]);
+            } else {
+                $this->syncLog = \App\Models\FirebaseSyncLog::find($logId);
+            }
+            
+            $this->globalSynced = 0;
+
+            // 1. SYNC STATIC/CATALOG DATA
+            $this->syncCollection($firebase, 'cortes', Corte::class, ['nombre'], $since);
+            $this->syncCollection($firebase, 'estados', Estado::class, ['nombre'], $since);
+
+            // 2. SYNC ROLES
+            $this->info("--- Roles ---");
+            $rolesData = $since ? $firebase->search('roles', ['updated_at' => $since]) : $firebase->getCollection('roles');
+            foreach ($rolesData as $mapped) {
+                Role::updateOrCreate(
+                    ['name' => $mapped['name']],
+                    ['guard_name' => $mapped['guard_name'] ?? 'web']
+                );
             }
 
-            if ($this->option('debug') && !empty($companiesData)) $this->line("Fields: " . implode(', ', array_keys($companiesData[0])));
+            // 3. SYNC USERS
+            $this->info("--- Users ---");
+            $usersData = $since ? $firebase->search('users', ['updated_at' => $since]) : $firebase->getCollection('users');
+            $this->processCollection($firebase, User::class, $usersData, 'email', function($mapped) {
+                return [
+                    'name' => $mapped['name'],
+                    'password' => $mapped['password'] ?? Hash::make('Password'),
+                    'phone' => $mapped['phone'] ?? null,
+                    'position' => $mapped['position'] ?? null,
+                ];
+            });
 
-            $this->processCollection($firebase, Empresa::class, $companiesData, 'uuid');
+            // 4. SYNC COMPANIES & AFILIADOS
+            if ($this->option('full') || $since || $this->option('reales') || $this->option('verificadas')) {
+                $filters = [];
+                if ($since) $filters['updated_at'] = $since;
+                if ($this->option('reales')) $filters['es_real'] = true;
+                if ($this->option('verificadas')) $filters['es_verificada'] = true;
 
-            $this->info("--- Affiliates (Real-time Mirror) ---");
-            $affiliatesFilters = $since ? ['updated_at' => $since] : [];
-            $afiliadosData = empty($affiliatesFilters) ? $firebase->getCollection('afiliados') : $firebase->search('afiliados', $affiliatesFilters);
+                $companiesData = empty($filters) ? $firebase->getCollection('empresas') : $firebase->search('empresas', $filters);
+                $this->processCollection($firebase, Empresa::class, $companiesData, 'uuid');
 
-            if (empty($afiliadosData) && $since) {
-                $this->warn("   No results with updated_at. Trying created_at...");
-                $afiliadosData = $firebase->search('afiliados', ['created_at' => $since]);
+                $affiliatesFilters = $since ? ['updated_at' => $since] : [];
+                $afiliadosData = empty($affiliatesFilters) ? $firebase->getCollection('afiliados') : $firebase->search('afiliados', $affiliatesFilters);
+                $this->processCollection($firebase, Afiliado::class, $afiliadosData, 'cedula');
             }
 
-            if ($this->option('debug') && !empty($afiliadosData)) $this->line("Fields: " . implode(', ', array_keys($afiliadosData[0])));
+            if ($this->syncLog) {
+                $currentLog = $this->syncLog->fresh();
+                if ($currentLog->status !== 'cancelled') {
+                    $this->syncLog->update([
+                        'status' => 'completed',
+                        'records_synced' => $this->globalSynced,
+                        'completed_at' => now(),
+                        'last_heartbeat_at' => now()
+                    ]);
+                }
+            }
 
-            $this->processCollection($firebase, Afiliado::class, $afiliadosData, 'cedula');
+            $lock->release();
+            $this->info("✅ Firebase Cloud PULL completed!");
+            return 0;
+
+        } catch (\Throwable $e) {
+            if (isset($lock)) $lock->release();
+            if ($this->syncLog) {
+                $this->syncLog->update([
+                    'status' => 'failed',
+                    'message' => $e->getMessage(),
+                    'completed_at' => now()
+                ]);
+            }
+            $this->error("❌ Error: " . $e->getMessage());
+            return 1;
         }
-
-        $this->info("✅ Firebase Cloud PULL completed!");
-        return 0;
     }
 
     protected function syncCollection($firebase, $collection, $modelClass, $uniqueFields, $since = null)
@@ -124,7 +156,12 @@ class FirebaseSyncPull extends Command
              $data = $firebase->search($collection, ['created_at' => $since]);
         }
         
-        $bar = $this->output->createProgressBar(count($data));
+        $totalItems = count($data);
+        if ($this->syncLog) {
+            $this->syncLog->increment('total_records', $totalItems);
+        }
+
+        $bar = $this->output->createProgressBar($totalItems);
         $bar->start();
 
         foreach ($data as $mapped) {
@@ -139,6 +176,19 @@ class FirebaseSyncPull extends Command
 
             $modelClass::updateOrCreate($criteria, $mapped);
             $bar->advance();
+            
+            $this->globalSynced++;
+            if ($this->syncLog && $this->globalSynced % 25 == 0) {
+                 $currentLog = $this->syncLog->fresh();
+                 if ($currentLog->status === 'cancelled') {
+                     $this->warn("Sincronización abortada por el usuario.");
+                     return;
+                 }
+                 $this->syncLog->update([
+                     'records_synced' => $this->globalSynced,
+                     'last_heartbeat_at' => now()
+                 ]);
+            }
         }
         $bar->finish();
         $this->info("");
@@ -151,7 +201,12 @@ class FirebaseSyncPull extends Command
             return;
         }
 
-        $bar = $this->output->createProgressBar(count($data));
+        $totalItems = count($data);
+        if ($this->syncLog) {
+            $this->syncLog->increment('total_records', $totalItems);
+        }
+
+        $bar = $this->output->createProgressBar($totalItems);
         $bar->start();
 
         foreach ($data as $mapped) {
@@ -167,6 +222,18 @@ class FirebaseSyncPull extends Command
                 }
             }
             $bar->advance();
+            $this->globalSynced++;
+            if ($this->syncLog && $this->globalSynced % 25 == 0) {
+                 $currentLog = $this->syncLog->fresh();
+                 if ($currentLog->status === 'cancelled') {
+                     $this->warn("Sincronización abortada por el usuario.");
+                     return;
+                 }
+                 $this->syncLog->update([
+                     'records_synced' => $this->globalSynced,
+                     'last_heartbeat_at' => now()
+                 ]);
+            }
         }
         $bar->finish();
         $this->info("");

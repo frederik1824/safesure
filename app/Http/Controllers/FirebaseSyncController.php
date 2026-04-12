@@ -40,19 +40,23 @@ class FirebaseSyncController extends Controller
         try {
             switch ($type) {
                 case 'verified':
-                    Artisan::queue('firebase:pull-all', ['--verificadas' => true]);
+                    Artisan::queue('firebase:pull-all', ['--verificadas' => true, '--log-id' => $log->id]);
                     $message = "Sincronización de empresas verificadas iniciada en segundo plano.";
                     break;
                 case 'reales':
-                    Artisan::queue('firebase:pull-all', ['--reales' => true]);
+                    Artisan::queue('firebase:pull-all', ['--reales' => true, '--log-id' => $log->id]);
                     $message = "Sincronización de empresas reales iniciada en segundo plano.";
                     break;
+                case 'push':
+                    Artisan::queue('firebase:push', ['--all' => true, '--log-id' => $log->id]);
+                    $message = "Sincronización de SUBIDA (Local -> Firebase) iniciada.";
+                    break;
                 case 'full':
-                    Artisan::queue('firebase:pull-all', ['--full' => true]);
+                    Artisan::queue('firebase:pull-all', ['--full' => true, '--log-id' => $log->id]);
                     $message = "Sincronización TOTAL iniciada en segundo plano. Esto puede tardar varios minutos.";
                     break;
                 default:
-                    Artisan::queue('firebase:pull-all', ['--hours' => 24]);
+                    Artisan::queue('firebase:pull-all', ['--hours' => 24, '--log-id' => $log->id]);
                     $message = "Sincronización incremental (24h) iniciada en segundo plano.";
                     break;
             }

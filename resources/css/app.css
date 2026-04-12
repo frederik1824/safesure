@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+/* Sync Center Custom Classes */
+.sync-module {
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .glass-panel { background: rgba(28, 32, 38, 0.6); backdrop-filter: blur(20px); }
+    .data-flow-line { background: linear-gradient(90deg, transparent 0%, #00e5ff 50%, transparent 100%); background-size: 200% 100%; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #10141a; }
+    ::-webkit-scrollbar-thumb { background: #3b494c; border-radius: 2px; }
+}
