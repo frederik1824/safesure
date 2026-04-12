@@ -60,11 +60,11 @@ Route::middleware('auth')->group(function () {
         // Procesos Bulk y CRUD
         Route::post('afiliados/bulk-assign', [\App\Http\Controllers\AfiliadoController::class, 'bulkAssign'])->name('afiliados.bulk_assign');
         Route::post('afiliados/bulk-company', [\App\Http\Controllers\AfiliadoController::class, 'bulkCompany'])->name('afiliados.bulk_company');
-        Route::post('afiliados/{afiliado}/reassign', [\App\Http\Controllers\AfiliadoController::class, 'reassign'])->name('afiliados.reassign');
+        Route::post('afiliados/{uuid}/reassign', [\App\Http\Controllers\AfiliadoController::class, 'reassign'])->name('afiliados.reassign');
         Route::post('afiliados/bulk-status', [\App\Http\Controllers\AfiliadoController::class, 'bulkStatus'])->name('afiliados.bulk_status');
-        Route::post('afiliados/{afiliado}/estado_single', [\App\Http\Controllers\AfiliadoController::class, 'updateStatus'])->name('afiliados.update_status');
-        Route::post('afiliados/{afiliado}/evidencia', [\App\Http\Controllers\AfiliadoController::class, 'uploadEvidencia'])->name('afiliados.upload_evidencia');
-        Route::post('afiliados/{afiliado}/reopen', [\App\Http\Controllers\AfiliadoController::class, 'reopen'])->name('afiliados.reopen');
+        Route::post('afiliados/{uuid}/estado_single', [\App\Http\Controllers\AfiliadoController::class, 'updateStatus'])->name('afiliados.update_status');
+        Route::post('afiliados/{uuid}/evidencia', [\App\Http\Controllers\AfiliadoController::class, 'uploadEvidencia'])->name('afiliados.upload_evidencia');
+        Route::post('afiliados/{uuid}/reopen', [\App\Http\Controllers\AfiliadoController::class, 'reopen'])->name('afiliados.reopen');
         Route::resource('afiliados', \App\Http\Controllers\AfiliadoController::class)->whereUuid('afiliado');
     });
 

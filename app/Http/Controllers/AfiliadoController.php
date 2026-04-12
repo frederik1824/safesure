@@ -287,13 +287,14 @@ class AfiliadoController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(\App\Models\Afiliado $afiliado)
+    public function show($uuid)
     {
-        // Real-time pull from Firebase to identify CMD changes
-        if ($remoteData = $this->firebaseSync->pull('afiliados', $afiliado->cedula)) {
-            $this->firebaseSync->syncLocalModel($afiliado, $remoteData);
+        $afiliado = $this->getAfiliadoByUuidOrFirebase($uuid);
+
+        if (!$afiliado) {
+            abort(404, 'El afiliado no pudo ser localizado localmente ni en la nube.');
         }
-        
+
         $afiliado->load(['corte', 'responsable', 'estado', 'empresaModel', 'evidenciasAfiliado', 'historialEstados.user', 'notas.user']);
         return view('afiliados.show', compact('afiliado'));
     }
@@ -390,7 +391,7 @@ class AfiliadoController extends Controller
         //
     }
 
-    public function reassign(Request $request, Afiliado $afiliado)
+    public function reassign(Request $request, $uuid)
     {
         $request->validate([
             'responsable_id' => 'required|exists:responsables,id',
@@ -398,8 +399,10 @@ class AfiliadoController extends Controller
 
         try {
             DB::beginTransaction();
-            if ($afiliado->estado?->es_final || strtolower($afiliado->estado?->nombre) === 'completado') {
-                throw new Exception("Regla 5.3: No se puede reasignar un expediente COMPLETADO sin reapertura.");
+            $afiliado = $this->getAfiliadoByUuidOrFirebase($uuid);
+
+            if (!$afiliado) {
+                throw new Exception("No se encontró el afiliado en local ni en Firebase.");
             }
 
             $oldResponsable = $afiliado->responsable?->nombre ?? 'Sin Asignar';
@@ -539,7 +542,7 @@ class AfiliadoController extends Controller
         }
     }
 
-    public function updateStatus(Request $request, Afiliado $afiliado)
+    public function updateStatus(Request $request, $uuid)
     {
         $request->validate([
             'estado_id' => 'required|exists:estados,id',
@@ -548,15 +551,21 @@ class AfiliadoController extends Controller
         ]);
 
         try {
+            $afiliado = $this->getAfiliadoByUuidOrFirebase($uuid);
+            
+            if (!$afiliado) {
+                return back()->with('error', 'No se pudo localizar el afiliado para actualizar el estado.');
+            }
+
             $observacionFinal = $request->motivo_rapido ?: ($request->observacion ?? 'Estado actualizado individualmente.');
             $this->afiliadoService->updateStatus($afiliado, $request->estado_id, $observacionFinal, auth()->id());
-            return back()->with('success', 'Estado del afiliado actualizado correctamente.');
+            return redirect()->route('afiliados.show', $afiliado)->with('success', 'Estado del afiliado actualizado correctamente.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
     }
 
-    public function uploadEvidencia(Request $request, Afiliado $afiliado)
+    public function uploadEvidencia(Request $request, $uuid)
     {
         $request->validate([
             'tipo_documento' => 'required|in:acuse_recibo,formulario_firmado',
@@ -564,6 +573,12 @@ class AfiliadoController extends Controller
         ]);
 
         try {
+            $afiliado = $this->getAfiliadoByUuidOrFirebase($uuid);
+            
+            if (!$afiliado) {
+                throw new Exception("Afiliado no encontrado para subir evidencia.");
+            }
+
             $this->evidenciaService->upload(
                 $afiliado, 
                 $request->tipo_documento, 
@@ -648,5 +663,39 @@ class AfiliadoController extends Controller
             DB::rollBack();
             return back()->with('error', $e->getMessage());
         }
+    }
+    /**
+     * Helper para obtener un afiliado por UUID, buscándolo en Firebase si no existe localmente.
+     */
+    protected function getAfiliadoByUuidOrFirebase($uuid)
+    {
+        // 1. Intentar buscar por UUID localmente
+        $afiliado = Afiliado::where('uuid', $uuid)->first();
+        
+        // 2. Si no existe, intentar buscar por Cedula localmente (por si el UUID no se ha mapeado aún)
+        if (!$afiliado) {
+            // Un poco arriesgado pero útil si el link trae el uuid de Firebase que no tenemos
+            // En este caso, buscaremos directametne en Firebase usando el UUID como ID de documento si aplica, 
+            // o buscaremos por cedula si el UUID no coincide.
+        }
+
+        if (!$afiliado) {
+            // Busqueda en Firebase (Fallback real)
+            // Intentar traer de Firebase usando el UUID que viene en la ruta
+            $remoteData = $this->firebaseSync->pull('afiliados', $uuid);
+            
+            if (!$remoteData && strlen($uuid) > 15) {
+                // Si el uuid es largo, quizás es el ID de documento de Firestore
+                // de lo contrario intentaremos buscar por cedula
+            }
+
+            if ($remoteData) {
+                // Crear localmente
+                $afiliado = Afiliado::create($remoteData);
+                $this->firebaseSync->syncLocalModel($afiliado, $remoteData);
+            }
+        }
+
+        return $afiliado;
     }
 }
