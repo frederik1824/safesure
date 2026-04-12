@@ -43,11 +43,8 @@ class FirebaseSyncPull extends Command
         $hours = $this->option('hours');
         $since = $hours ? Carbon::now()->subHours($hours)->toDateTimeString() : null;
 
-        if ($since) {
-            $this->info("⏳ Performing Incremental Sync (Since: {$since})");
-        } else {
+        if (!$since) {
             $this->warn("⚠️ Performing FULL Sync. This consumes significant Firebase quota!");
-            if (!$this->confirm('Do you want to continue?', true)) return 1;
         }
 
         $lock = Cache::lock('firebase_sync_lock', 7200); // 2 hours lock
