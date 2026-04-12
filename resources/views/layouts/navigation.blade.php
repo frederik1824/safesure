@@ -21,11 +21,14 @@
                     <x-nav-link :href="route('afiliados.otros')" :active="request()->routeIs('afiliados.otros')">
                         Afiliados Otra Empresa
                     </x-nav-link>
-                    @if(auth()->user()->hasRole(['Administrador', 'Supervisor']))
+                    @if(auth()->user()->hasRole(['Admin', 'Super-Admin', 'Supervisor']))
                     <x-nav-link :href="route('empresas.index')" :active="request()->routeIs('empresas.*')">
                         Empresas
                     </x-nav-link>
                     @endif
+                    <x-nav-link :href="route('admin.sync.index')" :active="request()->routeIs('admin.sync.*')">
+                        Sincronizar
+                    </x-nav-link>
                     <x-nav-link :href="route('liquidacion.index')" :active="request()->routeIs('liquidacion.*')">
                         Liquidación
                     </x-nav-link>
@@ -39,7 +42,7 @@
                         Reportes
                     </x-nav-link>
 
-                    @if(auth()->user()->hasRole(['Administrador', 'Supervisor']))
+                    @if(auth()->user()->hasRole(['Admin', 'Super-Admin', 'Supervisor']))
                     <x-nav-link :href="route('responsables.index')" :active="request()->routeIs('responsables.*')">
                         Responsables
                     </x-nav-link>
@@ -105,11 +108,14 @@
             <x-responsive-nav-link :href="route('afiliados.otros')" :active="request()->routeIs('afiliados.otros')">
                 Afiliados Otra Empresa
             </x-responsive-nav-link>
-            @if(auth()->user()->hasRole(['Administrador', 'Supervisor']))
+            @if(auth()->user()->hasRole(['Admin', 'Super-Admin', 'Supervisor']))
             <x-responsive-nav-link :href="route('empresas.index')" :active="request()->routeIs('empresas.*')">
                 Empresas
             </x-responsive-nav-link>
             @endif
+            <x-responsive-nav-link :href="route('admin.sync.index')" :active="request()->routeIs('admin.sync.*')">
+                Sincronizar Firebase
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('liquidacion.index')" :active="request()->routeIs('liquidacion.*')">
                 Liquidación
             </x-responsive-nav-link>
@@ -123,7 +129,7 @@
                 Reportes
             </x-responsive-nav-link>
 
-            @if(auth()->user()->hasRole(['Administrador', 'Supervisor']))
+            @if(auth()->user()->hasRole(['Admin', 'Super-Admin', 'Supervisor']))
             <div class="border-t border-gray-100 pt-2 pb-1 bg-slate-50">
                 <div class="px-4 text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Configuración</div>
                 <x-responsive-nav-link :href="route('responsables.index')" :active="request()->routeIs('responsables.*')">

@@ -334,6 +334,7 @@
                     @can('access_admin_panel')
                     <x-nav-link route="proveedores.index" icon="ph ph-package" label="Proveedores" />
                     <x-nav-link route="catalogo.index" icon="ph ph-tag" label="Catálogos" />
+                    <x-nav-link route="admin.sync.index" icon="ph ph-arrows-clockwise" label="Sincronizar Firebase" />
                     <x-nav-link route="admin.audit.index" icon="ph ph-clock-counter-clockwise" label="Auditoría" />
                     @endcan
                     @can('manage_users')
