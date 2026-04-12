@@ -8,9 +8,12 @@
             <span class="font-headline tracking-tight text-xs sm:text-sm uppercase text-slate-400">Control Center</span>
         </div>
         <div class="flex items-center">
-            <div id="connection-status" class="flex items-center bg-surface-container-lowest px-3 py-1.5 rounded-lg border border-outline-variant/10">
-                <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mr-2 @if($polling) bg-tertiary-container shadow-[0_0_8px_rgba(73,237,114,0.5)] animate-pulse @else bg-tertiary-container @endif"></div>
-                <span class="text-[9px] sm:text-[10px] font-mono text-tertiary-container uppercase tracking-tighter">System Online</span>
+            <div id="connection-status" class="flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-tertiary/20 shadow-[0_0_15px_rgba(73,237,114,0.05)]">
+                <div class="relative flex h-2 w-2 mr-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary-fixed opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary-fixed shadow-[0_0_10px_#49ed72]"></span>
+                </div>
+                <span class="text-[10px] font-mono text-tertiary-fixed font-bold uppercase tracking-widest">Link Active</span>
             </div>
         </div>
     </header>
@@ -24,7 +27,7 @@
             <!-- KPI Panel -->
             <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 <div class="bg-surface-container p-4 rounded-xl border border-outline-variant/5 hover:bg-surface-container-high transition-all border-l-2 border-l-primary-fixed-dim">
-                    <p class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant mb-1">Total Registros (Local)</p>
+                    <p class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant mb-1">Total Registros (VPS)</p>
                     <div class="flex items-baseline justify-between mb-2">
                         <h3 class="text-2xl font-headline font-bold text-primary tracking-tight">
                             {{ number_format($totalLocales) }}
