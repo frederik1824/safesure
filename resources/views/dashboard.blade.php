@@ -243,7 +243,7 @@
                             <td class="py-4">
                                 <div class="flex flex-col">
                                     <span class="text-xs font-bold text-slate-700 group-hover:text-primary">{{ $act->afiliado->nombre_completo ?? 'Afiliado no accesible' }}</span>
-                                    <span class="text-[0.6rem] text-slate-400 font-bold uppercase">{{ $act->afiliado->cedula ?? 'N/A' }}</span>
+                                    <span class="text-[0.6rem] text-slate-400 font-bold uppercase">{{ $act->afiliado->cedula_formatted ?? 'N/A' }}</span>
                                 </div>
                             </td>
                             <td class="py-4 text-xs font-bold text-slate-600">

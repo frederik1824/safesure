@@ -245,7 +245,7 @@
                                                 </span>
                                             @endif
                                         </div>
-                                        <span class="text-[0.75rem] text-slate-500">{{ $afiliado->cedula }}</span>
+                                        <span class="text-[0.75rem] text-slate-500">{{ $afiliado->cedula_formatted }}</span>
                                     </div>
                                 </div>
                             </td>

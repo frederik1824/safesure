@@ -57,7 +57,7 @@
                 <div class="z-10 text-center w-full">
                     <h2 class="text-2xl font-extrabold text-slate-800 mb-1">{{ $afiliado->nombre_completo }}</h2>
                     <p class="text-sm font-semibold text-slate-500 mb-4 flex justify-center items-center gap-1">
-                        <span class="material-symbols-outlined text-[16px]">badge</span> {{ $afiliado->cedula }}
+                        <span class="material-symbols-outlined text-[16px]">badge</span> {{ $afiliado->cedula_formatted }}
                     </p>
                     
                     <div class="inline-flex items-center px-4 py-2 border rounded-full {{ $afiliado->status_color_class }} shadow-sm">

@@ -100,6 +100,18 @@ class Afiliado extends Model
     }
 
     /**
+     * Retorna la cédula con formato 000-0000000-0
+     */
+    public function getCedulaFormattedAttribute()
+    {
+        $val = preg_replace('/[^0-9]/', '', $this->cedula);
+        if (strlen($val) === 11) {
+            return substr($val, 0, 3) . '-' . substr($val, 3, 7) . '-' . substr($val, 10, 1);
+        }
+        return $this->cedula;
+    }
+
+    /**
      * Calcula los días transcurridos desde que se entregó a un proveedor
      */
     public function getDiasTranscurridosAttribute()
