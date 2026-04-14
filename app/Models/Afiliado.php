@@ -50,15 +50,17 @@ class Afiliado extends Model
     
     public function getStatusColorClassAttribute()
     {
-        $estado = strtolower($this->estado?->nombre ?? 'pendiente');
+        $estadoId = $this->estado_id;
         
-        // Si está completado, usamos es_final o el nombre
-        if ($this->estado?->es_final || $estado === 'completado') {
+        // IDs 6 y 9 definidos por CMD como estados de terminacion
+        if (in_array($estadoId, [6, 9]) || $this->estado?->es_final) {
             return 'bg-emerald-100 text-emerald-700 border-emerald-200';
         }
         
-        return match($estado) {
+        $estadoNombre = strtolower($this->estado?->nombre ?? 'pendiente');
+        return match($estadoNombre) {
             'pendiente'  => 'bg-amber-100 text-amber-700 border-amber-200',
+            'carnet entregado' => 'bg-blue-100 text-blue-700 border-blue-200',
             'entregado'  => 'bg-blue-100 text-blue-700 border-blue-200',
             'cancelado'  => 'bg-rose-100 text-rose-700 border-rose-200',
             'en proceso' => 'bg-indigo-100 text-indigo-700 border-indigo-200',
@@ -76,18 +78,21 @@ class Afiliado extends Model
         static::addGlobalScope(new \App\Scopes\ResponsableScope);
         
         static::saving(function ($afiliado) {
-            // Si el estado es "Completado" (independientemente del origen del cambio)
-            if ($afiliado->estado_id) {
-                // Buscamos el estado por cache o relación (evitando recursión)
-                $estado = \App\Models\Estado::find($afiliado->estado_id);
-                if ($estado && strtolower($estado->nombre) === 'completado') {
-                    // Si el costo es nulo o cero, forzamos la asignación del precio base
-                    if (is_null($afiliado->costo_entrega) || $afiliado->costo_entrega == 0) {
-                        if ($afiliado->proveedor_id && $afiliado->proveedor?->precio_base > 0) {
-                            $afiliado->costo_entrega = $afiliado->proveedor->precio_base;
-                        } elseif ($afiliado->responsable_id && $afiliado->responsable?->precio_entrega > 0) {
-                            $afiliado->costo_entrega = $afiliado->responsable->precio_entrega;
-                        }
+            // Regla Inmutable (Protocolo CMD): Si el registro YA está en estado 9 (Completado)
+            if ($afiliado->getOriginal('estado_id') == 9) {
+                if ($afiliado->isDirty(['responsable_id', 'empresa_id', 'estado_id', 'cedula'])) {
+                    throw new \Exception("Protocolo CMD: El expediente está COMPLETADO (ID 9) y es inmutable. No se permiten cambios de responsable, empresa, cédula o estado.");
+                }
+            }
+
+            // Si el estado es uno de los terminados (6 o 9)
+            if (in_array($afiliado->estado_id, [6, 9])) {
+                // Si el costo es nulo o cero, forzamos la asignación del precio base
+                if (is_null($afiliado->costo_entrega) || $afiliado->costo_entrega == 0) {
+                    if ($afiliado->proveedor_id && $afiliado->proveedor?->precio_base > 0) {
+                        $afiliado->costo_entrega = $afiliado->proveedor->precio_base;
+                    } elseif ($afiliado->responsable_id && $afiliado->responsable?->precio_entrega > 0) {
+                        $afiliado->costo_entrega = $afiliado->responsable->precio_entrega;
                     }
                 }
             }
@@ -112,7 +117,7 @@ class Afiliado extends Model
      */
     public function getSlaStatusAttribute()
     {
-        if (strtolower($this->estado?->nombre) === 'completado') return 'completado';
+        if (in_array($this->estado_id, [6, 9])) return 'completado';
         if (!$this->fecha_entrega_proveedor) return 'pendiente';
 
         $dias = $this->dias_transcurridos;
@@ -238,9 +243,16 @@ class Afiliado extends Model
     public function scopeHistorialEntrega($query, $cedula)
     {
         return $query->where('cedula', $cedula)
-            ->whereHas('estado', function($q) {
-                $q->whereIn('nombre', ['COMPLETADO', 'LIQUIDADO']);
-            });
+            ->whereIn('estado_id', [6, 9, 10]); // Incluyendo Liquidado si existe (suponiendo ID 10)
+    }
+
+    /**
+     * Scope for finished affiliates (Entregado ID:6 or Completado ID:9)
+     * as suggested by CMD to discount from Pending inventory.
+     */
+    public function scopeFinished($query)
+    {
+        return $query->whereIn('estado_id', [6, 9]);
     }
 
     public function empresaModel()

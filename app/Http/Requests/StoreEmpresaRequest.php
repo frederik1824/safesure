@@ -22,7 +22,7 @@ class StoreEmpresaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => 'required|string|max:255|unique:empresas',
+            'nombre' => 'required|string|max:255',
             'rnc' => ['nullable', 'string', 'max:20', new \App\Rules\RncDominicano],
             'direccion' => 'nullable|string|max:255',
             'provincia_id' => 'nullable|exists:provincias,id',
@@ -41,6 +41,7 @@ class StoreEmpresaRequest extends FormRequest
             'estado_contacto' => 'nullable|string|in:Nuevo,Contactado,En Negociación,Afiliada,No Contactar',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
+            'google_maps_url' => 'nullable|url|max:500',
         ];
     }
     

@@ -20,8 +20,30 @@ class EmpresaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $query = Empresa::query()->with(['provinciaRel', 'municipioRel']);
+
+        // Filter by Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%")
+                  ->orWhere('rnc', 'like', "%{$search}%")
+                  ->orWhere('contacto_nombre', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by Type
+        if ($request->filled('type')) {
+            $type = $request->type;
+            if ($type === 'real') $query->where('es_real', true);
+            if ($type === 'verificada') $query->where('es_verificada', true);
+            if ($type === 'filial') $query->where('es_filial', true);
+        }
+
+        $empresas = $query->latest()->paginate(15)->withQueryString();
+
         $stats = [
             'total' => Empresa::count(),
             'reales' => Empresa::where('es_real', true)->count(),
@@ -36,7 +58,7 @@ class EmpresaController extends Controller
             'otros' => $stats['total'] - ($stats['reales'] + $stats['filiales'])
         ];
 
-        return view('empresas.index', compact('stats'));
+        return view('empresas.index', compact('stats', 'empresas'));
     }
 
     /**

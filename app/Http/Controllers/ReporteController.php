@@ -21,18 +21,18 @@ class ReporteController extends Controller
         // Estadísticas Críticas
         $stats = [
             'total_afiliados' => Afiliado::count(),
-            'completados' => Afiliado::whereHas('estado', function($q) { $q->where('nombre', 'COMPLETADO'); })->count(),
+            'completados' => Afiliado::finished()->count(),
             'critico_sla' => Afiliado::with('estado')->get()
                             ->filter(fn($a) => $a->sla_status === 'critico')
                             ->count(),
-            'por_liquidar' => Afiliado::whereHas('estado', function($q) { $q->where('nombre', 'COMPLETADO'); })
+            'por_liquidar' => Afiliado::finished()
                             ->where('liquidado', false)
                             ->sum('costo_entrega'),
         ];
 
         // Progreso por Corte
         $cortes_progreso = Corte::withCount(['afiliados', 'afiliados as completados_count' => function($q) {
-            $q->whereHas('estado', function($st) { $st->where('nombre', 'COMPLETADO'); });
+            $q->whereIn('estado_id', [6, 9]);
         }])->get();
 
         // Distribución por Estado
@@ -65,7 +65,7 @@ class ReporteController extends Controller
         $ingresos_count = (clone $query)->count();
         
         $salidas_query = \App\Models\HistorialEstado::whereHas('estadoNuevo', function($q) {
-                $q->whereIn('nombre', ['COMPLETADO', 'LIQUIDADO', 'ENTREGADO']);
+                $q->whereIn('id', [6, 9]);
             })
             ->whereDate('created_at', '>=', $fecha_desde)
             ->whereDate('created_at', '<=', $fecha_hasta)
@@ -83,7 +83,7 @@ class ReporteController extends Controller
             'critico_sla' => (clone $query)->with('estado')->get()
                             ->filter(fn($a) => $a->sla_status === 'critico')
                             ->count(),
-            'por_liquidar' => (clone $query)->whereHas('estado', function($q) { $q->where('nombre', 'COMPLETADO'); })
+            'por_liquidar' => (clone $query)->finished()
                             ->where('liquidado', false)
                             ->sum('costo_entrega'),
         ];
@@ -189,9 +189,16 @@ class ReporteController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    public function heatmap()
+    public function heatmap(Request $request)
     {
-        $densidadProvincia = Afiliado::select('provincia_id')
+        $provincia_id = $request->provincia_id;
+        $municipio_id = $request->municipio_id;
+
+        $queryAfiliados = Afiliado::query();
+        if ($provincia_id) $queryAfiliados->where('provincia_id', $provincia_id);
+        if ($municipio_id) $queryAfiliados->where('municipio_id', $municipio_id);
+
+        $densidadProvincia = (clone $queryAfiliados)->select('provincia_id')
             ->selectRaw('count(*) as total')
             ->whereNotNull('provincia_id')
             ->groupBy('provincia_id')
@@ -199,7 +206,7 @@ class ReporteController extends Controller
             ->orderBy('total', 'desc')
             ->get();
 
-        $densidadMunicipio = Afiliado::select('provincia_id', 'municipio_id')
+        $densidadMunicipio = (clone $queryAfiliados)->select('provincia_id', 'municipio_id')
             ->selectRaw('count(*) as total')
             ->whereNotNull('municipio_id')
             ->groupBy('provincia_id', 'municipio_id')
@@ -208,12 +215,22 @@ class ReporteController extends Controller
             ->take(20)
             ->get();
 
-        $puntosMapa = Empresa::whereNotNull('latitude')
+        $queryEmpresas = Empresa::whereNotNull('latitude')
             ->whereNotNull('longitude')
-            ->withCount('afiliados')
-            ->get();
+            ->withCount('afiliados');
+            
+        if ($provincia_id) $queryEmpresas->where('provincia_id', $provincia_id);
+        if ($municipio_id) $queryEmpresas->where('municipio_id', $municipio_id);
 
-        return view('reportes.heatmap', compact('densidadProvincia', 'densidadMunicipio', 'puntosMapa'));
+        $puntosMapa = $queryEmpresas->get();
+
+        $provincias = \App\Models\Provincia::orderBy('nombre')->get();
+        $municipios = $provincia_id ? \App\Models\Municipio::where('provincia_id', $provincia_id)->orderBy('nombre')->get() : collect();
+
+        return view('reportes.heatmap', compact(
+            'densidadProvincia', 'densidadMunicipio', 'puntosMapa', 
+            'provincias', 'municipios', 'provincia_id', 'municipio_id'
+        ));
     }
 
     public function comparison()
@@ -226,9 +243,7 @@ class ReporteController extends Controller
             $query = Afiliado::where('responsable_id', $resp->id);
             
             $total = (clone $query)->count();
-            $completados = (clone $query)->whereHas('estado', function($q) {
-                $q->whereIn('nombre', ['COMPLETADO', 'LIQUIDADO']);
-            })->count();
+            $completados = (clone $query)->whereIn('estado_id', [6, 9])->count();
             
             $criticos = (clone $query)->with('estado')->get()->filter(fn($a) => $a->sla_status === 'critico')->count();
             $alertas = (clone $query)->with('estado')->get()->filter(fn($a) => $a->sla_status === 'alerta')->count();
@@ -240,9 +255,7 @@ class ReporteController extends Controller
                 'porcentaje' => $total > 0 ? round(($completados / $total) * 100, 1) : 0,
                 'criticos' => $criticos,
                 'alertas' => $alertas,
-                'por_liquidar' => (clone $query)->whereHas('estado', function($q) {
-                    $q->where('nombre', 'COMPLETADO');
-                })->where('liquidado', false)->sum('costo_entrega')
+                'por_liquidar' => (clone $query)->finished()->where('liquidado', false)->sum('costo_entrega')
             ];
         }
         

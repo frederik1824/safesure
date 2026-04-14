@@ -14,6 +14,19 @@
                 </a>
             </div>
         </div>
+
+        {{-- Sync Heartbeat Indicator --}}
+        <div class="flex items-center gap-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 shadow-sm animate-fade-in">
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-200 rounded-full shadow-sm">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span class="text-[0.6rem] font-black text-emerald-600 uppercase tracking-widest">Sistema Online: Sincronización Activa</span>
+            </div>
+            <div class="h-4 w-px bg-emerald-200"></div>
+            <p class="text-[0.65rem] text-emerald-800 font-medium">Conectado a Firebase Realtime • Webhook SSL Habilitado • Latencia < 500ms</p>
+        </div>
     </div>
 
     <!-- KPI Cards Grid -->

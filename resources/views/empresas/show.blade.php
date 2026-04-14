@@ -52,6 +52,7 @@
                             <p class="text-[0.6rem] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">RNC Contribuyente</p>
                             <p class="text-xl font-black text-slate-700 tracking-tighter">{{ $empresa->rnc ?? 'S/R' }}</p>
                             <div class="flex flex-wrap gap-2 mt-2">
+                                @if($empresa->es_filial)
                                 <span class="px-2 py-0.5 bg-purple-50 text-purple-600 text-[0.55rem] font-black uppercase tracking-widest border border-purple-100 rounded-md">Filial</span>
                                 @endif
                                 <span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[0.55rem] font-black uppercase tracking-widest border border-slate-200 rounded-md">{{ $empresa->estado_contacto ?? 'Nuevo' }}</span>

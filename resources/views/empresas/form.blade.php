@@ -134,6 +134,22 @@
             <span class="text-[0.6rem] font-bold text-slate-400 italic">Haz clic en el mapa para capturar la ubicación exacta</span>
         </div>
 
+
+        
+        <div class="col-span-1 md:col-span-2 pb-4">
+            <label for="google_maps_url" class="block text-[0.65rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">Enlace Google Maps (Auto-extrae coordenadas)</label>
+            <div class="relative group">
+                <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-lg">link</span>
+                </div>
+                <input type="url" name="google_maps_url" id="google_maps_url" 
+                    class="w-full pl-12 pr-4 py-3.5 bg-white border-slate-200 rounded-2xl focus:ring-primary/20 focus:border-primary transition-all text-sm font-bold text-on-surface shadow-sm" 
+                    value="{{ old('google_maps_url', $empresa->google_maps_url ?? '') }}" 
+                    placeholder="Pegue aquí el enlace de compartir de Google Maps (Ej: https://maps.app.goo.gl/...)">
+            </div>
+            <p class="text-[0.6rem] text-slate-400 mt-2 px-1 italic">Soporta enlaces largos y cortos. Al guardar, se calcularán latitud y longitud automáticamente si el enlace es válido.</p>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-2">
             <div class="col-span-1">
                 <label for="latitude" class="block text-[0.65rem] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">Latitud</label>

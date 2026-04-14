@@ -27,6 +27,43 @@
         </div>
     </div>
 
+    {{-- Filter Toolbar --}}
+    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+        <form action="{{ route('reportes.heatmap') }}" method="GET" class="flex flex-col md:flex-row gap-4 items-end">
+            <div class="flex-1 w-full space-y-2">
+                <label class="text-[0.6rem] font-black text-slate-400 uppercase ml-1">Provincia</label>
+                <select name="provincia_id" id="provincia_id" class="w-full h-12 bg-slate-50 border-slate-200 rounded-xl text-xs font-bold text-slate-700 px-4 focus:ring-primary/20 focus:border-primary transition-all">
+                    <option value="">Todas las Provincias</option>
+                    @foreach($provincias as $p)
+                        <option value="{{ $p->id }}" {{ $provincia_id == $p->id ? 'selected' : '' }}>{{ $p->nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <div class="flex-1 w-full space-y-2">
+                <label class="text-[0.6rem] font-black text-slate-400 uppercase ml-1">Municipio</label>
+                <select name="municipio_id" id="municipio_id" class="w-full h-12 bg-slate-50 border-slate-200 rounded-xl text-xs font-bold text-slate-700 px-4 focus:ring-primary/20 focus:border-primary transition-all">
+                    <option value="">Todos los Municipios</option>
+                    @foreach($municipios as $m)
+                        <option value="{{ $m->id }}" {{ $municipio_id == $m->id ? 'selected' : '' }}>{{ $m->nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex gap-2">
+                <button type="submit" class="h-12 px-8 bg-slate-900 text-white rounded-xl text-[0.65rem] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-lg flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">filter_alt</span>
+                    Aplicar Filtros
+                </button>
+                @if($provincia_id || $municipio_id)
+                    <a href="{{ route('reportes.heatmap') }}" class="h-12 px-4 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all border border-slate-200" title="Limpiar Filtros">
+                        <span class="material-symbols-outlined">close</span>
+                    </a>
+                @endif
+            </div>
+        </form>
+    </div>
+
     {{-- GLOBAL MAP CONTAINER --}}
     <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden relative group">
         {{-- Map Overlay Legend --}}
@@ -120,6 +157,28 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // 1. Initialize filters if needed (optional: could use simple dropdowns, but TomSelect is better for consistency)
+        const provinciaSelect = document.getElementById('provincia_id');
+        const municipioSelect = document.getElementById('municipio_id');
+
+        provinciaSelect.addEventListener('change', function() {
+            const provinciaId = this.value;
+            if (!provinciaId) {
+                municipioSelect.innerHTML = '<option value="">Todos los Municipios</option>';
+                return;
+            }
+
+            fetch(`{{ url('municipios') }}/${provinciaId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let html = '<option value="">Todos los Municipios</option>';
+                    data.forEach(m => {
+                        html += `<option value="${m.id}">${m.nombre}</option>`;
+                    });
+                    municipioSelect.innerHTML = html;
+                });
+        });
+
         const map = L.map('global-map').setView([18.7357, -70.1627], 8);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -170,7 +229,7 @@
                                 <span class="text-sm font-black text-primary">${p.afiliados_count}</span>
                             </div>
                         </div>
-                        <a href="/empresas/${p.id}" class="block w-full text-center py-3 bg-slate-900 text-white rounded-xl text-[0.7rem] font-black uppercase tracking-[0.15em] hover:bg-primary transition-all shadow-lg shadow-slate-200">Ver Ficha CRM</a>
+                        <a href="/empresas/${p.rnc || p.uuid || p.id}" class="block w-full text-center py-3 bg-slate-900 text-white rounded-xl text-[0.7rem] font-black uppercase tracking-[0.15em] hover:bg-primary transition-all shadow-lg shadow-slate-200">Ver Ficha CRM</a>
                     </div>
                 `);
             markers.addLayer(marker);

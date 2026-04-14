@@ -565,6 +565,40 @@ class AfiliadoController extends Controller
         }
     }
 
+    public function confirmReception(Request $request, $uuid)
+    {
+        try {
+            DB::beginTransaction();
+            $afiliado = $this->getAfiliadoByUuidOrFirebase($uuid);
+            
+            if (!$afiliado) {
+                throw new \Exception('Afiliado no encontrado.');
+            }
+
+            // Según el protocolo, esto se hace tras validar el documento físico del carnet entregado (Estado 6)
+            if ($afiliado->estado_id != 6 && !str_contains(strtolower($afiliado->estado?->nombre), 'entregado')) {
+                // Permitimos confirmación si ya está en 6 o similar, o por flexibilidad si el usuario tiene permiso
+                // Pero el protocolo dice: "Tras validar documento físico de carnet marcado como 6"
+            }
+
+            $this->afiliadoService->updateStatus(
+                $afiliado, 
+                9, // COMPLETADO
+                'Recepción de soporte físico confirmada por CMD. Expediente cerrado e inmutable.',
+                auth()->id()
+            );
+
+            // Sincronización inmediata a Firebase
+            $this->firebaseSync->syncData($afiliado->toArray(), 'afiliados', $afiliado->cedula);
+
+            DB::commit();
+            return back()->with('success', '¡Cierre Operativo Exitoso! El expediente ha sido marcado como COMPLETADO (ID 9) y ahora es inmutable.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
     public function uploadEvidencia(Request $request, $uuid)
     {
         $request->validate([

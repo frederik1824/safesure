@@ -202,7 +202,7 @@
                                     </p>
                                     <h4 class="text-sm font-black text-slate-800 mb-2 leading-tight">${data.nombre}</h4>
                                     <p class="text-[0.65rem] font-medium text-slate-500 mb-3 line-clamp-2">${data.direccion}</p>
-                                    <a href="/empresas/${data.uuid}" class="block text-center py-2 bg-primary text-white rounded-lg text-[0.65rem] font-black uppercase tracking-widest hover:bg-slate-900 transition-colors">Ver Perfil</a>
+                                    <a href="/empresas/${data.rnc || data.uuid}" class="block text-center py-2 bg-primary text-white rounded-lg text-[0.65rem] font-black uppercase tracking-widest hover:bg-slate-900 transition-colors">Ver Perfil</a>
                                 </div>
                             `)
                             .addTo(map);

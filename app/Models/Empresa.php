@@ -29,11 +29,14 @@ class Empresa extends Model
 
     /**
      * Get the route key name for the model.
+     * Reversed to UUID as per user instruction.
      */
     public function getRouteKeyName(): string
     {
         return 'uuid';
     }
+
+
 
     protected $fillable = [
         'uuid', 'nombre', 'rnc', 'direccion', 'telefono', 'es_real', 'es_filial',
@@ -41,7 +44,7 @@ class Empresa extends Model
         'contacto_nombre', 'contacto_puesto', 'contacto_telefono', 'contacto_email',
         'comision_tipo', 'comision_valor',
         'promotor_id', 'estado_contacto',
-        'latitude', 'longitude',
+        'latitude', 'longitude', 'google_maps_url',
         // Legacy fields marked for future removal
         'provincia', 'municipio', 'firebase_synced_at', 'es_verificada' 
     ];
@@ -51,6 +54,7 @@ class Empresa extends Model
         'es_filial' => 'boolean',
         'es_verificada' => 'boolean',
         'comision_valor' => 'decimal:2',
+        'firebase_synced_at' => 'datetime',
     ];
 
     /**
@@ -137,5 +141,59 @@ class Empresa extends Model
     public function municipio()
     {
         return $this->municipioRel();
+    }
+
+    /**
+     * Resolución de Ruta Inteligente (CMD Protocol)
+     * Permite buscar por RNC (prioridad), UUID o ID interno.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('rnc', $value)
+            ->orWhere('uuid', $value)
+            ->orWhere('id', $value)
+            ->firstOrFail();
+    }
+
+    /**
+     * Mutador para extraer coordenadas automáticamente de la URL de Google Maps
+     * Soporta enlaces largos y cortos (goo.gl / maps.app.goo.gl)
+     */
+    public function setGoogleMapsUrlAttribute($value)
+    {
+        $this->attributes['google_maps_url'] = $value;
+
+        if (empty($value)) return;
+
+        try {
+            // Resolver URL corta si aplica
+            $finalUrl = $value;
+            if (str_contains($value, 'goo.gl') || str_contains($value, 'maps.app.goo.gl')) {
+                // Usamos una petición HEAD rápida para seguir redirecciones
+                $response = \Illuminate\Support\Facades\Http::withOptions([
+                    'allow_redirects' => true,
+                    'connect_timeout' => 5
+                ])->get($value);
+                $finalUrl = $response->effectiveUri()->__toString();
+            }
+
+            // Patrón 1: @lat,lng (Formato estándar de Maps)
+            if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $finalUrl, $matches)) {
+                $this->attributes['latitude'] = $matches[1];
+                $this->attributes['longitude'] = $matches[2];
+            }
+            // Patrón 2: ll=lat,lng (Formato de consulta legacy)
+            elseif (preg_match('/ll=(-?\d+\.\d+),(-?\d+\.\d+)/', $finalUrl, $matches)) {
+                $this->attributes['latitude'] = $matches[1];
+                $this->attributes['longitude'] = $matches[2];
+            }
+            // Patrón 3: q=lat,lng (Búsqueda por coordenadas)
+            elseif (preg_match('/q=(-?\d+\.\d+),(-?\d+\.\d+)/', $finalUrl, $matches)) {
+                $this->attributes['latitude'] = $matches[1];
+                $this->attributes['longitude'] = $matches[2];
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("No se pudo extraer geodatos de la URL: $value. Error: " . $e->getMessage());
+        }
     }
 }

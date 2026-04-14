@@ -38,8 +38,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('permission:manage_companies')->group(function() {
         Route::get('empresas/enrich', [\App\Http\Controllers\EmpresaController::class, 'enrich'])->name('empresas.enrich');
         Route::post('empresas/enrich', [\App\Http\Controllers\EmpresaController::class, 'processEnrich'])->name('empresas.processEnrich');
-        Route::resource('empresas', \App\Http\Controllers\EmpresaController::class)->whereUuid('empresa');
-        Route::post('empresas/{empresa}/interaccion', [\App\Http\Controllers\EmpresaController::class, 'storeInteraction'])->name('empresas.interaction')->whereUuid('empresa');
+        Route::resource('empresas', \App\Http\Controllers\EmpresaController::class);
+        Route::post('empresas/{empresa}/interaccion', [\App\Http\Controllers\EmpresaController::class, 'storeInteraction'])->name('empresas.interaction');
     });
     
     Route::get('municipios/{provincia_id}', [\App\Http\Controllers\EmpresaController::class, 'getMunicipios'])->name('api.municipios');
@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
         Route::post('afiliados/{uuid}/estado_single', [\App\Http\Controllers\AfiliadoController::class, 'updateStatus'])->name('afiliados.update_status');
         Route::post('afiliados/{uuid}/evidencia', [\App\Http\Controllers\AfiliadoController::class, 'uploadEvidencia'])->name('afiliados.upload_evidencia');
         Route::post('afiliados/{uuid}/reopen', [\App\Http\Controllers\AfiliadoController::class, 'reopen'])->name('afiliados.reopen');
+        Route::post('afiliados/{afiliado}/confirm-reception', [\App\Http\Controllers\AfiliadoController::class, 'confirmReception'])->name('afiliados.confirm_reception');
         Route::resource('afiliados', \App\Http\Controllers\AfiliadoController::class)->whereUuid('afiliado');
     });
 

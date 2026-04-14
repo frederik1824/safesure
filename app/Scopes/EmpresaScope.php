@@ -17,9 +17,13 @@ class EmpresaScope implements Scope
         if (Auth::check() && Auth::user()->isGestora()) {
             $responsableId = Auth::user()->responsable_id;
             
-            // Filtro Estricto: Solo empresas que tienen afiliados que pertenecen a esta gestora
-            $builder->whereHas('afiliados', function($query) use ($responsableId) {
-                $query->where('responsable_id', $responsableId);
+            // Permitir ver si es una empresa verificada/real O si tiene afiliados de la gestora
+            $builder->where(function($q) use ($responsableId) {
+                $q->where('es_verificada', true)
+                  ->orWhere('es_real', true)
+                  ->orWhereHas('afiliados', function($query) use ($responsableId) {
+                      $query->where('responsable_id', $responsableId);
+                  });
             });
         }
     }

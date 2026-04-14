@@ -48,7 +48,8 @@ class Index extends Component
         if ($this->provincia) $query->where('provincia_id', $this->provincia);
         if ($this->municipio) $query->where('municipio_id', $this->municipio);
         
-        if ($this->status === 'reales') $query->where('es_verificada', true);
+        if ($this->status === 'reales') $query->where('es_real', true);
+        elseif ($this->status === 'verificadas') $query->where('es_verificada', true);
         elseif ($this->status === 'filiales') $query->where('es_filial', true);
         elseif ($this->status === 'no_verificadas') $query->where('es_verificada', false);
 
@@ -57,8 +58,9 @@ class Index extends Component
         // Stats for cards
         $stats = [
             'total' => Empresa::count(),
-            'reales' => Empresa::where('es_verificada', true)->count(),
+            'reales' => Empresa::where('es_real', true)->count(),
             'filiales' => Empresa::where('es_filial', true)->count(),
+            'verificadas' => Empresa::where('es_verificada', true)->count(),
         ];
 
         return view('livewire.empresa.index', [
@@ -66,7 +68,7 @@ class Index extends Component
             'provincias' => Provincia::orderBy('nombre')->get(),
             'municipios' => $this->provincia ? Municipio::where('provincia_id', $this->provincia)->orderBy('nombre')->get() : [],
             'stats' => $stats,
-            'mapMarkers' => $this->activeTab === 'map' ? $query->get(['uuid', 'nombre', 'latitude', 'longitude', 'direccion']) : collect([])
+            'mapMarkers' => $this->activeTab === 'map' ? $query->get(['uuid', 'rnc', 'nombre', 'latitude', 'longitude', 'direccion', 'es_verificada', 'es_filial']) : collect([])
         ]);
     }
 }

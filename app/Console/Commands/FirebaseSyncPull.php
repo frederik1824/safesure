@@ -15,6 +15,7 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 
 class FirebaseSyncPull extends Command
@@ -106,9 +107,25 @@ class FirebaseSyncPull extends Command
                 if ($this->option('reales')) $filters['es_real'] = true;
                 if ($this->option('verificadas')) $filters['es_verificada'] = true;
 
+                $this->info("--- Syncing Companies (Dual Resolve RNC/UUID) ---");
                 $companiesData = empty($filters) ? $firebase->getCollection('empresas') : $firebase->search('empresas', $filters);
-                $this->processCollection($firebase, Empresa::class, $companiesData, 'uuid');
+                $this->processCollection($firebase, Empresa::class, $companiesData, 'uuid', function($mapped) {
+                    // Normalize lat/lng if they come as latitud/longitud
+                    if (isset($mapped['latitud'])) $mapped['latitude'] = $mapped['latitud'];
+                    if (isset($mapped['longitud'])) $mapped['longitude'] = $mapped['longitud'];
 
+                    // Try to extract geodata from google_maps_url if present
+                    if (isset($mapped['google_maps_url'])) {
+                        $geo = $this->resolveGeodata($mapped['google_maps_url']);
+                        if ($geo) {
+                            $mapped['latitude'] = $geo['lat'];
+                            $mapped['longitude'] = $geo['lng'];
+                        }
+                    }
+                    return $mapped;
+                }, 'rnc'); // RNC is the primary lookup suggested CMD
+
+                $this->info("--- Syncing Afiliados ---");
                 $affiliatesFilters = $since ? ['updated_at' => $since] : [];
                 $afiliadosData = empty($affiliatesFilters) ? $firebase->getCollection('afiliados') : $firebase->search('afiliados', $affiliatesFilters);
                 $this->processCollection($firebase, Afiliado::class, $afiliadosData, 'cedula');
@@ -131,7 +148,7 @@ class FirebaseSyncPull extends Command
             return 0;
 
         } catch (\Throwable $e) {
-            if (isset($lock)) $lock->release();
+            if (isset($lock) && $lock) $lock->release();
             if ($this->syncLog) {
                 $this->syncLog->update([
                     'status' => 'failed',
@@ -141,6 +158,35 @@ class FirebaseSyncPull extends Command
             }
             $this->error("❌ Error: " . $e->getMessage());
             return 1;
+        }
+    }
+
+    /**
+     * Resolves Google Maps URLs (including short ones) and extracts coordinates
+     */
+    protected function resolveGeodata($url)
+    {
+        if (empty($url)) return null;
+
+        try {
+            // Resolve redirect if it's a short URL (like goo.gl)
+            $response = Http::withOptions(['allow_redirects' => true])->get($url);
+            $finalUrl = $response->effectiveUri()->__toString();
+
+            // Extract coordinates from URL string (@lat,lng)
+            if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $finalUrl, $matches)) {
+                return ['lat' => $matches[1], 'lng' => $matches[2]];
+            }
+            
+            // Extract from query params (ll=lat,lng)
+            if (preg_match('/ll=(-?\d+\.\d+),(-?\d+\.\d+)/', $finalUrl, $matches)) {
+                return ['lat' => $matches[1], 'lng' => $matches[2]];
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            Log::warning("Could not resolve geodata for URL: $url. Error: " . $e->getMessage());
+            return null;
         }
     }
 
@@ -191,7 +237,7 @@ class FirebaseSyncPull extends Command
         $this->info("");
     }
 
-    protected function processCollection($firebase, $modelClass, $data, $uniqueKey, $transformCallback = null)
+    protected function processCollection($firebase, $modelClass, $data, $uniqueKey, $transformCallback = null, $priorityKey = null)
     {
         if (empty($data)) {
             $this->line("   No recent updates found.");
@@ -207,17 +253,28 @@ class FirebaseSyncPull extends Command
         $bar->start();
 
         foreach ($data as $mapped) {
-            if (isset($mapped[$uniqueKey])) {
-                $model = (new $modelClass)->where($uniqueKey, $mapped[$uniqueKey])->first();
-                if ($model) {
-                    $firebase->syncLocalModel($model, $mapped);
-                } else {
-                    $attributes = $transformCallback ? $transformCallback($mapped) : $mapped;
-                    // Filter attributes based on fillable
-                    $fillable = array_intersect_key($mapped, array_flip((new $modelClass)->getFillable()));
-                    $modelClass::create(array_merge($fillable, $attributes));
-                }
+            $model = null;
+
+            // Priority Check (e.g., RNC for Empresas)
+            if ($priorityKey && isset($mapped[$priorityKey]) && !empty($mapped[$priorityKey])) {
+                $model = (new $modelClass)->where($priorityKey, $mapped[$priorityKey])->first();
             }
+
+            // Fallback to Unique Key (e.g., UUID or Cedula)
+            if (!$model && isset($mapped[$uniqueKey])) {
+                $model = (new $modelClass)->where($uniqueKey, $mapped[$uniqueKey])->first();
+            }
+
+            if ($model) {
+                $attributes = $transformCallback ? $transformCallback($mapped) : $mapped;
+                $firebase->syncLocalModel($model, $attributes);
+            } else {
+                $attributes = $transformCallback ? $transformCallback($mapped) : $mapped;
+                // Filter attributes based on fillable
+                $fillableData = array_intersect_key($attributes, array_flip((new $modelClass)->getFillable()));
+                $modelClass::create($fillableData);
+            }
+
             $bar->advance();
             $this->globalSynced++;
             if ($this->syncLog && $this->globalSynced % 25 == 0) {
@@ -236,3 +293,4 @@ class FirebaseSyncPull extends Command
         $this->info("");
     }
 }
+
