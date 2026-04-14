@@ -50,7 +50,7 @@
                             {{ $afiliado->empresaModel->nombre ?? $afiliado->empresa }}
                             <span class="material-symbols-outlined text-blue-500 text-[14px]">verified_user</span>
                         </span>
-                        <span class="text-[0.65rem] text-slate-400">{{ $afiliado->rnc_empresa ?? $afiliado->empresaModel?->rnc }}</span>
+                        <span class="text-[0.65rem] text-slate-400">{{ $afiliado->empresaModel?->rnc ?? ($afiliado->rnc_empresa ?? '----------') }}</span>
                     </div>
                 </td>
                 <td class="py-4 px-4 text-center">

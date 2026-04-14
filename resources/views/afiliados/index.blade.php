@@ -253,7 +253,9 @@
                                 <span class="text-xs font-bold text-on-surface dark:text-slate-200">{{ $afiliado->contrato ?? 'N/A' }}</span>
                             </td>
                             <td class="py-4 px-4 w-32">
-                                <span class="text-[0.7rem] font-mono font-bold text-slate-600 bg-slate-100/50 px-2 py-1 rounded border border-slate-200/50">{{ $afiliado->rnc_empresa ?? '----------' }}</span>
+                                <span class="text-[0.7rem] font-mono font-bold text-slate-600 bg-slate-100/50 px-2 py-1 rounded border border-slate-200/50">
+                                    {{ $afiliado->empresaModel->rnc ?? ($afiliado->rnc_empresa ?? '----------') }}
+                                </span>
                             </td>
                             <td class="py-4 px-4">
                                 @if($afiliado->empresa_id)

@@ -120,8 +120,12 @@
                                         <i class="fa-solid fa-building text-xs"></i>
                                         {{ $afiliado->empresaModel->nombre ?? $afiliado->empresa }}
                                     </a>
+                                    <p class="text-xs text-slate-400 font-mono mt-0.5">{{ $afiliado->empresaModel->rnc ?? $afiliado->rnc_empresa }}</p>
                                 @else
                                     {{ $afiliado->empresa ?? 'No aplica' }}
+                                    @if($afiliado->rnc_empresa)
+                                        <p class="text-xs text-slate-400 font-mono mt-0.5">{{ $afiliado->rnc_empresa }}</p>
+                                    @endif
                                 @endif
                             </p>
                         </div>
