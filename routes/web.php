@@ -32,6 +32,10 @@ Route::middleware('auth')->group(function () {
         Route::post('firebase-sync/trigger', [\App\Http\Controllers\FirebaseSyncController::class, 'trigger'])->name('admin.sync.trigger');
         
         Route::get('auditoria', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('admin.audit.index');
+
+        // Centro de Control del Sistema (DevOps)
+        Route::get('sistema/control', [\App\Http\Controllers\Admin\SystemController::class, 'index'])->name('admin.system.index');
+        Route::post('sistema/run-command', [\App\Http\Controllers\Admin\SystemController::class, 'runCommand'])->name('admin.system.run');
     });
 
     // Módulo de Empresas (Spatie Permission)
