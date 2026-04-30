@@ -27,7 +27,7 @@ exports.onAfiliadoUpdate = functions.firestore
                 id: context.params.id,
                 uuid: data.uuid || null
             }, {
-                headers: { 'X-Firebase-Secret': WEBHOOK_SECRET }
+                headers: { 'X-SafeSure-Webhook-Secret': WEBHOOK_SECRET }
             });
             console.log(`Notificación enviada a Laravel para Afiliado: ${context.params.id}`);
         } catch (error) {
@@ -47,7 +47,7 @@ exports.onEmpresaUpdate = functions.firestore
                 id: context.params.id,
                 uuid: data.uuid || null
             }, {
-                headers: { 'X-Firebase-Secret': WEBHOOK_SECRET }
+                headers: { 'X-SafeSure-Webhook-Secret': WEBHOOK_SECRET }
             });
             console.log(`Notificación enviada a Laravel para Empresa: ${context.params.id}`);
         } catch (error) {
@@ -64,4 +64,4 @@ Como estás trabajando en `127.0.0.1:8000`, Firebase (que está en la nube) no p
 3.  Úsala en la constante `LARAVEL_WEBHOOK_URL` del script de arriba.
 
 ## 3. Seguridad
-El sistema ya está configurado para rechazar cualquier petición que no incluya el encabezado `X-Firebase-Secret` correcto que generamos hoy.
+El sistema ya está configurado para rechazar cualquier petición que no incluya el encabezado `X-SafeSure-Webhook-Secret` correcto que generamos hoy.

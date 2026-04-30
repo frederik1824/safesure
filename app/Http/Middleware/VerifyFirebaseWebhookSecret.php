@@ -14,7 +14,7 @@ class VerifyFirebaseWebhookSecret
     public function handle(Request $request, Closure $next): Response
     {
         $secret = env('FIREBASE_WEBHOOK_SECRET');
-        $headerSecret = $request->header('X-Firebase-Secret');
+        $headerSecret = $request->header('X-SafeSure-Webhook-Secret');
 
         if (!$secret || $headerSecret !== $secret) {
             return response()->json(['message' => 'Unauthorized Webhook Access'], 401);

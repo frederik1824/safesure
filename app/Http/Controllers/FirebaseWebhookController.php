@@ -23,7 +23,7 @@ class FirebaseWebhookController extends Controller
     public function handle(Request $request)
     {
         // Security Check
-        $secret = $request->header('X-Webhook-Secret');
+        $secret = $request->header('X-SafeSure-Webhook-Secret');
         if ($secret !== config('services.firebase.webhook_secret', env('FIREBASE_WEBHOOK_SECRET'))) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
@@ -69,28 +69,26 @@ class FirebaseWebhookController extends Controller
 
         $afiliado = Afiliado::where('cedula', $cedula)->first();
 
-        if ($afiliado) {
-            // REGLA BIDIRECCIONAL: Solo actualizamos si Firebase es más reciente
-            // Usamos saveQuietly() o manual flag para evitar que el Observer re-suba el cambio
-            $afiliado->is_firebase_sync = true; 
-            
-            // Usamos el servicio para comparar y actualizar localmente
-            $updated = $this->syncService->syncLocalModel($afiliado, $data);
-            
+        if (!$afiliado) {
+            // CREACIÓN: Si el registro no existe localmente, lo creamos
+            $afiliado = new Afiliado(['cedula' => $cedula]);
             \App\Models\WebhookLog::where('document_id', $cedula)->where('event_type', 'afiliado')->latest()->first()?->update([
-                'status' => 'processed',
-                'message' => $updated ? 'Data updated from Firebase' : 'Already up to date'
+                'message' => "Creating new affiliate from Firebase"
             ]);
-
-            return response()->json(['message' => $updated ? 'Updated' : 'Already up to date']);
         }
 
+        // REGLA BIDIRECCIONAL: Solo actualizamos si Firebase es más reciente
+        $afiliado->is_firebase_sync = true; 
+        
+        // Usamos el servicio para comparar y actualizar localmente
+        $updated = $this->syncService->syncLocalModel($afiliado, $data);
+        
         \App\Models\WebhookLog::where('document_id', $cedula)->where('event_type', 'afiliado')->latest()->first()?->update([
-            'status' => 'failed',
-            'message' => 'Local record not found'
+            'status' => 'processed',
+            'message' => $updated ? 'Data processed from Firebase' : 'Already up to date'
         ]);
 
-        return response()->json(['message' => 'Local record not found'], 404);
+        return response()->json(['message' => $updated ? 'Processed' : 'Already up to date']);
     }
 
     protected function syncEmpresa($uuid, $data = null)
@@ -105,23 +103,18 @@ class FirebaseWebhookController extends Controller
 
         $empresa = Empresa::where('uuid', $uuid)->first();
 
-        if ($empresa) {
-            $empresa->is_firebase_sync = true;
-            $updated = $this->syncService->syncLocalModel($empresa, $data);
-            
-            \App\Models\WebhookLog::where('document_id', $uuid)->where('event_type', 'empresa')->latest()->first()?->update([
-                'status' => 'processed',
-                'message' => $updated ? 'Data updated from Firebase' : 'Already up to date'
-            ]);
-
-            return response()->json(['message' => $updated ? 'Updated' : 'Already up to date']);
+        if (!$empresa) {
+            $empresa = new Empresa(['uuid' => $uuid]);
         }
 
+        $empresa->is_firebase_sync = true;
+        $updated = $this->syncService->syncLocalModel($empresa, $data);
+        
         \App\Models\WebhookLog::where('document_id', $uuid)->where('event_type', 'empresa')->latest()->first()?->update([
-            'status' => 'failed',
-            'message' => 'Local record not found'
+            'status' => 'processed',
+            'message' => $updated ? 'Data processed from Firebase' : 'Already up to date'
         ]);
 
-        return response()->json(['message' => 'Local record not found'], 404);
+        return response()->json(['message' => $updated ? 'Processed' : 'Already up to date']);
     }
 }

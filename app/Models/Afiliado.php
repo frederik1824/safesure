@@ -68,52 +68,10 @@ class Afiliado extends Model
         };
     }
 
-    /**
-     * Regla Estricta: Asegurar costo base al guardar si está completado
-     */
     protected static function boot()
     {
         parent::boot();
-        
         static::addGlobalScope(new \App\Scopes\ResponsableScope);
-        
-        static::saving(function ($afiliado) {
-            // Regla Inmutable (Protocolo CMD): Si el registro YA está en estado 9 (Completado)
-            if ($afiliado->getOriginal('estado_id') == 9) {
-                if ($afiliado->isDirty(['responsable_id', 'empresa_id', 'estado_id', 'cedula'])) {
-                    if (!isset($afiliado->bypassing_reopen) || !$afiliado->bypassing_reopen) {
-                        throw new \Exception("Protocolo CMD: El expediente está COMPLETADO (ID 9) y es inmutable. No se permiten cambios de responsable, empresa, cédula o estado.");
-                    }
-                }
-            }
-
-            // Regla: No se puede asignar a "En Ruta" (3) sin responsable
-            if ($afiliado->isDirty('estado_id') && $afiliado->estado_id == 3 && empty($afiliado->responsable_id)) {
-                throw new \Exception("Protocolo CMD: No se puede pasar a 'En Ruta' sin un responsable asignado.");
-            }
-
-            // Regla: Bloquear transiciones inválidas hacia Completado
-            if ($afiliado->isDirty('estado_id')) {
-                $oldState = $afiliado->getOriginal('estado_id');
-                $newState = $afiliado->estado_id;
-
-                if (!is_null($oldState) && $newState == 9 && in_array($oldState, [1, 4, 11, 12, 13])) {
-                    throw new \Exception("Protocolo CMD: Transición de estado inválida. No se puede saltar directamente a Completado (9) desde un estado inicial o de fallo ($oldState).");
-                }
-            }
-
-            // Si el estado es uno de los terminados (6 o 9)
-            if (in_array($afiliado->estado_id, [6, 9])) {
-                // Si el costo es nulo o cero, forzamos la asignación del precio base
-                if (is_null($afiliado->costo_entrega) || $afiliado->costo_entrega == 0) {
-                    if ($afiliado->proveedor_id && $afiliado->proveedor?->precio_base > 0) {
-                        $afiliado->costo_entrega = $afiliado->proveedor->precio_base;
-                    } elseif ($afiliado->responsable_id && $afiliado->responsable?->precio_entrega > 0) {
-                        $afiliado->costo_entrega = $afiliado->responsable->precio_entrega;
-                    }
-                }
-            }
-        });
     }
 
     /**
@@ -246,25 +204,6 @@ class Afiliado extends Model
         return $this->municipio_final?->nombre ?? ($this->attributes['municipio'] ?? 'SIN MUNICIPIO');
     }
 
-    /**
-     * Normaliza los campos de dirección eliminando abreviaturas comunes
-     */
-    public function normalizeAddress()
-    {
-        if (!$this->direccion) return;
-
-        $replacements = [
-            '/\bC\/\b/i' => 'Calle ',
-            '/\bNo\.\b/i' => '#',
-            '/\bEsq\.\b/i' => 'Esquina ',
-            '/\bApt\.\b/i' => 'Apartamento ',
-            '/\bRes\.\b/i' => 'Residencial ',
-            '/\bAut\.\b/i' => 'Autopista ',
-        ];
-
-        $this->direccion = preg_replace(array_keys($replacements), array_values($replacements), $this->direccion);
-        $this->direccion = trim(preg_replace('/\s+/', ' ', $this->direccion));
-    }
 
     /**
      * Verifica si existe un historial previo de entrega exitosa para esta cédula

@@ -114,13 +114,10 @@ class FirebaseSyncPull extends Command
                     if (isset($mapped['latitud'])) $mapped['latitude'] = $mapped['latitud'];
                     if (isset($mapped['longitud'])) $mapped['longitude'] = $mapped['longitud'];
 
-                    // Try to extract geodata from google_maps_url if present
-                    if (isset($mapped['google_maps_url'])) {
-                        $geo = $this->resolveGeodata($mapped['google_maps_url']);
-                        if ($geo) {
-                            $mapped['latitude'] = $geo['lat'];
-                            $mapped['longitude'] = $geo['lng'];
-                        }
+                    // Dispatch background job for geodata resolution if URL is present
+                    if (isset($mapped['google_maps_url']) && !empty($mapped['google_maps_url'])) {
+                        // We will dispatch the job AFTER the company is created/updated
+                        $mapped['_resolve_geo'] = $mapped['google_maps_url'];
                     }
                     return $mapped;
                 }, 'rnc'); // RNC is the primary lookup suggested CMD
@@ -161,34 +158,7 @@ class FirebaseSyncPull extends Command
         }
     }
 
-    /**
-     * Resolves Google Maps URLs (including short ones) and extracts coordinates
-     */
-    protected function resolveGeodata($url)
-    {
-        if (empty($url)) return null;
-
-        try {
-            // Resolve redirect if it's a short URL (like goo.gl)
-            $response = Http::withOptions(['allow_redirects' => true])->get($url);
-            $finalUrl = $response->effectiveUri()->__toString();
-
-            // Extract coordinates from URL string (@lat,lng)
-            if (preg_match('/@(-?\d+\.\d+),(-?\d+\.\d+)/', $finalUrl, $matches)) {
-                return ['lat' => $matches[1], 'lng' => $matches[2]];
-            }
-            
-            // Extract from query params (ll=lat,lng)
-            if (preg_match('/ll=(-?\d+\.\d+),(-?\d+\.\d+)/', $finalUrl, $matches)) {
-                return ['lat' => $matches[1], 'lng' => $matches[2]];
-            }
-
-            return null;
-        } catch (\Exception $e) {
-            Log::warning("Could not resolve geodata for URL: $url. Error: " . $e->getMessage());
-            return null;
-        }
-    }
+    // resolveGeodata logic moved to ResolveCompanyGeodataJob
 
     protected function syncCollection($firebase, $collection, $modelClass, $uniqueFields, $since = null)
     {
@@ -267,12 +237,26 @@ class FirebaseSyncPull extends Command
 
             if ($model) {
                 $attributes = $transformCallback ? $transformCallback($mapped) : $mapped;
+                $urlToResolve = $attributes['_resolve_geo'] ?? null;
+                unset($attributes['_resolve_geo']);
+                
                 $firebase->syncLocalModel($model, $attributes);
+                
+                if ($urlToResolve && empty($model->latitude)) {
+                    \App\Jobs\ResolveCompanyGeodataJob::dispatch($model->id, $urlToResolve);
+                }
             } else {
                 $attributes = $transformCallback ? $transformCallback($mapped) : $mapped;
+                $urlToResolve = $attributes['_resolve_geo'] ?? null;
+                unset($attributes['_resolve_geo']);
+
                 // Filter attributes based on fillable
                 $fillableData = array_intersect_key($attributes, array_flip((new $modelClass)->getFillable()));
-                $modelClass::create($fillableData);
+                $newModel = $modelClass::create($fillableData);
+
+                if ($urlToResolve) {
+                    \App\Jobs\ResolveCompanyGeodataJob::dispatch($newModel->id, $urlToResolve);
+                }
             }
 
             $bar->advance();

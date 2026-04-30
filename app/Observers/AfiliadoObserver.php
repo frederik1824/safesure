@@ -8,6 +8,22 @@ use App\Jobs\DeleteFromFirebaseJob;
 
 class AfiliadoObserver
 {
+    protected $rules;
+
+    public function __construct(\App\Services\AfiliadoBusinessRulesService $rules)
+    {
+        $this->rules = $rules;
+    }
+
+    /**
+     * Handle the Afiliado "saving" event
+     */
+    public function saving(Afiliado $afiliado): void
+    {
+        $this->rules->normalizeAddress($afiliado);
+        $this->rules->validateSaving($afiliado);
+    }
+
     /**
      * Handle the Afiliado "saved" event (covers created and updated)
      */
