@@ -232,9 +232,42 @@ class FirebaseSyncService
     /**
      * Compatibility alias for Push (used by Observers)
      */
+    /**
+     * Circuit Breaker Logic: Evita llamadas si Firebase está fallando sistemáticamente.
+     */
+    protected function checkCircuitBreaker(): void
+    {
+        if (Cache::get('firebase_circuit_open')) {
+            throw new \Exception("Firebase Circuit Breaker: El circuito está ABIERTO debido a fallos previos. Operación abortada.");
+        }
+    }
+
+    protected function recordFailure(): void
+    {
+        $failures = Cache::increment('firebase_failure_count');
+        if ($failures >= 5) {
+            Cache::put('firebase_circuit_open', true, now()->addMinutes(5));
+            Log::alert("FIREBASE CIRCUIT OPEN: Sincronización suspendida por 5 minutos.");
+        }
+    }
+
+    protected function recordSuccess(): void
+    {
+        Cache::forget('firebase_failure_count');
+    }
+
     public function syncData(array $data, string $collection, string $documentId)
     {
-        return $this->push($collection, $documentId, $data);
+        $this->checkCircuitBreaker();
+        $success = $this->push($collection, $documentId, $data);
+        
+        if ($success) {
+            $this->recordSuccess();
+        } else {
+            $this->recordFailure();
+        }
+        
+        return $success;
     }
 
     /**

@@ -9,6 +9,7 @@ Debes crear una función en el archivo `index.js` de tus Firebase Functions:
 ```javascript
 const functions = require('firebase-functions');
 const axios = require('axios');
+const crypto = require('crypto');
 
 // CONFIGURACIÓN (Cambiar por tu URL real)
 const LARAVEL_WEBHOOK_URL = 'https://TU-DOMINIO.com/firebase/webhook';
@@ -21,13 +22,20 @@ exports.onAfiliadoUpdate = functions.firestore
         
         if (!data) return null; // Documento borrado
 
+        const payload = {
+            type: 'afiliado',
+            id: context.params.id,
+            uuid: data.uuid || null,
+            data: data // Payload completo para evitar lecturas extra en Laravel
+        };
+
+        const signature = crypto.createHmac('sha256', WEBHOOK_SECRET)
+            .update(JSON.stringify(payload))
+            .digest('hex');
+
         try {
-            await axios.post(LARAVEL_WEBHOOK_URL, {
-                type: 'afiliado',
-                id: context.params.id,
-                uuid: data.uuid || null
-            }, {
-                headers: { 'X-SafeSure-Webhook-Secret': WEBHOOK_SECRET }
+            await axios.post(LARAVEL_WEBHOOK_URL, payload, {
+                headers: { 'X-SafeSure-Signature': signature }
             });
             console.log(`Notificación enviada a Laravel para Afiliado: ${context.params.id}`);
         } catch (error) {
@@ -41,13 +49,20 @@ exports.onEmpresaUpdate = functions.firestore
         const data = change.after.exists ? change.after.data() : null;
         if (!data) return null;
 
+        const payload = {
+            type: 'empresa',
+            id: context.params.id,
+            uuid: data.uuid || null,
+            data: data
+        };
+
+        const signature = crypto.createHmac('sha256', WEBHOOK_SECRET)
+            .update(JSON.stringify(payload))
+            .digest('hex');
+
         try {
-            await axios.post(LARAVEL_WEBHOOK_URL, {
-                type: 'empresa',
-                id: context.params.id,
-                uuid: data.uuid || null
-            }, {
-                headers: { 'X-SafeSure-Webhook-Secret': WEBHOOK_SECRET }
+            await axios.post(LARAVEL_WEBHOOK_URL, payload, {
+                headers: { 'X-SafeSure-Signature': signature }
             });
             console.log(`Notificación enviada a Laravel para Empresa: ${context.params.id}`);
         } catch (error) {
@@ -64,4 +79,4 @@ Como estás trabajando en `127.0.0.1:8000`, Firebase (que está en la nube) no p
 3.  Úsala en la constante `LARAVEL_WEBHOOK_URL` del script de arriba.
 
 ## 3. Seguridad
-El sistema ya está configurado para rechazar cualquier petición que no incluya el encabezado `X-SafeSure-Webhook-Secret` correcto que generamos hoy.
+El sistema ya está configurado para validar la integridad del payload mediante una firma HMAC (sha256) usando el encabezado `X-SafeSure-Signature`.

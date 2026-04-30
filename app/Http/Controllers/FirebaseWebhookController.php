@@ -22,12 +22,6 @@ class FirebaseWebhookController extends Controller
      */
     public function handle(Request $request)
     {
-        // Security Check
-        $secret = $request->header('X-SafeSure-Webhook-Secret');
-        if ($secret !== config('services.firebase.webhook_secret', env('FIREBASE_WEBHOOK_SECRET'))) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
-
         $type = $request->input('type'); // 'afiliado' or 'empresa'
         $id = $request->input('id');     // Document ID (Cedula for Afiliado, UUID for Empresa)
         $payload = $request->input('data'); // Opcional: Si Firebase manda todo el JSON

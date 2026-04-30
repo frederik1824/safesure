@@ -33,41 +33,36 @@ class AfiliadoService
      */
     public function updateStatus(Afiliado $afiliado, int $newEstadoId, ?string $observacion = null, $userId = null)
     {
-        $newEstado = Estado::findOrFail($newEstadoId);
+        // 1. Antes de proceder, verificar si necesitamos un recálculo automático basado en evidencias
+        // Esto permite que el sistema "sepa" si debe ir a Completado o Cierre Parcial
+        $finalEstadoId = $this->calculateAutomaticState($afiliado, $newEstadoId);
+        
+        $newEstado = Estado::findOrFail($finalEstadoId);
         $oldEstado = $afiliado->estado;
-        $oldNombre = strtolower($oldEstado->nombre ?? 'pendiente');
-        $newNombre = strtolower($newEstado->nombre);
+        
+        // IDs críticos (Cache o búsqueda eficiente)
+        $idCompletado = Estado::where('nombre', 'Completado')->first()?->id;
 
         // Rule 5.3: Immutability of closure
-        if ($oldNombre === 'completado') {
-            throw new Exception("Regla 5.3: El registro está Completado y es inmutable. Requiere proceso de reapertura.");
+        if ($oldEstado && $oldEstado->id == $idCompletado && !isset($afiliado->bypassing_reopen)) {
+            throw new Exception("Regla 5.3: El registro está Completado e inmutable. Use el proceso de reapertura oficial.");
         }
 
-        // Rule 5.5: Valid transitions (Disabled by user request to allow flexibility)
-        /*
-        if (!$this->isValidTransition($oldNombre, $newNombre)) {
-            throw new Exception("Regla 5.5: Transición de '{$oldNombre}' a '{$newNombre}' no permitida.");
-        }
-        */
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($afiliado, $finalEstadoId, $oldEstado, $newEstado, $userId, $observacion) {
+            $afiliado->estado_id = $finalEstadoId;
+            $afiliado->save();
 
-        // Rule 5.9: Assignment rule
-        if ($newNombre === 'en ruta' && !$afiliado->responsable_id) {
-            throw new Exception("Regla 5.9: No se puede pasar a 'En Ruta' sin un responsable asignado.");
-        }
+            // Rule 6: Audit/Traceability
+            HistorialEstado::create([
+                'afiliado_id' => $afiliado->id,
+                'estado_anterior_id' => $oldEstado->id ?? null,
+                'estado_nuevo_id' => $finalEstadoId,
+                'user_id' => $userId ?? Auth::id() ?? 1,
+                'observacion' => $observacion ?? "Cambio de estado a " . ($newEstado->nombre ?? 'N/A')
+            ]);
 
-        $afiliado->estado_id = $newEstadoId;
-        $afiliado->save();
-
-        // Rule 6: Audit/Traceability
-        HistorialEstado::create([
-            'afiliado_id' => $afiliado->id,
-            'estado_anterior_id' => $oldEstado->id ?? null,
-            'estado_nuevo_id' => $newEstadoId,
-            'user_id' => $userId ?? Auth::id() ?? 1,
-            'observacion' => $observacion ?? "Cambio de estado a {$newNombre}"
-        ]);
-
-        return $afiliado;
+            return $afiliado;
+        });
     }
 
     /**

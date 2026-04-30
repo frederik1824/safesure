@@ -18,7 +18,8 @@ class DeleteFromFirebaseJob implements ShouldQueue
     public $documentId;
     
     public $tries = 3;
-    public $backoff = 10;
+    public $queue = 'sync-high';
+    public $backoff = [10, 60, 300];
 
     /**
      * Create a new job instance.
