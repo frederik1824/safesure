@@ -3,23 +3,21 @@
 namespace App\Observers;
 
 use App\Models\Afiliado;
-use App\Services\FirebaseSyncService;
-use Illuminate\Support\Facades\Log;
+use App\Jobs\SyncToFirebaseJob;
+use App\Jobs\DeleteFromFirebaseJob;
 
 class AfiliadoObserver
 {
-    protected $syncService;
-
-    public function __construct(FirebaseSyncService $syncService)
-    {
-        $this->syncService = $syncService;
-    }
-
     /**
      * Handle the Afiliado "saved" event (covers created and updated)
      */
     public function saved(Afiliado $afiliado): void
     {
+        // Prevención de bucles: Si el modelo fue guardado desde un Webhook, no lo re-sincronizamos
+        if (isset($afiliado->is_firebase_sync) && $afiliado->is_firebase_sync) {
+            return;
+        }
+
         if ($afiliado->cedula) {
             // Aseguramos que las relaciones críticas estén cargadas para la transparencia con CMD
             $afiliado->load(['estado', 'responsable', 'corte']);
@@ -42,15 +40,8 @@ class AfiliadoObserver
                 }
             }
 
-            // Sincronizar con Firebase pasando el array enriquecido
-            $success = $this->syncService->syncData($data, 'afiliados', $documentId);
-            
-            if ($success) {
-                // Actualizar el campo local de sincronización solo si tuvo éxito
-                $afiliado->updateQuietly(['firebase_synced_at' => now()]);
-            } else {
-                Log::error("Firebase Sync: No se pudo sincronizar el afiliado {$afiliado->cedula}. Revisa los logs de Firebase.");
-            }
+            // Despachar el Job en segundo plano (Asíncrono)
+            SyncToFirebaseJob::dispatch($data, 'afiliados', $documentId);
         }
     }
 
@@ -59,9 +50,14 @@ class AfiliadoObserver
      */
     public function deleted(Afiliado $afiliado): void
     {
+        if (isset($afiliado->is_firebase_sync) && $afiliado->is_firebase_sync) {
+            return;
+        }
+
         if ($afiliado->cedula) {
             $documentId = $afiliado->cedula;
-            $this->syncService->deleteDocument('afiliados', $documentId);
+            // Despachar el Job asíncrono
+            DeleteFromFirebaseJob::dispatch('afiliados', $documentId);
         }
     }
 }

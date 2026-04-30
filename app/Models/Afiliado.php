@@ -81,7 +81,24 @@ class Afiliado extends Model
             // Regla Inmutable (Protocolo CMD): Si el registro YA está en estado 9 (Completado)
             if ($afiliado->getOriginal('estado_id') == 9) {
                 if ($afiliado->isDirty(['responsable_id', 'empresa_id', 'estado_id', 'cedula'])) {
-                    throw new \Exception("Protocolo CMD: El expediente está COMPLETADO (ID 9) y es inmutable. No se permiten cambios de responsable, empresa, cédula o estado.");
+                    if (!isset($afiliado->bypassing_reopen) || !$afiliado->bypassing_reopen) {
+                        throw new \Exception("Protocolo CMD: El expediente está COMPLETADO (ID 9) y es inmutable. No se permiten cambios de responsable, empresa, cédula o estado.");
+                    }
+                }
+            }
+
+            // Regla: No se puede asignar a "En Ruta" (3) sin responsable
+            if ($afiliado->isDirty('estado_id') && $afiliado->estado_id == 3 && empty($afiliado->responsable_id)) {
+                throw new \Exception("Protocolo CMD: No se puede pasar a 'En Ruta' sin un responsable asignado.");
+            }
+
+            // Regla: Bloquear transiciones inválidas hacia Completado
+            if ($afiliado->isDirty('estado_id')) {
+                $oldState = $afiliado->getOriginal('estado_id');
+                $newState = $afiliado->estado_id;
+
+                if (!is_null($oldState) && $newState == 9 && in_array($oldState, [1, 4, 11, 12, 13])) {
+                    throw new \Exception("Protocolo CMD: Transición de estado inválida. No se puede saltar directamente a Completado (9) desde un estado inicial o de fallo ($oldState).");
                 }
             }
 
@@ -335,5 +352,39 @@ class Afiliado extends Model
     public function despachoItems()
     {
         return $this->hasMany(DespachoItem::class);
+    }
+
+    /**
+     * Motor de Cierre Automático (Protocolo CMD)
+     * Regla 5.1: Un afiliado solo pasa a COMPLETADO (9) si:
+     * - Carnet Entregado (estado 6)
+     * - Acuse recibido o validado
+     * - Formulario recibido o validado
+     * - Sin documentos rechazados
+     */
+    public function autoEvaluarCierre()
+    {
+        // Solo evaluamos si está Entregado (6) o Pendiente de Recepción (7)
+        if (!in_array($this->estado_id, [6, 7])) {
+            return false;
+        }
+
+        $evidencias = $this->evidenciasAfiliado()->get();
+
+        $hasRechazados = $evidencias->where('status', 'rechazado')->isNotEmpty();
+        if ($hasRechazados) {
+            return false;
+        }
+
+        $hasAcuse = $evidencias->where('tipo_documento', 'acuse')->whereIn('status', ['recibido', 'validado'])->isNotEmpty();
+        $hasFormulario = $evidencias->where('tipo_documento', 'formulario')->whereIn('status', ['recibido', 'validado'])->isNotEmpty();
+
+        if ($hasAcuse && $hasFormulario) {
+            $this->estado_id = 9; // Completado
+            $this->save();
+            return true;
+        }
+
+        return false;
     }
 }

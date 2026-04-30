@@ -3,23 +3,21 @@
 namespace App\Observers;
 
 use App\Models\Empresa;
-use App\Services\FirebaseSyncService;
-use Illuminate\Support\Facades\Log;
+use App\Jobs\SyncToFirebaseJob;
+use App\Jobs\DeleteFromFirebaseJob;
 
 class EmpresaObserver
 {
-    protected $syncService;
-
-    public function __construct(FirebaseSyncService $syncService)
-    {
-        $this->syncService = $syncService;
-    }
-
     /**
      * Handle the Empresa "saved" event (covers created and updated)
      */
     public function saved(Empresa $empresa): void
     {
+        // Prevención de bucles: Si el modelo fue guardado desde un Webhook, no lo re-sincronizamos
+        if (isset($empresa->is_firebase_sync) && $empresa->is_firebase_sync) {
+            return;
+        }
+
         if ($empresa->rnc) {
             // Cargar el promotor para transparencia con CMD
             $empresa->load('promotor');
@@ -41,15 +39,8 @@ class EmpresaObserver
                 }
             }
 
-            // Sincronizar toda la data enriquecida
-            $success = $this->syncService->syncData($data, 'empresas', $documentId);
-            
-            if ($success) {
-                // Actualizar marca de tiempo sin disparar eventos
-                $empresa->updateQuietly(['firebase_synced_at' => now()]);
-            } else {
-                Log::error("Firebase Sync: No se pudo sincronizar la empresa RNC: {$empresa->rnc}.");
-            }
+            // Despachar el Job asíncrono
+            SyncToFirebaseJob::dispatch($data, 'empresas', $documentId);
         }
     }
 
@@ -58,9 +49,14 @@ class EmpresaObserver
      */
     public function deleted(Empresa $empresa): void
     {
+        if (isset($empresa->is_firebase_sync) && $empresa->is_firebase_sync) {
+            return;
+        }
+
         if ($empresa->rnc) {
             $documentId = $empresa->uuid;
-            $this->syncService->deleteDocument('empresas', $documentId);
+            // Despachar el Job asíncrono
+            DeleteFromFirebaseJob::dispatch('empresas', $documentId);
         }
     }
 }

@@ -18,14 +18,14 @@
     <meta property="og:url" content="{{ url()->current() }}">
     
     <!-- Favicon (Esencial para reputación) -->
-    <link rel="icon" type="image/png" href="{{ asset('images/logo_safe.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-web-ss.png') }}">
 
     <title>{{ config('app.name', 'ARS CMD Dashboard') }}</title>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     <!-- Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -81,8 +81,9 @@
                         "on-tertiary-container": "#ffa77e",
                         "on-surface": "#191c1d",
                         "surface": "#f8f9fa",
-                        "primary": "{{ $brandPrimary }}",
-                        "secondary": "{{ $brandSecondary }}",
+                        "primary": "#00346f", // SafeSure Deep Navy
+                        "secondary": "#0288d1", // SafeSure Vibrant Blue
+                        "accent": "#f59e0b", // Amber/Gold for highlights
                         "surface-container-low": "#f3f4f5",
                         "error": "#ba1a1a",
                         "surface-container-high": "#e7e8e9",
@@ -90,9 +91,9 @@
                         "on-surface-variant": "#424751"
                     },
                     fontFamily: {
-                        "headline": ["Manrope"],
-                        "body": ["Inter"],
-                        "label": ["Inter"]
+                        "headline": ["Plus Jakarta Sans", "Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
                     }
                 }
             }
@@ -154,10 +155,10 @@
           data-error="{{ session('error') ?? ($errors->any() ? 'Existen errores de validación en el formulario.' : '') }}">
 
     <!-- SideNavBar Component -->
-    <aside class="h-screen w-80 fixed left-0 top-0 border-r border-white/5 bg-[#0a0f1d] flex flex-col py-8 z-50 shadow-2xl overflow-hidden">
-        <!-- Accent Glow -->
-        <div class="absolute -top-24 -left-24 w-48 h-48 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute top-1/2 -right-24 w-32 h-64 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+    <aside class="h-screen w-80 fixed left-0 top-0 border-r border-slate-200 bg-white flex flex-col py-8 z-50 shadow-lg overflow-hidden">
+        <!-- Soft Branding Accents -->
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-1/2 -right-24 w-32 h-64 bg-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
         
         @php /** @var \App\Models\User $user */ $user = Auth::user(); @endphp
         <div class="px-8 mb-10 w-full relative z-10">
@@ -167,14 +168,14 @@
                         <i class="ph-fill ph-shield-check text-2xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-black tracking-tighter text-white leading-none">ARS CMD</h1>
-                        <p class="text-[0.65rem] font-bold uppercase tracking-[0.3em] text-blue-400 mt-1">ID Platform</p>
+                        <h1 class="text-2xl font-black tracking-tighter text-slate-800 leading-none">ARS CMD</h1>
+                        <p class="text-[0.65rem] font-bold uppercase tracking-[0.3em] text-primary mt-1">ID Platform</p>
                     </div>
                 @else
-                    <div class="relative w-full h-14 bg-white/95 backdrop-blur-sm rounded-2xl p-2.5 flex items-center justify-center shadow-lg border border-white/10 group/logo overflow-hidden">
+                    <a href="{{ route('dashboard') }}" class="relative w-full h-14 bg-slate-50 backdrop-blur-sm rounded-2xl p-2.5 flex items-center justify-center shadow-sm border border-slate-200 group/logo overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-br from-white to-slate-100 opacity-50"></div>
-                        <img src="{{ asset('images/logo_safe.png') }}" alt="Seguros Safe Logo" class="h-full w-auto object-contain relative z-10 transition-transform duration-500 group-hover/logo:scale-110">
-                    </div>
+                        <img src="{{ asset('images/logo-web-ss.png') }}" alt="SafeSure Logo" class="h-full w-auto object-contain relative z-10 transition-transform duration-500 group-hover/logo:scale-110">
+                    </a>
                 @endif
             </div>
         </div>
@@ -190,11 +191,11 @@
         }">
             @php $isGestora = auth()->user()->isGestora(); @endphp
             <!-- Navigation Links -->
-            <a class="{{ request()->routeIs('dashboard') ? 'flex items-center gap-4 px-6 py-4 text-white font-black bg-white/10 border-l-[4px] border-primary shadow-2xl rounded-r-2xl transition-all relative overflow-hidden' : 'flex items-center gap-4 px-6 py-4 text-slate-400 hover:text-white hover:bg-white/5 rounded-r-2xl transition-all group/link' }} mb-6 mt-0.5" href="{{ route('dashboard') }}">
+            <a class="{{ request()->routeIs('dashboard') ? 'flex items-center gap-4 px-6 py-4 text-primary font-black bg-primary/5 border-l-[4px] border-primary shadow-sm rounded-r-2xl transition-all relative overflow-hidden' : 'flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-primary hover:bg-slate-50 rounded-r-2xl transition-all group/link' }} mb-6 mt-0.5" href="{{ route('dashboard') }}">
                 @if(request()->routeIs('dashboard'))
-                    <div class="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-transparent"></div>
+                    <div class="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent"></div>
                 @endif
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors {{ request()->routeIs('dashboard') ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-slate-800/50 text-slate-500 group-hover/link:bg-slate-700 group-hover/link:text-white' }}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors {{ request()->routeIs('dashboard') ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-slate-100 text-slate-400 group-hover/link:bg-primary/10 group-hover/link:text-primary' }}">
                     <i class="ph ph-squares-four text-lg"></i>
                 </div>
                 <span class="text-[0.75rem] tracking-[0.15em] uppercase font-black relative z-10">Dashboard</span>
@@ -203,14 +204,14 @@
             <!-- ADMISIÓN -->
             <div class="space-y-1">
                 <button @click="activeGroup = activeGroup === 'admision' ? '' : 'admision'" 
-                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('import.*', 'afiliados.cmd', 'afiliados.otros', 'afiliados.salida_inmediata') ? 'bg-white/5' : 'hover:bg-white/5' }}">
+                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('import.*', 'afiliados.cmd', 'afiliados.otros', 'afiliados.salida_inmediata') ? 'bg-slate-50' : 'hover:bg-slate-50' }}">
                     <div class="flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800/50 text-slate-500 group-hover:bg-slate-700 group-hover:text-white transition-all shadow-sm" :class="activeGroup === 'admision' ? 'bg-blue-500/20 text-blue-400' : ''">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all shadow-sm" :class="activeGroup === 'admision' ? 'bg-primary/10 text-primary' : ''">
                             <i class="ph ph-tray text-lg"></i>
                         </div>
-                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'admision' ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'">Admisión</span>
+                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'admision' ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-700'">Admisión</span>
                     </div>
-                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-600" :class="activeGroup === 'admision' ? 'rotate-180 text-white' : ''"></i>
+                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-400" :class="activeGroup === 'admision' ? 'rotate-180 text-primary' : ''"></i>
                 </button>
                 <div x-show="activeGroup === 'admision'" x-collapse class="pl-6 pr-2 space-y-1">
                     @can('manage_affiliates')
@@ -219,9 +220,9 @@
                         <x-nav-link route="afiliados.cmd" icon="ph ph-shield-star" label="Afiliados CMD" />
                     @endunless
                     <x-nav-link route="afiliados.otros" icon="ph ph-buildings" label="{{ $isGestora ? 'Mis Afiliados' : 'Extra Empresa' }}" />
-                    <a class="{{ request()->routeIs('afiliados.salida_inmediata') ? 'flex items-center justify-between px-4 py-3 text-white font-black bg-white/10 border-l-[3px] border-primary shadow-inner rounded-r-xl relative overflow-hidden' : 'flex items-center justify-between px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-r-xl transition-all group/link' }} mt-0.5" href="{{ route('afiliados.salida_inmediata') }}">
+                    <a class="{{ request()->routeIs('afiliados.salida_inmediata') ? 'flex items-center justify-between px-4 py-3 text-primary font-black bg-primary/5 border-l-[3px] border-primary shadow-sm rounded-r-xl relative overflow-hidden' : 'flex items-center justify-between px-4 py-3 text-slate-500 hover:text-primary hover:bg-slate-50 rounded-r-xl transition-all group/link' }} mt-0.5" href="{{ route('afiliados.salida_inmediata') }}">
                         <div class="flex items-center gap-3 relative z-10">
-                            <i class="ph ph-user-check text-lg {{ request()->routeIs('afiliados.salida_inmediata') ? 'text-primary' : 'group-hover/link:text-white text-slate-500' }}"></i>
+                            <i class="ph ph-user-check text-lg {{ request()->routeIs('afiliados.salida_inmediata') ? 'text-primary' : 'group-hover/link:text-primary text-slate-400' }}"></i>
                             <span class="text-[0.65rem] tracking-wider uppercase font-extrabold">Salida Inmediata</span>
                         </div>
                         @php
@@ -241,14 +242,14 @@
             @canany(['manage_logistics', 'manage_closures'])
             <div class="space-y-1">
                 <button @click="activeGroup = activeGroup === 'logistica' ? '' : 'logistica'" 
-                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('afiliados.index', 'lotes.*', 'cierre.*', 'mensajeros.*', 'rutas.*', 'despachos.*') ? 'bg-white/5' : 'hover:bg-white/5' }}">
+                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('afiliados.index', 'lotes.*', 'cierre.*', 'mensajeros.*', 'rutas.*', 'despachos.*') ? 'bg-slate-50' : 'hover:bg-slate-50' }}">
                     <div class="flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800/50 text-slate-500 group-hover:bg-slate-700 group-hover:text-white transition-all" :class="activeGroup === 'logistica' ? 'bg-emerald-500/20 text-emerald-400' : ''">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all" :class="activeGroup === 'logistica' ? 'bg-primary/10 text-primary' : ''">
                             <i class="ph ph-truck text-lg"></i>
                         </div>
-                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'logistica' ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'">Logística</span>
+                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'logistica' ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-700'">Logística</span>
                     </div>
-                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-600" :class="activeGroup === 'logistica' ? 'rotate-180 text-white' : ''"></i>
+                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-400" :class="activeGroup === 'logistica' ? 'rotate-180 text-primary' : ''"></i>
                 </button>
                 <div x-show="activeGroup === 'logistica'" x-collapse class="pl-6 pr-2 space-y-1">
                     @can('manage_logistics')
@@ -272,14 +273,14 @@
             @canany(['manage_evidencias', 'manage_liquidations'])
             <div class="space-y-1">
                 <button @click="activeGroup = activeGroup === 'gestion' ? '' : 'gestion'" 
-                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('evidencias.*', 'liquidacion.*', 'pagos.*') ? 'bg-white/5' : 'hover:bg-white/5' }}">
+                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('evidencias.*', 'liquidacion.*', 'pagos.*') ? 'bg-slate-50' : 'hover:bg-slate-50' }}">
                     <div class="flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800/50 text-slate-500 group-hover:bg-slate-700 group-hover:text-white transition-all shadow-sm" :class="activeGroup === 'gestion' ? 'bg-blue-400/20 text-blue-300' : ''">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all shadow-sm" :class="activeGroup === 'gestion' ? 'bg-primary/10 text-primary' : ''">
                             <i class="ph ph-receipt text-lg"></i>
                         </div>
-                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'gestion' ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'">Gestión</span>
+                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'gestion' ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-700'">Gestión</span>
                     </div>
-                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-600" :class="activeGroup === 'gestion' ? 'rotate-180 text-white' : ''"></i>
+                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-400" :class="activeGroup === 'gestion' ? 'rotate-180 text-primary' : ''"></i>
                 </button>
                 <div x-show="activeGroup === 'gestion'" x-collapse class="pl-6 pr-2 space-y-1">
                     @can('manage_evidencias')
@@ -296,13 +297,13 @@
             @can('view_reports')
             <div class="space-y-1">
                 <button @click="activeGroup = activeGroup === 'reportes' ? '' : 'reportes'" 
-                        :class="activeGroup === 'reportes' ? 'text-white' : 'text-slate-500'"
-                        class="w-full flex items-center justify-between px-6 py-3 hover:bg-white/5 rounded-xl transition-colors group">
+                        :class="activeGroup === 'reportes' ? 'text-primary' : 'text-slate-500'"
+                        class="w-full flex items-center justify-between px-6 py-3 hover:bg-slate-50 rounded-xl transition-colors group">
                     <div class="flex items-center gap-4">
-                        <i class="ph ph-chart-pie-slice text-[22px] group-hover:text-blue-400 transition-colors"></i>
-                        <span class="text-[0.75rem] tracking-widest uppercase font-black text-slate-500 group-hover:text-white transition-colors">Reportes</span>
+                        <i class="ph ph-chart-pie-slice text-[22px] group-hover:text-primary transition-colors"></i>
+                        <span class="text-[0.75rem] tracking-widest uppercase font-black text-slate-500 group-hover:text-slate-700 transition-colors">Reportes</span>
                     </div>
-                    <i class="ph ph-caret-down text-sm transition-transform duration-300" :class="activeGroup === 'reportes' ? 'rotate-180' : ''"></i>
+                    <i class="ph ph-caret-down text-sm transition-transform duration-300 text-slate-400" :class="activeGroup === 'reportes' ? 'rotate-180 text-primary' : ''"></i>
                 </button>
                 <div x-show="activeGroup === 'reportes'" x-collapse class="pl-4 space-y-1">
                     <x-nav-link route="reportes.index" icon="ph ph-chart-line-up" label="Estadísticas" />
@@ -318,14 +319,14 @@
             @canany(['manage_companies', 'access_admin_panel', 'manage_users'])
             <div class="space-y-1">
                 <button @click="activeGroup = activeGroup === 'sistema' ? '' : 'sistema'" 
-                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('empresas.*', 'proveedores.*', 'catalogo.*', 'admin.audit.index', 'usuarios.*') ? 'bg-white/5' : 'hover:bg-white/5' }}">
+                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('empresas.*', 'proveedores.*', 'catalogo.*', 'admin.audit.index', 'usuarios.*') ? 'bg-slate-50' : 'hover:bg-slate-50' }}">
                     <div class="flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800/50 text-slate-500 group-hover:bg-slate-700 group-hover:text-white transition-all shadow-sm" :class="activeGroup === 'sistema' ? 'bg-slate-500/20 text-slate-300' : ''">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all shadow-sm" :class="activeGroup === 'sistema' ? 'bg-primary/10 text-primary' : ''">
                             <i class="ph ph-gear-six text-lg"></i>
                         </div>
-                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'sistema' ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'">Sistema</span>
+                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'sistema' ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-700'">Sistema</span>
                     </div>
-                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-600" :class="activeGroup === 'sistema' ? 'rotate-180 text-white' : ''"></i>
+                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-400" :class="activeGroup === 'sistema' ? 'rotate-180 text-primary' : ''"></i>
                 </button>
                 <div x-show="activeGroup === 'sistema'" x-collapse class="pl-6 pr-2 space-y-1">
                     @can('manage_companies')
@@ -345,17 +346,17 @@
             @endcanany
         </nav>
 
-        <div class="px-6 mt-auto pt-6 border-t border-white/5">
-            <a href="{{ route('profile.edit') }}" class="flex items-center gap-4 p-3 bg-gradient-to-r from-white/5 to-transparent rounded-2xl hover:from-white/10 border border-white/5 transition-all group relative overflow-hidden mb-4 shadow-sm">
+        <div class="px-6 mt-auto pt-6 border-t border-slate-100">
+            <a href="{{ route('profile.edit') }}" class="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl hover:bg-slate-100 border border-slate-200 transition-all group relative overflow-hidden mb-4 shadow-sm">
                 <div class="relative">
-                    <img src="{{ $user->avatar_url }}" class="w-11 h-11 rounded-xl object-cover border-2 border-slate-700/50 shadow-lg relative z-10" alt="Avatar">
-                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-[#0a0f1d] rounded-full z-20"></div>
+                    <img src="{{ $user->avatar_url }}" class="w-11 h-11 rounded-xl object-cover border-2 border-white shadow-md relative z-10" alt="Avatar">
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full z-20"></div>
                 </div>
                 <div class="overflow-hidden relative z-10">
-                    <p class="text-[0.75rem] font-black text-white truncate">{{ $user->name }}</p>
-                    <p class="text-[0.6rem] font-bold text-slate-500 uppercase tracking-widest mt-0.5 truncate">{{ $user->getRoleNames()->first() ?? 'Usuario' }}</p>
+                    <p class="text-[0.75rem] font-black text-slate-800 truncate">{{ $user->name }}</p>
+                    <p class="text-[0.6rem] font-bold text-slate-400 uppercase tracking-widest mt-0.5 truncate">{{ $user->getRoleNames()->first() ?? 'Usuario' }}</p>
                 </div>
-                <i class="ph ph-caret-right text-slate-600 text-xs ml-auto group-hover:translate-x-1 group-hover:text-white transition-all relative z-10"></i>
+                <i class="ph ph-caret-right text-slate-400 text-xs ml-auto group-hover:translate-x-1 group-hover:text-primary transition-all relative z-10"></i>
             </a>
         </div>
     </aside>

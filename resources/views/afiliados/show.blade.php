@@ -210,232 +210,338 @@
                     </div>
                     @endforeach
                 </div>
-            </div>
-
-            <!-- Documents Section -->
-            <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">folder_open</span> Documentos y Evidencias
-                    </h3>
+                        <!-- Documents Section -->
+            <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                            <i class="ph-bold ph-folder-open text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-lg">Documentación Operativa</h3>
+                            <p class="text-xs text-slate-400 font-medium tracking-tight">Soportes requeridos para el cierre del expediente</p>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     @php
                         $acuse = $afiliado->evidenciasAfiliado->where('tipo_documento', 'acuse_recibo')->first();
                         $formulario = $afiliado->evidenciasAfiliado->where('tipo_documento', 'formulario_firmado')->first();
                     @endphp
 
                     <!-- Card Acuse -->
-                    <div class="group border {{ $acuse ? 'border-primary/20 bg-primary/5' : 'border-slate-100 bg-slate-50' }} rounded-2xl p-6 transition-all hover:shadow-md">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="w-12 h-12 {{ $acuse ? 'bg-primary text-white' : 'bg-white text-slate-300 shadow-sm' }} rounded-xl flex items-center justify-center">
-                                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">fact_check</span>
+                    <div class="group relative overflow-hidden border {{ $acuse ? 'border-blue-100 bg-blue-50/30' : 'border-slate-100 bg-slate-50/50' }} rounded-[24px] p-6 transition-all hover:shadow-xl hover:shadow-blue-900/5">
+                        @if($acuse)
+                            <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl"></div>
+                        @endif
+                        
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-14 h-14 {{ $acuse ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-white text-slate-300 border border-slate-100 shadow-sm' }} rounded-2xl flex items-center justify-center transition-all group-hover:scale-110">
+                                <i class="ph-bold ph-file-dashed text-2xl"></i>
                             </div>
                             @if($acuse)
-                                <span class="px-3 py-1 bg-white text-primary rounded-full text-[0.65rem] font-bold uppercase tracking-wider shadow-sm border border-primary/10">Subido</span>
+                                <div class="flex flex-col items-end gap-1">
+                                    <span class="px-3 py-1 bg-white text-blue-700 rounded-full text-[0.6rem] font-black uppercase tracking-widest shadow-sm border border-blue-100">Digitalizado</span>
+                                    <span class="text-[0.55rem] font-bold text-blue-400">ID: #{{ $acuse->id }}</span>
+                                </div>
                             @else
-                                <span class="px-3 py-1 bg-white text-slate-400 rounded-full text-[0.65rem] font-bold uppercase tracking-wider shadow-sm border border-slate-100">Faltante</span>
+                                <span class="px-3 py-1 bg-white text-slate-400 rounded-full text-[0.6rem] font-black uppercase tracking-widest shadow-sm border border-slate-100">Requerido</span>
                             @endif
                         </div>
-                        <h4 class="font-bold text-slate-800 mb-1 text-sm">Acuse de Recibo</h4>
-                        <p class="text-[0.7rem] text-slate-500 mb-6 leading-relaxed">Soporte físico de entrega en manos del afiliado.</p>
+
+                        <h4 class="font-bold text-slate-800 mb-1 text-base">Acuse de Recibo</h4>
+                        <p class="text-[0.75rem] text-slate-500 mb-8 leading-relaxed font-medium">Comprobante oficial de recepción del carnet firmado por el afiliado.</p>
                         
                         @if($acuse)
-                            <div class="space-y-3">
-                                <div class="flex items-center justify-between bg-white/50 px-3 py-2 rounded-lg border border-primary/10">
-                                    <span class="text-[0.6rem] font-bold uppercase text-slate-400">Estado Doc:</span>
-                                    <span class="text-[0.65rem] font-black uppercase {{ $acuse->status === 'validado' ? 'text-emerald-600' : ($acuse->status === 'rechazado' ? 'text-rose-600' : 'text-amber-600') }}">
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between bg-white/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-blue-100/50 shadow-sm">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2 h-2 rounded-full {{ $acuse->status === 'validado' ? 'bg-emerald-500' : ($acuse->status === 'rechazado' ? 'bg-rose-500' : 'bg-amber-500 animate-pulse') }}"></div>
+                                        <span class="text-[0.65rem] font-black uppercase tracking-wider text-slate-400">Estado:</span>
+                                    </div>
+                                    <span class="text-[0.7rem] font-black uppercase {{ $acuse->status === 'validado' ? 'text-emerald-600' : ($acuse->status === 'rechazado' ? 'text-rose-600' : 'text-amber-600') }}">
                                         {{ $acuse->status ?? 'Recibido' }}
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <a href="{{ asset('storage/' . $acuse->file_path) }}" target="_blank" class="flex-1 py-2.5 bg-white hover:bg-primary hover:text-white border border-primary/20 text-primary font-bold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 text-center">
-                                        Ver Documento
+                                    <a href="{{ asset('storage/' . $acuse->file_path) }}" target="_blank" class="flex-1 py-3 bg-white hover:bg-slate-900 hover:text-white border border-slate-200 text-slate-700 font-black text-[0.65rem] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm">
+                                        <i class="ph-bold ph-eye"></i> Ver Expediente
                                     </a>
                                 </div>
-                                @if(strtolower($afiliado->estado?->nombre) !== 'completado')
+                                @if(strtolower($afiliado->estado?->nombre) !== 'completado' && $acuse->status !== 'validado')
                                 <form action="{{ route('evidencias.update_status', $acuse->id) }}" method="POST" class="flex gap-1">
                                     @csrf
-                                    <input type="hidden" name="status" value="valido">
-                                    <button type="submit" class="flex-1 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-tighter transition-colors">Validar</button>
+                                    <input type="hidden" name="status" value="validado">
+                                    <button type="submit" class="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[0.65rem] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20">
+                                        Confirmar Validación
+                                    </button>
                                 </form>
                                 @endif
                             </div>
                         @elseif(strtolower($afiliado->estado?->nombre) !== 'completado')
-                            <form action="{{ route('afiliados.upload_evidencia', $afiliado) }}" method="POST" enctype="multipart/form-data" class="w-full flex gap-2 items-center">
-                                @csrf
-                                <input type="hidden" name="tipo_documento" value="acuse_recibo">
-                                <div class="relative flex-1">
-                                    <input type="file" name="file" required accept=".jpg,.jpeg,.png,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                    <div class="w-full py-2.5 bg-white border border-slate-200 text-slate-500 font-bold text-xs uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 group-hover:border-primary/30 transition-colors">
-                                        Seleccionar
+                            <div class="flex flex-col gap-3">
+                                <form action="{{ route('afiliados.upload_evidencia', $afiliado) }}" method="POST" enctype="multipart/form-data" class="relative group/upload">
+                                    @csrf
+                                    <input type="hidden" name="tipo_documento" value="acuse_recibo">
+                                    <input type="file" name="file" required accept=".jpg,.jpeg,.png,.pdf" onchange="this.form.submit()" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                                    <div class="w-full py-3 bg-white border-2 border-dashed border-slate-200 text-slate-500 font-black text-[0.65rem] uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 transition-all group-hover/upload:border-blue-400 group-hover/upload:text-blue-600 group-hover/upload:bg-blue-50">
+                                        <i class="ph-bold ph-cloud-arrow-up text-lg"></i> Subir Digital
                                     </div>
+                                </form>
+                                
+                                <div class="flex items-center gap-3 py-2">
+                                    <div class="flex-1 h-[1px] bg-slate-100"></div>
+                                    <span class="text-[0.6rem] font-black text-slate-300 uppercase tracking-widest">Alternativa</span>
+                                    <div class="flex-1 h-[1px] bg-slate-100"></div>
                                 </div>
-                                <button type="submit" class="w-10 h-10 bg-slate-800 hover:bg-primary text-white rounded-xl flex items-center justify-center transition-colors">
-                                    <span class="material-symbols-outlined text-[18px]">publish</span>
-                                </button>
-                            </form>
+
+                                <form action="{{ route('evidencias.physical') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="afiliado_id" value="{{ $afiliado->id }}">
+                                    <input type="hidden" name="tipo_documento" value="acuse_recibo">
+                                    <button type="submit" class="w-full py-3 bg-white hover:bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl font-black text-[0.65rem] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-sm">
+                                        <i class="ph-bold ph-handshake text-lg"></i> Validación Física en Oficina
+                                    </button>
+                                </form>
+                            </div>
                         @endif
                     </div>
 
                     <!-- Card Formulario -->
-                    <div class="group border {{ $formulario ? 'border-primary/20 bg-primary/5' : 'border-slate-100 bg-slate-50' }} rounded-2xl p-6 transition-all hover:shadow-md">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="w-12 h-12 {{ $formulario ? 'bg-primary text-white' : 'bg-white text-slate-300 shadow-sm' }} rounded-xl flex items-center justify-center">
-                                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assignment_turned_in</span>
+                    <div class="group relative overflow-hidden border {{ $formulario ? 'border-indigo-100 bg-indigo-50/30' : 'border-slate-100 bg-slate-50/50' }} rounded-[24px] p-6 transition-all hover:shadow-xl hover:shadow-indigo-900/5">
+                        @if($formulario)
+                            <div class="absolute -right-4 -top-4 w-20 h-20 bg-indigo-500/10 rounded-full blur-2xl"></div>
+                        @endif
+
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-14 h-14 {{ $formulario ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-white text-slate-300 border border-slate-100 shadow-sm' }} rounded-2xl flex items-center justify-center transition-all group-hover:scale-110">
+                                <i class="ph-bold ph-signature text-2xl"></i>
                             </div>
                             @if($formulario)
-                                <span class="px-3 py-1 bg-white text-primary rounded-full text-[0.65rem] font-bold uppercase tracking-wider shadow-sm border border-primary/10">Subido</span>
+                                <div class="flex flex-col items-end gap-1">
+                                    <span class="px-3 py-1 bg-white text-indigo-700 rounded-full text-[0.6rem] font-black uppercase tracking-widest shadow-sm border border-indigo-100">Registrado</span>
+                                    <span class="text-[0.55rem] font-bold text-indigo-400">ID: #{{ $formulario->id }}</span>
+                                </div>
                             @else
-                                <span class="px-3 py-1 bg-white text-slate-400 rounded-full text-[0.65rem] font-bold uppercase tracking-wider shadow-sm border border-slate-100">Faltante</span>
+                                <span class="px-3 py-1 bg-white text-slate-400 rounded-full text-[0.6rem] font-black uppercase tracking-widest shadow-sm border border-slate-100">Pendiente</span>
                             @endif
                         </div>
-                        <h4 class="font-bold text-slate-800 mb-1 text-sm">Formulario Firmado</h4>
-                        <p class="text-[0.7rem] text-slate-500 mb-6 leading-relaxed">Formulario de registro físico lleno y sellado/huellado.</p>
+
+                        <h4 class="font-bold text-slate-800 mb-1 text-base">Formulario Firmado</h4>
+                        <p class="text-[0.75rem] text-slate-500 mb-8 leading-relaxed font-medium">Formulario de registro con huella y firma dactilar del beneficiario.</p>
                         
                         @if($formulario)
-                            <div class="space-y-3">
-                                <div class="flex items-center justify-between bg-white/50 px-3 py-2 rounded-lg border border-primary/10">
-                                    <span class="text-[0.6rem] font-bold uppercase text-slate-400">Estado Doc:</span>
-                                    <span class="text-[0.65rem] font-black uppercase {{ $formulario->status === 'validado' ? 'text-emerald-600' : ($formulario->status === 'rechazado' ? 'text-rose-600' : 'text-amber-600') }}">
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between bg-white/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-indigo-100/50 shadow-sm">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2 h-2 rounded-full {{ $formulario->status === 'validado' ? 'bg-emerald-500' : ($formulario->status === 'rechazado' ? 'bg-rose-500' : 'bg-amber-500 animate-pulse') }}"></div>
+                                        <span class="text-[0.65rem] font-black uppercase tracking-wider text-slate-400">Estado:</span>
+                                    </div>
+                                    <span class="text-[0.7rem] font-black uppercase {{ $formulario->status === 'validado' ? 'text-emerald-600' : ($formulario->status === 'rechazado' ? 'text-rose-600' : 'text-amber-600') }}">
                                         {{ $formulario->status ?? 'Recibido' }}
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <a href="{{ asset('storage/' . $formulario->file_path) }}" target="_blank" class="flex-1 py-2.5 bg-white hover:bg-primary hover:text-white border border-primary/20 text-primary font-bold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 text-center">
-                                        Ver Documento
+                                    <a href="{{ asset('storage/' . $formulario->file_path) }}" target="_blank" class="flex-1 py-3 bg-white hover:bg-slate-900 hover:text-white border border-slate-200 text-slate-700 font-black text-[0.65rem] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm">
+                                        <i class="ph-bold ph-file-text"></i> Ver Documento
                                     </a>
                                 </div>
-                                @if(strtolower($afiliado->estado?->nombre) !== 'completado')
+                                @if(strtolower($afiliado->estado?->nombre) !== 'completado' && $formulario->status !== 'validado')
                                 <form action="{{ route('evidencias.update_status', $formulario->id) }}" method="POST" class="flex gap-1">
                                     @csrf
-                                    <input type="hidden" name="status" value="valido">
-                                    <button type="submit" class="flex-1 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-tighter transition-colors">Validar</button>
+                                    <input type="hidden" name="status" value="validado">
+                                    <button type="submit" class="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[0.65rem] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20">
+                                        Validar Registro
+                                    </button>
                                 </form>
                                 @endif
                             </div>
                         @elseif(strtolower($afiliado->estado?->nombre) !== 'completado')
-                            <form action="{{ route('afiliados.upload_evidencia', $afiliado) }}" method="POST" enctype="multipart/form-data" class="w-full flex gap-2 items-center">
-                                @csrf
-                                <input type="hidden" name="tipo_documento" value="formulario_firmado">
-                                <div class="relative flex-1">
-                                    <input type="file" name="file" required accept=".jpg,.jpeg,.png,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                                    <div class="w-full py-2.5 bg-white border border-slate-200 text-slate-500 font-bold text-xs uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 group-hover:border-primary/30 transition-colors">
-                                        Seleccionar
+                            <div class="flex flex-col gap-3">
+                                <form action="{{ route('afiliados.upload_evidencia', $afiliado) }}" method="POST" enctype="multipart/form-data" class="relative group/upload">
+                                    @csrf
+                                    <input type="hidden" name="tipo_documento" value="formulario_firmado">
+                                    <input type="file" name="file" required accept=".jpg,.jpeg,.png,.pdf" onchange="this.form.submit()" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                                    <div class="w-full py-3 bg-white border-2 border-dashed border-slate-200 text-slate-500 font-black text-[0.65rem] uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 transition-all group-hover/upload:border-indigo-400 group-hover/upload:text-indigo-600 group-hover/upload:bg-indigo-50">
+                                        <i class="ph-bold ph-upload-simple text-lg"></i> Subir Formulario
                                     </div>
+                                </form>
+
+                                <div class="flex items-center gap-3 py-2">
+                                    <div class="flex-1 h-[1px] bg-slate-100"></div>
+                                    <span class="text-[0.6rem] font-black text-slate-300 uppercase tracking-widest">Alternativa</span>
+                                    <div class="flex-1 h-[1px] bg-slate-100"></div>
                                 </div>
-                                <button type="submit" class="w-10 h-10 bg-slate-800 hover:bg-primary text-white rounded-xl flex items-center justify-center transition-colors">
-                                    <span class="material-symbols-outlined text-[18px]">publish</span>
-                                </button>
-                            </form>
+
+                                <form action="{{ route('evidencias.physical') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="afiliado_id" value="{{ $afiliado->id }}">
+                                    <input type="hidden" name="tipo_documento" value="formulario_firmado">
+                                    <button type="submit" class="w-full py-3 bg-white hover:bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl font-black text-[0.65rem] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-sm">
+                                        <i class="ph-bold ph-stamp text-lg"></i> Recepción Física (Mensajería)
+                                    </button>
+                                </form>
+                            </div>
                         @endif
                     </div>
                 </div>
             </div>
+         </div>
 
              <!-- Combined Audit Timeline (Audit Trail & Notes) -->
-            <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
-                <div class="flex items-center justify-between mb-8">
-                    <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">history_edu</span> Auditoría e Historia del Expediente
-                    </h3>
+            <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
+                <div class="flex items-center justify-between mb-10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg shadow-slate-900/10">
+                            <i class="ph-bold ph-clock-counter-clockwise text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-lg">Historial Operativo</h3>
+                            <p class="text-xs text-slate-400 font-medium tracking-tight">Registro completo de auditoría y seguimiento</p>
+                        </div>
+                    </div>
                     @if(strtolower($afiliado->estado?->nombre) !== 'completado')
-                    <button onclick="document.getElementById('noteSection').scrollIntoView({behavior: 'smooth'})" class="text-xs font-black uppercase tracking-widest text-primary hover:text-blue-700 flex items-center gap-1 transition-colors">
-                        <span class="material-symbols-outlined text-sm">add_comment</span> Nueva Nota
+                    <button onclick="document.getElementById('noteSection').scrollIntoView({behavior: 'smooth'})" class="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-[0.65rem] font-black uppercase tracking-widest flex items-center gap-2 transition-all border border-slate-200/50">
+                        <i class="ph-bold ph-note-pencil text-sm"></i> Nueva Nota
                     </button>
                     @endif
                 </div>
 
-                <div class="space-y-8 relative before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-50">
-                    {{-- Combine notes and history and sort --}}
+                <div class="space-y-10 relative before:absolute before:left-[17px] before:top-4 before:bottom-4 before:w-[2px] before:bg-slate-100/80">
+                    {{-- Combine notes, history, evidence and creation sorted by date --}}
                     @php
                         $timeline = collect();
+                        
+                        // 1. Registro Inicial
+                        $timeline->push([
+                            'type' => 'creation', 
+                            'date' => $afiliado->created_at, 
+                            'title' => 'Registro de Expediente',
+                            'description' => 'El expediente ha sido ingresado al sistema.',
+                            'icon' => 'ph-file-plus',
+                            'color' => 'slate',
+                            'user' => 'Sistema CMD'
+                        ]);
+
+                        // 2. Historial de Estados
                         foreach($afiliado->historialEstados as $h) {
-                            $timeline->push(['type' => 'status', 'date' => $h->created_at, 'data' => $h]);
+                            $timeline->push([
+                                'type' => 'status', 
+                                'date' => $h->created_at, 
+                                'title' => 'Cambio de Estado',
+                                'description' => ($h->estadoAnterior?->nombre ?? 'N/D') . ' → ' . ($h->estadoNuevo?->nombre ?? 'N/D'),
+                                'obs' => $h->observacion,
+                                'icon' => 'ph-git-pull-request',
+                                'color' => 'blue',
+                                'user' => $h->user->name ?? 'Sistema'
+                            ]);
                         }
+
+                        // 3. Notas
                         foreach($afiliado->notas as $n) {
-                            $timeline->push(['type' => 'note', 'date' => $n->created_at, 'data' => $n]);
+                            $timeline->push([
+                                'type' => 'note', 
+                                'date' => $n->created_at, 
+                                'title' => 'Nota de Seguimiento',
+                                'description' => $n->contenido,
+                                'icon' => 'ph-chat-circle-dots',
+                                'color' => 'amber',
+                                'user' => $n->user->name ?? 'Usuario'
+                            ]);
                         }
+
+                        // 4. Evidencias
+                        foreach($afiliado->evidenciasAfiliado as $e) {
+                            $timeline->push([
+                                'type' => 'evidence', 
+                                'date' => $e->created_at, 
+                                'title' => 'Documentación: ' . strtoupper(str_replace('_', ' ', $e->tipo_documento)),
+                                'description' => 'Documento marcado como: ' . strtoupper($e->status),
+                                'obs' => $e->observaciones,
+                                'icon' => 'ph-folder-simple-star',
+                                'color' => 'emerald',
+                                'user' => $e->user->name ?? 'Validador'
+                            ]);
+                        }
+
                         $timeline = $timeline->sortByDesc('date');
                     @endphp
 
                     @forelse($timeline as $item)
-                        <div class="relative pl-12 page-transition">
+                        <div class="relative pl-12 group animate-in slide-in-from-bottom-2 duration-500">
                             <!-- Timeline Node -->
-                            <div class="absolute left-0 top-1.5 w-[36px] h-[36px] rounded-full bg-white border-2 border-slate-50 flex items-center justify-center z-10 shadow-sm
-                                @if($item['type'] === 'status') border-primary/20 @else border-amber-200 @endif">
-                                <span class="material-symbols-outlined text-[18px] 
-                                    @if($item['type'] === 'status') text-primary @else text-amber-500 @endif">
-                                    {{ $item['type'] === 'status' ? 'sync_alt' : 'sticky_note_2' }}
-                                </span>
+                            <div class="absolute left-0 top-1.5 w-[36px] h-[36px] rounded-xl bg-white border-2 border-slate-100 flex items-center justify-center z-10 shadow-sm transition-all group-hover:scale-110 group-hover:shadow-md
+                                @if($item['color'] === 'blue') border-blue-200 @elseif($item['color'] === 'amber') border-amber-200 @elseif($item['color'] === 'emerald') border-emerald-200 @else border-slate-200 @endif">
+                                <i class="{{ $item['icon'] }} text-lg 
+                                    @if($item['color'] === 'blue') text-blue-600 @elseif($item['color'] === 'amber') text-amber-600 @elseif($item['color'] === 'emerald') text-emerald-600 @else text-slate-500 @endif">
+                                </i>
                             </div>
                             
-                            <div class="bg-white rounded-2xl p-5 border border-slate-100 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all group">
-                                <div class="flex justify-between items-start mb-3">
+                            <div class="flex flex-col gap-2">
+                                <div class="flex justify-between items-start">
                                     <div>
-                                        <p class="text-[0.65rem] font-black uppercase tracking-widest text-slate-400 mb-0.5">
-                                            {{ $item['type'] === 'status' ? 'Cambio de Estado' : 'Nota de Seguimiento' }}
-                                        </p>
-                                        <h4 class="text-sm font-bold text-slate-800">
-                                            @if($item['type'] === 'status')
-                                                <span class="text-slate-400 font-medium">{{ $item['data']->estadoAnterior?->nombre }}</span> 
-                                                <span class="mx-1 text-slate-300">&rarr;</span> 
-                                                <span class="text-primary">{{ $item['data']->estadoNuevo?->nombre }}</span>
-                                            @else
-                                                Observación Registrada
-                                            @endif
-                                        </h4>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-[0.6rem] font-black uppercase tracking-widest px-2 py-0.5 rounded-full
+                                                @if($item['color'] === 'blue') bg-blue-50 text-blue-700 @elseif($item['color'] === 'amber') bg-amber-50 text-amber-700 @elseif($item['color'] === 'emerald') bg-emerald-50 text-emerald-700 @else bg-slate-50 text-slate-700 @endif">
+                                                {{ $item['title'] }}
+                                            </span>
+                                            <span class="text-[0.65rem] font-bold text-slate-300">•</span>
+                                            <span class="text-[0.65rem] font-bold text-slate-400">{{ $item['date']->diffForHumans() }}</span>
+                                        </div>
+                                        <p class="text-[0.85rem] font-bold text-slate-800 leading-tight">{{ $item['description'] }}</p>
                                     </div>
-                                    <div class="text-right">
-                                        <p class="text-[0.65rem] font-bold text-slate-400 uppercase">{{ $item['date']->format('d M, Y') }}</p>
-                                        <p class="text-[0.6rem] font-medium text-slate-300">{{ $item['date']->format('h:i A') }}</p>
+                                    <div class="text-right shrink-0">
+                                        <p class="text-[0.6rem] font-black text-slate-400 uppercase tracking-tighter">{{ $item['date']->format('d/m/Y') }}</p>
+                                        <p class="text-[0.6rem] font-bold text-slate-300">{{ $item['date']->format('h:i A') }}</p>
                                     </div>
                                 </div>
                                 
-                                <div class="bg-slate-50/50 rounded-xl p-4 border border-slate-50 group-hover:bg-white group-hover:border-primary/10 transition-colors">
-                                    <p class="text-[0.85rem] text-slate-700 leading-relaxed font-medium">
-                                        {{ $item['type'] === 'status' ? ($item['data']->observacion ?: 'Sin detalles adicionales.') : $item['data']->contenido }}
-                                    </p>
-                                </div>
-
-                                <div class="flex items-center gap-2 mt-4">
-                                    <div class="w-6 h-6 rounded-full bg-slate-900 border-2 border-white flex items-center justify-center text-[8px] font-black text-white shadow-sm">
-                                        {{ strtoupper(substr($item['data']->user->name ?? 'S', 0, 1)) }}
+                                @if(isset($item['obs']) && $item['obs'])
+                                    <div class="bg-slate-50/50 rounded-2xl p-4 border border-slate-100/50 group-hover:bg-white group-hover:border-slate-200 transition-all">
+                                        <p class="text-[0.8rem] text-slate-600 font-medium leading-relaxed italic">"{{ $item['obs'] }}"</p>
                                     </div>
-                                    <span class="text-[0.7rem] font-bold text-slate-500">{{ $item['data']->user->name ?? 'Sistema Automático' }}</span>
+                                @endif
+
+                                <div class="flex items-center gap-2 mt-1">
+                                    <div class="w-5 h-5 rounded-md bg-slate-100 flex items-center justify-center text-[8px] font-black text-slate-500 border border-slate-200">
+                                        {{ strtoupper(substr($item['user'], 0, 1)) }}
+                                    </div>
+                                    <span class="text-[0.65rem] font-bold text-slate-400">Por: <span class="text-slate-600">{{ $item['user'] }}</span></span>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div class="text-center py-12 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
-                            <span class="material-symbols-outlined text-slate-200 text-5xl mb-4">history_toggle_off</span>
-                            <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Aún no hay historia en este expediente</p>
+                        <div class="text-center py-16 bg-slate-50/50 rounded-[32px] border-2 border-dashed border-slate-200">
+                            <i class="ph-bold ph-ghost text-5xl text-slate-200 mb-4"></i>
+                            <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Sin registros de historia</p>
                         </div>
                     @endforelse
                 </div>
 
                 <!-- Note Form Integrated at Bottom of Timeline -->
                 @if(strtolower($afiliado->estado?->nombre) !== 'completado')
-                <div id="noteSection" class="mt-12 pt-10 border-t border-slate-100">
-                    <div class="bg-slate-50 rounded-3xl p-8 border border-slate-100">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center">
-                                <span class="material-symbols-outlined">add_comment</span>
+                <div id="noteSection" class="mt-16 pt-12 border-t border-slate-100">
+                    <div class="bg-slate-900 rounded-[32px] p-8 shadow-2xl shadow-slate-900/20 relative overflow-hidden">
+                        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+                        
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-white/10 backdrop-blur-md text-white rounded-2xl flex items-center justify-center shadow-inner">
+                                <i class="ph-bold ph-plus-circle text-2xl"></i>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-800">Agregar Nueva Nota</h4>
-                                <p class="text-xs text-slate-500">Los incidentes registrados ayudarán al equipo de soporte.</p>
+                                <h4 class="text-lg font-bold text-white">Nueva Nota de Seguimiento</h4>
+                                <p class="text-xs text-white/50 font-medium">Registra incidentes o comentarios importantes</p>
                             </div>
                         </div>
-                        <form action="{{ route('notas.store') }}" method="POST" class="space-y-4">
+                        <form action="{{ route('notas.store') }}" method="POST" class="space-y-5 relative z-10">
                             @csrf
                             <input type="hidden" name="afiliado_id" value="{{ $afiliado->id }}">
-                            <textarea name="contenido" rows="3" required placeholder="Describe lo que sucedió con este carnet..." 
-                                class="w-full bg-white border border-slate-200 rounded-2xl p-4 text-sm font-medium focus:ring-4 focus:ring-primary/5 focus:border-primary outline-none transition-all resize-none shadow-sm"></textarea>
+                            <textarea name="contenido" rows="3" required placeholder="Escribe aquí los detalles del seguimiento..." 
+                                class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-sm font-medium text-white placeholder-white/30 focus:ring-4 focus:ring-white/5 focus:border-white/20 outline-none transition-all resize-none"></textarea>
                             <div class="flex justify-end">
-                                <button type="submit" class="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-[0.7rem] font-black uppercase tracking-widest shadow-xl transition-all flex items-center gap-2 hover:scale-105 active:scale-95">
-                                    Publicar Nota <span class="material-symbols-outlined text-sm">send</span>
+                                <button type="submit" class="px-8 py-3.5 bg-white text-slate-900 hover:bg-slate-100 rounded-xl text-[0.7rem] font-black uppercase tracking-widest shadow-xl transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-95">
+                                    Publicar Comentario <i class="ph-bold ph-paper-plane-tilt"></i>
                                 </button>
                             </div>
                         </form>

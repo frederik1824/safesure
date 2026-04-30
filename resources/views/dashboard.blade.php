@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 data: JSON.parse(dataContainer.dataset.estadosTotal),
                 backgroundColor: [
-                    '#00346f', '#0060ac', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'
+                    '#00346f', '#0288d1', '#10b981', '#f59e0b', '#ba1a1a', '#6366f1', '#8b5cf6'
                 ],
                 hoverOffset: 15,
                 borderWidth: 0
@@ -314,8 +314,8 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Nuevos Afiliados',
                 data: JSON.parse(dataContainer.dataset.trendTotal),
-                borderColor: '#0060ac',
-                backgroundColor: 'rgba(0, 96, 172, 0.1)',
+                borderColor: '#0288d1',
+                backgroundColor: 'rgba(2, 136, 209, 0.1)',
                 fill: true,
                 tension: 0.4,
                 pointRadius: 5,

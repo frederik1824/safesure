@@ -19,6 +19,7 @@ class SyncControlCenter extends Component
     public $totalLocales = 0;
 
     public $isStalled = false;
+    public $webhooks = [];
 
     public function mount()
     {
@@ -36,6 +37,10 @@ class SyncControlCenter extends Component
         $this->logs = FirebaseSyncLog::with('user')
             ->orderBy('id', 'desc')
             ->limit(10)
+            ->get();
+            
+        $this->webhooks = \App\Models\WebhookLog::orderBy('id', 'desc')
+            ->limit(5)
             ->get();
             
         $this->isStalled = false;

@@ -13,10 +13,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->append(\App\Http\Middleware\SanitizeInput::class);
+        
+        // Excluir Webhooks de la verificación CSRF
+        $middleware->validateCsrfTokens(except: [
+            'firebase/webhook',
+        ]);
+
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
             'spatie_role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'firebase_webhook' => \App\Http\Middleware\VerifyFirebaseWebhookSecret::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -323,16 +323,34 @@
                                 </span>
                             </td>
                             <td class="py-4 px-6 text-right">
-                                <div class="flex items-center justify-end gap-1 transition-opacity">
-                                    <a href="{{ route('afiliados.show', $afiliado) }}" class="p-2 text-slate-400 hover:text-primary transition-colors" title="Detalle"><span class="material-symbols-outlined text-[1.25rem]">visibility</span></a>
-                                    <a href="{{ route('afiliados.edit', $afiliado) }}" class="p-2 text-slate-400 hover:text-primary transition-colors" title="Editar"><span class="material-symbols-outlined text-[1.25rem]">edit</span></a>
+                                <div class="flex items-center justify-end gap-1.5 transition-opacity">
+                                    <a href="{{ route('afiliados.show', $afiliado) }}" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all" title="Ver Expediente">
+                                        <i class="ph-bold ph-eye text-lg"></i>
+                                    </a>
+                                    <a href="{{ route('afiliados.edit', $afiliado) }}" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-amber-50 hover:text-amber-600 transition-all" title="Editar">
+                                        <i class="ph-bold ph-pencil-line text-lg"></i>
+                                    </a>
+                                    
                                     @if($afiliado->estado?->nombre !== 'Completado')
-                                    <button type="button" onclick="quickComplete('{{ $afiliado->uuid }}', '{{ $afiliado->nombre_completo }}')" class="p-2 text-slate-400 hover:text-emerald-500 transition-colors" title="Marcar Completado">
-                                        <span class="material-symbols-outlined text-[1.25rem]">check_circle</span>
-                                    </button>
+                                        <div class="h-4 w-[1px] bg-slate-100 mx-1"></div>
+                                        
+                                        @if(!$hasAcuse)
+                                        <button type="button" onclick="quickPhysicalAcuse('{{ $afiliado->id }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
+                                            class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm hover:shadow-emerald-200" 
+                                            title="Acuse Recibido (Físico)">
+                                            <i class="ph-bold ph-file-check text-xl"></i>
+                                        </button>
+                                        @endif
+
+                                        <button type="button" onclick="quickComplete('{{ $afiliado->uuid }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
+                                            class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm hover:shadow-blue-200" 
+                                            title="Marcar Completado">
+                                            <i class="ph-bold ph-check-circle text-xl"></i>
+                                        </button>
                                     @endif
                                 </div>
                             </td>
+   </td>
                         </tr>
                         @empty
                         <tr>
@@ -723,6 +741,46 @@
                     form.appendChild(csrf);
                     form.appendChild(estado);
                     form.appendChild(motivo);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+
+        function quickPhysicalAcuse(id, name) {
+            Swal.fire({
+                title: 'Validación Física',
+                html: `<p class="text-sm">¿Confirmas que recibiste físicamente el Acuse de Recibo de:<br><span class="text-primary font-bold">${name}</span>?</p>`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, Validar Físicamente',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `{{ route('evidencias.physical') }}`;
+                    
+                    const csrf = document.createElement('input');
+                    csrf.type = 'hidden';
+                    csrf.name = '_token';
+                    csrf.value = document.querySelector('meta[name="csrf-token"]').content;
+                    
+                    const afiliadoInput = document.createElement('input');
+                    afiliadoInput.type = 'hidden';
+                    afiliadoInput.name = 'afiliado_id';
+                    afiliadoInput.value = id;
+                    
+                    const tipoInput = document.createElement('input');
+                    tipoInput.type = 'hidden';
+                    tipoInput.name = 'tipo_documento';
+                    tipoInput.value = 'acuse_recibo';
+
+                    form.appendChild(csrf);
+                    form.appendChild(afiliadoInput);
+                    form.appendChild(tipoInput);
                     document.body.appendChild(form);
                     form.submit();
                 }

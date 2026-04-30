@@ -148,3 +148,7 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// Webhook de Firebase para sincronización en tiempo real (CMD -> Local)
+Route::post('firebase/webhook', [\App\Http\Controllers\FirebaseWebhookController::class, 'handle'])
+    ->middleware('firebase_webhook');

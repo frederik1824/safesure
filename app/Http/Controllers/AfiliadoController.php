@@ -599,6 +599,59 @@ class AfiliadoController extends Controller
         }
     }
 
+    public function reopen(Request $request, $uuid)
+    {
+        if (!auth()->user()->hasAnyRole(['Super-Admin', 'Administrador', 'Supervisor', 'admin', 'supervisor'])) {
+            return back()->with('error', 'Regla de Negocio: No tienes los permisos necesarios para reabrir un expediente. Esta acción requiere rol de Supervisor o Administrador.');
+        }
+
+        $request->validate([
+            'motivo' => 'required|string|min:10|max:500'
+        ]);
+
+        try {
+            DB::beginTransaction();
+            $afiliado = $this->getAfiliadoByUuidOrFirebase($uuid);
+            
+            if (!$afiliado) {
+                return back()->with('error', 'No se pudo localizar el afiliado para reabrir el expediente.');
+            }
+
+            if ($afiliado->estado_id != 9) {
+                return back()->with('warning', 'Este expediente no está en estado COMPLETADO, por lo que no necesita ser reabierto.');
+            }
+
+            // By-pass the immutability flag
+            $afiliado->bypassing_reopen = true;
+
+            // Cambiar a estado En Revisión (8) como protocolo de reapertura
+            $this->afiliadoService->updateStatus(
+                $afiliado,
+                8, // En Revisión
+                'Reapertura de expediente. Motivo: ' . $request->motivo,
+                auth()->id()
+            );
+
+            // Registrar en Auditoría (AuditLog)
+            \App\Models\AuditLog::create([
+                'user_id' => auth()->id() ?? 1,
+                'model_type' => \App\Models\Afiliado::class,
+                'model_id' => $afiliado->id,
+                'event' => 'reopen',
+                'old_values' => ['estado_id' => 9],
+                'new_values' => ['estado_id' => 8, 'motivo' => $request->motivo],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'El expediente ha sido REABIERTO y devuelto a revisión. Las evidencias pueden ser editadas nuevamente.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
     public function uploadEvidencia(Request $request, $uuid)
     {
         $request->validate([

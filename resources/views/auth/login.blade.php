@@ -5,6 +5,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Acceso - SysSAFE Carnet</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-web-ss.png') }}">
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -77,14 +78,8 @@
         <!-- Branding Section -->
         <div class="hidden lg:flex p-16 flex-col justify-between relative overflow-hidden border-r border-white/5 bg-gradient-to-br from-white/5 to-transparent">
             <div class="relative z-10">
-                <div class="flex items-center gap-4 mb-20">
-                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-blue-500/40 ring-1 ring-white/20 float-animation">
-                        <i class="ph-fill ph-shield-check text-3xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl font-black tracking-tighter text-white leading-none">SysSAFE</h1>
-                        <p class="text-[0.65rem] font-bold uppercase tracking-[0.3em] text-blue-400 mt-1">Carnetización Masiva</p>
-                    </div>
+                <div class="mb-20">
+                    <img src="{{ asset('images/logo-web-ss.png') }}" class="h-16 w-auto" alt="SafeSure Logo">
                 </div>
 
                 <div class="space-y-8">
@@ -99,7 +94,7 @@
 
             <div class="relative z-10">
                 <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/10 inline-flex flex-col gap-4">
-                    <img src="{{ asset('images/logo_safe.png') }}" class="h-10 w-auto object-contain brightness-0 invert opacity-90" alt="Safe Logo">
+                    <img src="{{ asset('images/logo-web-ss.png') }}" class="h-10 w-auto object-contain" alt="SafeSure Logo">
                     <div class="h-px bg-white/10 w-full"></div>
                     <div class="flex items-center gap-3">
                         <div class="flex -space-x-3">
@@ -115,11 +110,8 @@
 
         <!-- Login Form Section -->
         <div class="p-10 lg:p-20 flex flex-col justify-center bg-white/[0.02]">
-            <div class="mb-12 lg:hidden flex items-center gap-4">
-                <div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-blue-400">
-                    <i class="ph-fill ph-shield-check text-xl"></i>
-                </div>
-                <span class="text-2xl font-black text-white tracking-tighter">SysSAFE</span>
+            <div class="mb-12 lg:hidden flex items-center justify-center">
+                <img src="{{ asset('images/logo-web-ss.png') }}" class="h-12 w-auto" alt="SafeSure Logo">
             </div>
 
             <div class="mb-12">

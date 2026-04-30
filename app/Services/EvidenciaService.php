@@ -74,16 +74,17 @@ class EvidenciaService
      */
     public function validatePhysical(Afiliado $afiliado, string $tipo, $userId, $observaciones = null)
     {
-        $evidencia = EvidenciaAfiliado::updateOrCreate(
-            ['afiliado_id' => $afiliado->id, 'tipo_documento' => $tipo],
-            [
-                'status' => 'validado',
-                'file_path' => null, // No hay archivo digital
-                'user_id' => $userId,
-                'validated_by' => $userId,
-                'observaciones' => $observaciones ?? "Verificación física en oficina/mensajería."
-            ]
+        $evidencia = EvidenciaAfiliado::firstOrNew(
+            ['afiliado_id' => $afiliado->id, 'tipo_documento' => $tipo]
         );
+
+        $evidencia->status = 'validado';
+        $evidencia->file_path = null; // No hay archivo digital
+        $evidencia->user_id = $userId;
+        $evidencia->validated_by = $userId;
+        $evidencia->observaciones = $observaciones ?? "Verificación física en oficina/mensajería.";
+        $evidencia->is_physical = true; // Bypass para el observer
+        $evidencia->save();
 
         // Obtener el ID del estado COMPLETADO para forzar el cambio
         $estadoCompletado = \App\Models\Estado::where('nombre', 'Completado')->first();
