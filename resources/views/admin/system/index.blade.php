@@ -31,8 +31,8 @@
                     <i class="ph ph-database text-2xl"></i>
                 </div>
                 <div>
-                    <p class="text-[0.65rem] font-black uppercase tracking-widest text-slate-400">Base de Datos / Colas</p>
-                    <p class="text-lg font-black text-slate-800">{{ strtoupper($stats['database_connection']) }} / {{ strtoupper($stats['queue_connection']) }}</p>
+                    <p class="text-[0.65rem] font-black uppercase tracking-widest text-slate-400">Total Afiliados / Colas</p>
+                    <p class="text-lg font-black text-slate-800">{{ number_format($stats['total_afiliados']) }} / {{ $stats['pending_jobs'] }} Pendientes</p>
                 </div>
             </div>
             <div class="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
@@ -93,7 +93,7 @@
                 <div class="flex-1">
                     <h3 class="text-base font-black text-slate-800 mb-1">Optimizar Caché</h3>
                     <p class="text-[0.75rem] text-slate-500 leading-relaxed mb-4">Ejecuta <code>optimize</code>. Refresca rutas, configuración y vistas para máxima velocidad.</p>
-                    <form action="{{ route('admin.system.run') }}" method="POST">
+                    <form action="{{ route('admin.system.run') }}" method="POST" onsubmit="return confirmActionForm(event, '¿Optimizar Sistema?', 'Esto regenerará la caché de rutas y configuración.')">
                         @csrf
                         <input type="hidden" name="command" value="optimize">
                         <button type="submit" class="bg-indigo-600 text-white text-[0.7rem] font-black uppercase tracking-widest px-6 py-2.5 rounded-full hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20">
@@ -111,7 +111,7 @@
                 <div class="flex-1">
                     <h3 class="text-base font-black text-slate-800 mb-1">Reiniciar Workers</h3>
                     <p class="text-[0.75rem] text-slate-500 leading-relaxed mb-4">Ejecuta <code>queue:restart</code>. Obliga a los procesos de fondo a cargar el nuevo código.</p>
-                    <form action="{{ route('admin.system.run') }}" method="POST">
+                    <form action="{{ route('admin.system.run') }}" method="POST" onsubmit="return confirmActionForm(event, '¿Reiniciar Workers?', 'Esto detendrá los procesos de cola actuales para que carguen el nuevo código.')">
                         @csrf
                         <input type="hidden" name="command" value="queue-restart">
                         <button type="submit" class="bg-amber-600 text-white text-[0.7rem] font-black uppercase tracking-widest px-6 py-2.5 rounded-full hover:bg-amber-700 transition-all shadow-lg shadow-amber-600/20">

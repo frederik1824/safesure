@@ -19,10 +19,14 @@ class SystemController extends Controller
         $stats = [
             'php_version' => PHP_VERSION,
             'laravel_version' => app()->version(),
-            'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'N/A',
+            'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'Docker/Dokploy',
             'database_connection' => config('database.default'),
             'queue_connection' => config('queue.default'),
-            'last_sync' => \App\Models\AuditLog::where('event', 'sync')->latest()->first()?->created_at?->diffForHumans() ?? 'Nunca',
+            // Buscamos el último log de cualquier evento relevante
+            'last_sync' => \App\Models\AuditLog::latest()->first()?->created_at?->diffForHumans() ?? 'Sin actividad reciente',
+            // Añadimos conteos reales para que las tarjetas sean útiles
+            'total_afiliados' => \App\Models\Afiliado::count(),
+            'pending_jobs' => \Illuminate\Support\Facades\DB::table('jobs')->count(),
         ];
 
         return view('admin.system.index', compact('stats'));
@@ -48,9 +52,9 @@ class SystemController extends Controller
                     break;
 
                 case 'optimize':
-                    // Combina config:cache, route:cache, view:cache
                     Artisan::call('optimize');
                     $output = Artisan::output();
+                    if (empty($output)) $output = "Sistema optimizado: Configuración, Rutas y Vistas han sido cacheadas para producción.";
                     break;
 
                 case 'clear-cache':
