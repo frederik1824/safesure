@@ -28,7 +28,7 @@ trait HasDynamicSql
         $driver = DB::getDriverName();
         
         if ($driver === 'pgsql') {
-            return $query->groupByRaw("TO_CHAR({$column}, 'Month'), MIN({$column})")
+            return $query->groupByRaw("TO_CHAR({$column}, 'Month')")
                          ->orderByRaw("MIN({$column}) ASC");
         }
         
