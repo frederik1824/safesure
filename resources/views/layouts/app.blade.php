@@ -207,10 +207,6 @@
                     @can('manage_affiliates')
                     <x-nav-link route="import.index" icon="ph ph-upload-simple" label="Importar" />
                     <x-nav-link route="afiliados.otros" icon="ph ph-buildings" label="Mis Afiliados" />
-                    @endcan
-                    @can('manage_companies')
-                    <x-nav-link route="empresas.index" icon="ph ph-briefcase" label="Empresas" />
-                    @endcan
                     <a class="{{ request()->routeIs('afiliados.salida_inmediata') ? 'flex items-center justify-between px-4 py-3 text-primary font-black bg-primary/5 border-l-[3px] border-primary shadow-sm rounded-r-xl relative overflow-hidden' : 'flex items-center justify-between px-4 py-3 text-slate-500 hover:text-primary hover:bg-slate-50 rounded-r-xl transition-all group/link' }} mt-0.5" href="{{ route('afiliados.salida_inmediata') }}">
                         <div class="flex items-center gap-3 relative z-10">
                             <i class="ph ph-user-check text-lg {{ request()->routeIs('afiliados.salida_inmediata') ? 'text-primary' : 'group-hover/link:text-primary text-slate-400' }}"></i>
@@ -225,6 +221,9 @@
                             <span class="bg-primary text-white text-[0.6rem] font-black px-2 py-0.5 rounded-full shadow-lg shadow-primary/40 relative z-10">{{ $countSalida }}</span>
                         @endif
                     </a>
+                    @endcan
+                    @can('manage_companies')
+                    <x-nav-link route="empresas.index" icon="ph ph-briefcase" label="Empresas" />
                     @endcan
                 </div>
             </div>
