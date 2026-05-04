@@ -19,7 +19,6 @@ class ResolveCompanyGeodataJob implements ShouldQueue
     protected $url;
 
     public $tries = 3;
-    public $queue = 'sync-low';
     public $backoff = 30;
 
     /**
