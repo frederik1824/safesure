@@ -126,13 +126,15 @@ class DashboardController extends Controller
                 });
         });
 
-        // Estadísticas mensuales usando el Trait dinámico
-        $statsPorMes = Afiliado::query()
-            ->selectMonthName('created_at')
-            ->selectRaw('count(*) as total')
-            ->where('created_at', '>=', now()->subMonths(6))
-            ->groupByMonth('created_at')
-            ->get();
+        // Estadísticas mensuales usando el Trait dinámico (Cacheado por performance)
+        $statsPorMes = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_statsPorMes", $ttl, function() {
+            return Afiliado::query()
+                ->selectMonthName('created_at')
+                ->selectRaw('count(*) as total')
+                ->where('created_at', '>=', now()->subMonths(6))
+                ->groupByMonth('created_at')
+                ->get();
+        });
 
         // Actividad Reciente (Filtramos por afiliados visibles al usuario)
         $actividadReciente = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_actividadReciente", 60, function() {
