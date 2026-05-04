@@ -281,13 +281,23 @@ class FirebaseSyncService
     /**
      * Pushes a local data array to a Firestore collection via REST (PATCH)
      */
-    public function push(string $collection, string $documentId, array $data)
+    public function push(string $collection, string $documentId, array $data, $model = null)
     {
         $token = $this->getAccessToken();
-        if (!$token) return false;
+        if (!$token) {
+            if ($model) $this->markAsPending($model, "No se pudo obtener Access Token");
+            return false;
+        }
 
         try {
             $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
+            
+            // Añadimos el metadato de versión a Firebase para control externo
+            if ($model) {
+                $data['sync_version'] = $model->firebase_sync_version;
+                $data['last_system_update'] = now()->toIso8601String();
+            }
+
             $formattedData = ['fields' => $this->formatForFirestoreRest($data)];
 
             $this->client->patch("{$baseUrl}/{$collection}/{$documentId}", [
@@ -295,11 +305,39 @@ class FirebaseSyncService
                 'json' => $formattedData
             ]);
 
+            if ($model) $this->markAsSynced($model);
             return true;
+
         } catch (\Throwable $e) {
             Log::error("Firebase Push Error ({$collection}/{$documentId}): " . $e->getMessage());
+            if ($model) $this->markAsFailed($model, $e->getMessage());
             return false;
         }
+    }
+
+    protected function markAsSynced($model)
+    {
+        $model->updateQuietly([
+            'firebase_sync_status' => 'synced',
+            'firebase_synced_at' => now(),
+            'firebase_error_log' => null
+        ]);
+    }
+
+    protected function markAsFailed($model, string $error)
+    {
+        $model->updateQuietly([
+            'firebase_sync_status' => 'error',
+            'firebase_error_log' => substr($error, 0, 500)
+        ]);
+    }
+
+    protected function markAsPending($model, string $reason)
+    {
+        $model->updateQuietly([
+            'firebase_sync_status' => 'pending',
+            'firebase_error_log' => "Esperando reintento: $reason"
+        ]);
     }
 
     /**

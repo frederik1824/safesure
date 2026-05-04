@@ -12,6 +12,9 @@ Artisan::command('inspire', function () {
 // Tarea Nocturna: Conciliación de datos con Firebase
 Schedule::command('firebase:conciliate')->dailyAt('02:00');
 
+// Tarea Crítica: Reintento de sincronización pendiente o fallida
+Schedule::command('firebase:retry')->everyFiveMinutes()->withoutOverlapping();
+
 // Tarea de Limpieza: Resetear Circuit Breaker si quedó abierto
 Schedule::call(function () {
     Cache::forget('firebase_circuit_open');

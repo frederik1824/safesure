@@ -36,7 +36,8 @@ class Afiliado extends Model
         'codigo', 'lote_id', 'proveedor_id', 'costo_entrega', 'poliza', 'contrato',
         'fecha_entrega_proveedor', 'liquidado', 'fecha_liquidacion', 'recibo_liquidacion',
         'fecha_entrega_safesure', 'lote_liquidacion_id',
-        'provincia_id', 'municipio_id', 'reasignado', 'firebase_synced_at'
+        'provincia_id', 'municipio_id', 'reasignado', 'firebase_synced_at',
+        'firebase_sync_status', 'firebase_sync_version', 'firebase_error_log'
     ];
 
     protected $casts = [
@@ -72,6 +73,15 @@ class Afiliado extends Model
     {
         parent::boot();
         static::addGlobalScope(new \App\Scopes\ResponsableScope);
+
+        // Lógica de versionamiento para sincronización
+        static::updating(function ($model) {
+            // Si no estamos marcándolo como sincronizado, lo marcamos como modificado
+            if (!$model->isDirty('firebase_sync_status') || $model->firebase_sync_status !== 'synced') {
+                $model->firebase_sync_status = 'modified';
+                $model->firebase_sync_version++;
+            }
+        });
     }
 
     /**

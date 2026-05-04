@@ -156,3 +156,6 @@ require __DIR__.'/auth.php';
 // Webhook de Firebase para sincronización en tiempo real (CMD -> Local)
 Route::post('firebase/webhook', [\App\Http\Controllers\FirebaseWebhookController::class, 'handle'])
     ->middleware('firebase_webhook');
+
+// Monitoreo de Salud de Sistema (Dokploy / External Monitors)
+Route::get('system-check-deep-diagnostics', \App\Http\Controllers\HealthCheckController::class);

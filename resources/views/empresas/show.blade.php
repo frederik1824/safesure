@@ -57,10 +57,20 @@
                                 @endif
                                 <span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[0.55rem] font-black uppercase tracking-widest border border-slate-200 rounded-md">{{ $empresa->estado_contacto ?? 'Nuevo' }}</span>
                                 
-                                @if($empresa->firebase_synced_at)
+                                @if($empresa->firebase_sync_status === 'synced')
                                 <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[0.55rem] font-black uppercase tracking-widest border border-emerald-100 rounded-md flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-[10px]">cloud_sync</span>
-                                    Sync: {{ $empresa->firebase_synced_at->diffForHumans() }}
+                                    <span class="material-symbols-outlined text-[10px]">cloud_done</span>
+                                    Sincronizado
+                                </span>
+                                @elseif($empresa->firebase_sync_status === 'error')
+                                <span class="px-2 py-0.5 bg-rose-50 text-rose-600 text-[0.55rem] font-black uppercase tracking-widest border border-rose-100 rounded-md flex items-center gap-1 animate-pulse" title="{{ $empresa->firebase_error_log }}">
+                                    <span class="material-symbols-outlined text-[10px]">cloud_off</span>
+                                    Error de Sync
+                                </span>
+                                @else
+                                <span class="px-2 py-0.5 bg-amber-50 text-amber-600 text-[0.55rem] font-black uppercase tracking-widest border border-amber-100 rounded-md flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[10px]">sync</span>
+                                    Pendiente: v{{ $empresa->firebase_sync_version }}
                                 </span>
                                 @endif
                                 
