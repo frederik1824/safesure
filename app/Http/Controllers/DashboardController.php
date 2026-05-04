@@ -128,8 +128,9 @@ class DashboardController extends Controller
 
         // Estadísticas mensuales (Tendencia últimos 6 meses)
         $statsPorMes = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_statsPorMes", $ttl, function() {
+            // Ajuste para PostgreSQL (usamos TO_CHAR en lugar de DATE_FORMAT)
             return DB::table('afiliados')
-                ->select(DB::raw("DATE_FORMAT(created_at, '%M') as mes"), DB::raw('count(*) as total'))
+                ->select(DB::raw("TO_CHAR(created_at, 'Month') as mes"), DB::raw('count(*) as total'))
                 ->where('created_at', '>=', now()->subMonths(6))
                 ->groupBy('mes')
                 ->orderBy(DB::raw("MIN(created_at)"))
