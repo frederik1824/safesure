@@ -14,11 +14,19 @@ return new class extends Migration
         $tables = ['afiliados', 'empresas'];
 
         foreach ($tables as $table) {
-            Schema::table($table, function (Blueprint $table) {
-                $table->enum('firebase_sync_status', ['synced', 'pending', 'error', 'modified'])->default('pending');
-                $table->unsignedBigInteger('firebase_sync_version')->default(1);
-                $table->timestamp('firebase_synced_at')->nullable();
-                $table->text('firebase_error_log')->nullable();
+            Schema::table($table, function (Blueprint $table) use ($table) {
+                if (!Schema::hasColumn($table, 'firebase_sync_status')) {
+                    $table->enum('firebase_sync_status', ['synced', 'pending', 'error', 'modified'])->default('pending');
+                }
+                if (!Schema::hasColumn($table, 'firebase_sync_version')) {
+                    $table->unsignedBigInteger('firebase_sync_version')->default(1);
+                }
+                if (!Schema::hasColumn($table, 'firebase_synced_at')) {
+                    $table->timestamp('firebase_synced_at')->nullable();
+                }
+                if (!Schema::hasColumn($table, 'firebase_error_log')) {
+                    $table->text('firebase_error_log')->nullable();
+                }
             });
         }
     }
