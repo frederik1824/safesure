@@ -94,6 +94,7 @@ class FirebaseSyncPull extends Command
             $this->processCollection($firebase, User::class, $usersData, 'email', function($mapped) {
                 return [
                     'name' => $mapped['name'],
+                    'email' => $mapped['email'],
                     'password' => $mapped['password'] ?? Hash::make('Password'),
                     'phone' => $mapped['phone'] ?? null,
                     'position' => $mapped['position'] ?? null,
