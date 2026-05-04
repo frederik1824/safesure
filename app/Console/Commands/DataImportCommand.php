@@ -60,10 +60,17 @@ class DataImportCommand extends Command
             
             if (empty($data)) continue;
 
+            // Desactivar triggers para esta tabla (evita FK errors)
+            DB::statement("ALTER TABLE {$table} DISABLE TRIGGER ALL;");
+
             $chunks = array_chunk($data, 500);
             foreach ($chunks as $chunk) {
                 DB::table($table)->insert($chunk);
             }
+
+            // Reactivar triggers
+            DB::statement("ALTER TABLE {$table} ENABLE TRIGGER ALL;");
+
             $this->comment("¡{$table} cargada! (" . count($data) . " registros)");
         }
 
