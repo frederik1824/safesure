@@ -241,7 +241,14 @@ class FirebaseSyncPull extends Command
 
             // Fallback to Unique Key (e.g., UUID or Cedula)
             if (!$model && isset($mapped[$uniqueKey])) {
-                $model = (new $modelClass)->where($uniqueKey, $mapped[$uniqueKey])->first();
+                $keyValue = $mapped[$uniqueKey];
+                
+                // Si la columna es UUID, validamos el formato para evitar errores de PostgreSQL
+                $isValidUuid = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $keyValue);
+                
+                if ($uniqueKey !== 'uuid' || $isValidUuid) {
+                    $model = (new $modelClass)->where($uniqueKey, $keyValue)->first();
+                }
             }
 
             if ($model) {
@@ -258,6 +265,11 @@ class FirebaseSyncPull extends Command
                 $attributes = $transformCallback ? $transformCallback($mapped) : $mapped;
                 $urlToResolve = $attributes['_resolve_geo'] ?? null;
                 unset($attributes['_resolve_geo']);
+
+                // Si el UUID es inválido, lo quitamos para que no rompa la inserción en Postgres
+                if (isset($attributes['uuid']) && !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $attributes['uuid'])) {
+                    unset($attributes['uuid']);
+                }
 
                 // Filter attributes based on fillable
                 $fillableData = array_intersect_key($attributes, array_flip((new $modelClass)->getFillable()));
