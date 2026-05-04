@@ -21,9 +21,6 @@ class SyncToFirebaseJob implements ShouldQueue
     // Si falla, reintentar 3 veces
     public $tries = 3;
     
-    // Cola de alta prioridad
-    public $queue = 'sync-high';
-    
     // Esperar con backoff exponencial
     public $backoff = [10, 60, 300];
 
