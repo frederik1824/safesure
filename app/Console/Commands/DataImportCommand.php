@@ -39,39 +39,33 @@ class DataImportCommand extends Command
             return;
         }
 
-        // Desactivar checks de integridad en Postgres
-        DB::statement('SET session_replication_role = "replica";');
+        // 1. LIMPIEZA (Orden inverso para evitar errores de llaves foráneas)
+        $reverseTables = array_reverse($tables);
+        foreach ($reverseTables as $table) {
+            if (Schema::hasTable($table)) {
+                $this->comment("Limpiando tabla: {$table}...");
+                DB::table($table)->delete();
+            }
+        }
 
+        // 2. CARGA (Orden directo para respetar dependencias)
         foreach ($tables as $table) {
             $file = "{$exportPath}/{$table}.json";
-            if (!File::exists($file)) {
-                $this->warn("Saltando {$table}: archivo no encontrado.");
+            if (!File::exists($file) || !Schema::hasTable($table)) {
                 continue;
             }
 
-            if (!Schema::hasTable($table)) {
-                $this->warn("Saltando {$table}: la tabla no existe en el servidor.");
-                continue;
-            }
-
-            $this->info("Importando {$table}...");
-            
-            // Limpiar tabla
-            DB::table($table)->truncate();
-
+            $this->info("Importando datos en: {$table}...");
             $data = json_decode(File::get($file), true);
             
-            // Insertar en bloques para no saturar la memoria
+            if (empty($data)) continue;
+
             $chunks = array_chunk($data, 500);
             foreach ($chunks as $chunk) {
                 DB::table($table)->insert($chunk);
             }
-
-            $this->comment("¡Tabla {$table} importada con éxito!");
+            $this->comment("¡{$table} cargada! (" . count($data) . " registros)");
         }
-
-        // Reactivar checks
-        DB::statement('SET session_replication_role = "origin";');
 
         $this->info("\n✅ ¡Trasplante completo! Todos los datos locales están ahora en el VPS.");
     }
