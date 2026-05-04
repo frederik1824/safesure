@@ -115,6 +115,11 @@ class FirebaseSyncPull extends Command
                     if (isset($mapped['latitud'])) $mapped['latitude'] = $mapped['latitud'];
                     if (isset($mapped['longitud'])) $mapped['longitude'] = $mapped['longitud'];
 
+                    // Default values for NOT NULL booleans
+                    $mapped['es_real'] = $mapped['es_real'] ?? false;
+                    $mapped['es_verificada'] = $mapped['es_verificada'] ?? false;
+                    $mapped['es_filial'] = $mapped['es_filial'] ?? false;
+
                     // Dispatch background job for geodata resolution if URL is present
                     if (isset($mapped['google_maps_url']) && !empty($mapped['google_maps_url'])) {
                         // We will dispatch the job AFTER the company is created/updated
