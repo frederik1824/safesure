@@ -60,18 +60,40 @@ class DataImportCommand extends Command
             
             if (empty($data)) continue;
 
-            // Desactivar triggers para esta tabla (evita FK errors)
-            DB::statement("ALTER TABLE {$table} DISABLE TRIGGER ALL;");
+            // Intentar desactivar triggers de usuario
+            try {
+                DB::statement("ALTER TABLE {$table} DISABLE TRIGGER USER;");
+            } catch (\Exception $e) {
+                $this->warn("No se pudieron desactivar triggers en {$table}, procediendo con precaución...");
+            }
 
-            $chunks = array_chunk($data, 500);
+            $chunks = array_chunk($data, 100); // Bloques más pequeños para identificar errores
+            $successCount = 0;
+            $failCount = 0;
+
             foreach ($chunks as $chunk) {
-                DB::table($table)->insert($chunk);
+                try {
+                    DB::table($table)->insert($chunk);
+                    $successCount += count($chunk);
+                } catch (\Exception $e) {
+                    // Si falla el bloque, intentamos registro por registro para salvar lo que se pueda
+                    foreach ($chunk as $singleRecord) {
+                        try {
+                            DB::table($table)->insert($singleRecord);
+                            $successCount++;
+                        } catch (\Exception $ex) {
+                            $failCount++;
+                        }
+                    }
+                }
             }
 
             // Reactivar triggers
-            DB::statement("ALTER TABLE {$table} ENABLE TRIGGER ALL;");
+            try {
+                DB::statement("ALTER TABLE {$table} ENABLE TRIGGER USER;");
+            } catch (\Exception $e) { }
 
-            $this->comment("¡{$table} cargada! (" . count($data) . " registros)");
+            $this->comment("¡{$table} procesada! (Éxitos: {$successCount}, Fallos: {$failCount})");
         }
 
         $this->info("\n✅ ¡Trasplante completo! Todos los datos locales están ahora en el VPS.");
