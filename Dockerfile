@@ -21,7 +21,7 @@ RUN apk add --no-cache \
 ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
 # Use the installer to add extensions (much faster as it uses pre-compiled binaries where possible)
-RUN install-php-extensions gd bcmath zip pdo_mysql intl opcache redis
+RUN install-php-extensions gd bcmath zip pdo_mysql pdo_pgsql pgsql intl opcache redis
 
 # Get composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

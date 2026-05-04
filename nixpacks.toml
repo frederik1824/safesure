@@ -1,0 +1,6 @@
+[variables]
+    PHP_EXTENSIONS = "pdo_pgsql, pgsql, bcmath, gd, intl, zip, opcache"
+    NODE_VERSION = "20"
+
+[phases.setup]
+    nixPkgs = ["...", "postgresql"]
