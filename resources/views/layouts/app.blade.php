@@ -163,30 +163,20 @@
         @php /** @var \App\Models\User $user */ $user = Auth::user(); @endphp
         <div class="px-8 mb-10 w-full relative z-10">
             <div class="flex items-center gap-4">
-                @if(auth()->user()->isCmd())
-                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-500/40 ring-1 ring-white/20">
-                        <i class="ph-fill ph-shield-check text-2xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-black tracking-tighter text-slate-800 leading-none">ARS CMD</h1>
-                        <p class="text-[0.65rem] font-bold uppercase tracking-[0.3em] text-primary mt-1">ID Platform</p>
-                    </div>
-                @else
-                    <a href="{{ route('dashboard') }}" class="relative w-full h-14 bg-slate-50 backdrop-blur-sm rounded-2xl p-2.5 flex items-center justify-center shadow-sm border border-slate-200 group/logo overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-br from-white to-slate-100 opacity-50"></div>
-                        <img src="{{ asset('images/logo-web-ss.png') }}" alt="SafeSure Logo" class="h-full w-auto object-contain relative z-10 transition-transform duration-500 group-hover/logo:scale-110">
-                    </a>
-                @endif
+                <a href="{{ route('dashboard') }}" class="relative w-full h-14 bg-slate-50 backdrop-blur-sm rounded-2xl p-2.5 flex items-center justify-center shadow-sm border border-slate-200 group/logo overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-white to-slate-100 opacity-50"></div>
+                    <img src="{{ asset('images/logo-web-ss.png') }}" alt="SafeSure Logo" class="h-full w-auto object-contain relative z-10 transition-transform duration-500 group-hover/logo:scale-110">
+                </a>
             </div>
         </div>
 
         <nav class="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar" x-data="{ 
             activeGroup: '{{ 
-                request()->routeIs('import.*', 'afiliados.cmd', 'afiliados.otros', 'afiliados.salida_inmediata') ? 'admision' : (
+                request()->routeIs('import.*', 'afiliados.cmd', 'afiliados.otros', 'afiliados.salida_inmediata', 'empresas.*') ? 'admision' : (
                 request()->routeIs('afiliados.index', 'lotes.*', 'cierre.*', 'mensajeros.*', 'rutas.*', 'despachos.*') ? 'logistica' : (
                 request()->routeIs('evidencias.*', 'liquidacion.*', 'pagos.*') ? 'gestion' : (
                 request()->routeIs('reportes.*') ? 'reportes' : (
-                request()->routeIs('empresas.*', 'proveedores.*', 'catalogo.*', 'admin.audit.index', 'usuarios.*') ? 'sistema' : ''
+                request()->routeIs('proveedores.*', 'catalogo.*', 'admin.audit.index', 'usuarios.*') ? 'sistema' : ''
             )))) }}' 
         }">
             @php $isGestora = auth()->user()->isGestora(); @endphp
@@ -216,10 +206,11 @@
                 <div x-show="activeGroup === 'admision'" x-collapse class="pl-6 pr-2 space-y-1">
                     @can('manage_affiliates')
                     <x-nav-link route="import.index" icon="ph ph-upload-simple" label="Importar" />
-                    @unless($isGestora)
-                        <x-nav-link route="afiliados.cmd" icon="ph ph-shield-star" label="Afiliados CMD" />
-                    @endunless
-                    <x-nav-link route="afiliados.otros" icon="ph ph-buildings" label="{{ $isGestora ? 'Mis Afiliados' : 'Extra Empresa' }}" />
+                    <x-nav-link route="afiliados.otros" icon="ph ph-buildings" label="Mis Afiliados" />
+                    @endcan
+                    @can('manage_companies')
+                    <x-nav-link route="empresas.index" icon="ph ph-briefcase" label="Empresas" />
+                    @endcan
                     <a class="{{ request()->routeIs('afiliados.salida_inmediata') ? 'flex items-center justify-between px-4 py-3 text-primary font-black bg-primary/5 border-l-[3px] border-primary shadow-sm rounded-r-xl relative overflow-hidden' : 'flex items-center justify-between px-4 py-3 text-slate-500 hover:text-primary hover:bg-slate-50 rounded-r-xl transition-all group/link' }} mt-0.5" href="{{ route('afiliados.salida_inmediata') }}">
                         <div class="flex items-center gap-3 relative z-10">
                             <i class="ph ph-user-check text-lg {{ request()->routeIs('afiliados.salida_inmediata') ? 'text-primary' : 'group-hover/link:text-primary text-slate-400' }}"></i>
@@ -329,9 +320,6 @@
                     <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-400" :class="activeGroup === 'sistema' ? 'rotate-180 text-primary' : ''"></i>
                 </button>
                 <div x-show="activeGroup === 'sistema'" x-collapse class="pl-6 pr-2 space-y-1">
-                    @can('manage_companies')
-                    <x-nav-link route="empresas.index" icon="ph ph-briefcase" label="Empresas" />
-                    @endcan
                     @can('access_admin_panel')
                     <x-nav-link route="proveedores.index" icon="ph ph-package" label="Proveedores" />
                     <x-nav-link route="catalogo.index" icon="ph ph-tag" label="Catálogos" />
@@ -394,10 +382,7 @@
                         Dashboard
                     </a>
                     @can('manage_affiliates')
-                    @unless($isGestora)
-                        <a class="{{ request()->routeIs('afiliados.cmd') ? 'text-primary font-bold border-b-[3px] border-primary pb-[1.4rem] pt-6' : 'text-slate-500 font-medium hover:text-primary border-b-[3px] border-transparent pb-[1.4rem] pt-6 transition-colors' }} text-[0.875rem]" href="{{ route('afiliados.cmd') }}">Afiliados CMD</a>
-                    @endunless
-                    <a class="{{ request()->routeIs('afiliados.otros') ? 'text-primary font-bold border-b-[3px] border-primary pb-[1.4rem] pt-6' : 'text-slate-500 font-medium hover:text-primary border-b-[3px] border-transparent pb-[1.4rem] pt-6 transition-colors' }} text-[0.875rem]" href="{{ route('afiliados.otros') }}">{{ $isGestora ? 'Mis Afiliados' : 'Extra Empresa' }}</a>
+                    <a class="{{ request()->routeIs('afiliados.otros') ? 'text-primary font-bold border-b-[3px] border-primary pb-[1.4rem] pt-6' : 'text-slate-500 font-medium hover:text-primary border-b-[3px] border-transparent pb-[1.4rem] pt-6 transition-colors' }} text-[0.875rem]" href="{{ route('afiliados.otros') }}">Mis Afiliados</a>
                     @endcan
                     @can('manage_companies')
                     <a class="{{ request()->routeIs('empresas.*') ? 'text-primary font-bold border-b-[3px] border-primary pb-[1.4rem] pt-6' : 'text-slate-500 font-medium hover:text-primary border-b-[3px] border-transparent pb-[1.4rem] pt-6 transition-colors' }} text-[0.875rem]" href="{{ route('empresas.index') }}">Empresas</a>
