@@ -61,8 +61,8 @@
         }
     </style>
     
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Alpine.js (Livewire 3 ya lo incluye, evitamos conflictos) -->
+    {{-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> --}}
     
     <!-- Tailwind CSS (CDN for prototype, should be compiled via Vite in prod) -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -138,7 +138,68 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .page-transition {
-            animation: fadeIn 0.4s ease-out forwards;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* --- Responsive Table Overhaul --- */
+        @media (max-width: 1024px) {
+            .responsive-table thead {
+                display: none;
+            }
+            .responsive-table tr {
+                display: block;
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 1rem;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            }
+            .responsive-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 0 !important;
+                border: 0 !important;
+                text-align: right;
+                font-size: 0.875rem;
+            }
+            .responsive-table td::before {
+                content: attr(data-label);
+                font-weight: 800;
+                text-transform: uppercase;
+                font-size: 0.65rem;
+                color: #64748b;
+                letter-spacing: 0.05em;
+                margin-right: 1rem;
+                text-align: left;
+            }
+            .responsive-table td:last-child {
+                border-top: 1px solid #f1f5f9 !important;
+                margin-top: 0.5rem;
+                padding-top: 1rem !important;
+            }
+            .responsive-table .afiliado-cell {
+                text-align: left;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .responsive-table .afiliado-cell::before {
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        /* Touch-friendly buttons */
+        @media (max-width: 768px) {
+            button, a.btn, .nav-link {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+            }
+            input, select {
+                font-size: 16px !important; /* Evita zoom automático en iOS */
+                min-height: 48px;
+            }
         }
 
         .hover-card {
@@ -150,12 +211,38 @@
         }
     </style>
 </head>
-    <body class="bg-surface text-on-surface" 
-          data-success="{{ session('success') }}" 
-          data-error="{{ session('error') ?? ($errors->any() ? 'Existen errores de validación en el formulario.' : '') }}">
+    <body class="bg-slate-50 font-sans text-slate-900 antialiased selection:bg-primary/10 selection:text-primary" 
+      x-data="{ 
+          sidebarOpen: false,
+          notificationsOpen: false,
+          userMenuOpen: false
+      }">
+    
+    <!-- Mobile Backdrop -->
+    <div x-show="sidebarOpen" 
+         x-transition:enter="transition opacity-ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition opacity-ease-in duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="sidebarOpen = false"
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden">
+    </div>
 
-    <!-- SideNavBar Component -->
-    <aside class="h-screen w-80 fixed left-0 top-0 border-r border-slate-200 bg-white flex flex-col py-8 z-50 shadow-lg overflow-hidden">
+    <div class="flex h-screen overflow-hidden relative">
+
+    <!-- SIDEBAR (DRAWER ON MOBILE) -->
+    <aside 
+        class="fixed inset-y-0 left-0 z-50 w-72 bg-white/95 backdrop-blur-xl border-r border-slate-200/60 shadow-2xl transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 lg:z-0 lg:shadow-none"
+        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+    >
+        <!-- Mobile Close Button -->
+        <button @click="sidebarOpen = false" class="lg:hidden absolute top-4 right-4 p-2 text-slate-400 hover:text-primary transition-colors">
+            <i class="ph ph-x text-2xl"></i>
+        </button>
+
+        <div class="h-full flex flex-col py-8 overflow-hidden">
         <!-- Soft Branding Accents -->
         <div class="absolute -top-24 -left-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute top-1/2 -right-24 w-32 h-64 bg-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -349,47 +436,25 @@
         </div>
     </aside>
 
-    <!-- Main Canvas -->
-    <main class="ml-80 min-h-screen">
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f8fafc] relative">
         <!-- TopNavBar Component -->
-        <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-16 px-8 flex justify-between items-center shadow-sm border-b border-slate-100">
-            <div class="flex items-center gap-8">
-                <div class="relative w-80 group">
-                    <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg group-hover:text-blue-600 transition-colors"></i>
-                    <input id="navbar-search" class="w-full bg-slate-50 border border-slate-200 rounded-full pl-11 pr-16 py-2.5 text-[0.875rem] font-bold text-slate-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:font-medium shadow-inner" placeholder="Buscar afiliado o empresa..." type="text" autocomplete="off"/>
-                    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 bg-white rounded-md border border-slate-200 shadow-sm pointer-events-none opacity-60 group-hover:opacity-100 transition-opacity">
-                        <span class="text-[0.6rem] font-black text-slate-400">CTRL</span>
-                        <span class="text-[0.6rem] font-black text-slate-400">K</span>
-                    </div>
-                    
-                    <!-- Search Results Dropdown -->
-                    <div id="search-results" class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-                        <div class="p-3 border-b border-slate-50 bg-slate-50/50">
-                            <span class="text-[0.65rem] font-black uppercase tracking-widest text-slate-400">Resultados sugeridos</span>
-                        </div>
-                        <div id="results-container" class="max-h-[400px] overflow-y-auto custom-scrollbar divide-y divide-slate-50">
-                            <!-- JS Will fill this -->
-                        </div>
-                        <div id="search-empty" class="p-8 text-center hidden">
-                            <i class="ph ph-user-focus text-slate-200 text-4xl mb-2"></i>
-                            <p class="text-xs font-bold text-slate-400">No se encontraron coincidencias.</p>
-                        </div>
-                    </div>
+        <header class="h-20 lg:h-24 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 lg:px-10 flex items-center justify-between sticky top-0 z-30">
+            <div class="flex items-center gap-4">
+                <!-- Hamburger Trigger -->
+                <button @click="sidebarOpen = true" class="lg:hidden p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-primary/10 hover:text-primary transition-all active:scale-95">
+                    <i class="ph ph-list text-2xl"></i>
+                </button>
+                
+                <div class="hidden lg:block">
+                    <h2 class="text-xl font-bold text-slate-800 tracking-tight">@yield('title', 'Dashboard')</h2>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Gestión de Logística y Carnetización</p>
                 </div>
-                <nav class="flex gap-6">
-                    <a class="{{ request()->routeIs('dashboard') ? 'text-primary font-bold border-b-[3px] border-primary pb-[1.4rem] pt-6' : 'text-slate-500 font-medium hover:text-primary border-b-[3px] border-transparent pb-[1.4rem] pt-6 transition-colors' }} text-[0.875rem] flex items-center gap-2" href="{{ route('dashboard') }}">
-                        Dashboard
-                    </a>
-                    @can('manage_affiliates')
-                    <a class="{{ request()->routeIs('afiliados.otros') ? 'text-primary font-bold border-b-[3px] border-primary pb-[1.4rem] pt-6' : 'text-slate-500 font-medium hover:text-primary border-b-[3px] border-transparent pb-[1.4rem] pt-6 transition-colors' }} text-[0.875rem]" href="{{ route('afiliados.otros') }}">Mis Afiliados</a>
-                    @endcan
-                    @can('manage_companies')
-                    <a class="{{ request()->routeIs('empresas.*') ? 'text-primary font-bold border-b-[3px] border-primary pb-[1.4rem] pt-6' : 'text-slate-500 font-medium hover:text-primary border-b-[3px] border-transparent pb-[1.4rem] pt-6 transition-colors' }} text-[0.875rem]" href="{{ route('empresas.index') }}">Empresas</a>
-                    @endcan
-                    @can('manage_liquidations')
-                    <a class="{{ request()->routeIs('liquidacion.*') ? 'text-primary font-bold border-b-[3px] border-primary pb-[1.4rem] pt-6' : 'text-slate-500 font-medium hover:text-primary border-b-[3px] border-transparent pb-[1.4rem] pt-6 transition-colors' }} text-[0.875rem]" href="{{ route('liquidacion.index') }}">Liquidación</a>
-                    @endcan
-                </nav>
+                
+                <!-- Mobile Logo (Small) -->
+                <div class="lg:hidden">
+                    <img src="{{ asset('images/logo-web-ss.png') }}" alt="SafeSure" class="h-8 w-auto">
+                </div>
             </div>
             
             <div class="flex items-center gap-4">
@@ -412,7 +477,7 @@
                         
                         <div class="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                             <h3 class="text-sm font-black text-slate-800">Notificaciones</h3>
-                            <span class="text-[0.6rem] font-bold uppercase text-slate-400">{{ $user->unreadNotifications->count() }} Pendientes</span>
+                            <span class="text-[0.6rem] font-bold uppercase text-slate-400">{{ auth()->user()->unreadNotifications->count() }} Pendientes</span>
                         </div>
 
                         <div class="max-h-96 overflow-y-auto">
@@ -514,9 +579,11 @@
         @endif
 
         <!-- Page Content -->
-        <div class="p-10 max-w-[1600px] mx-auto space-y-10">
-            {{ $slot ?? '' }}
-            @yield('content')
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-8">
+            <div class="max-w-[1600px] mx-auto space-y-6 lg:space-y-8">
+                {{ $slot ?? '' }}
+                @yield('content')
+            </div>
         </div>
     </main>
 

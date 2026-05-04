@@ -3,63 +3,55 @@
 <div class="p-8 max-w-[1600px] mx-auto space-y-8">
     <!-- Header & Quick Filters -->
     <div class="flex flex-col gap-6">
-        <div class="flex justify-between items-end">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
             <div>
-                <h2 class="text-3xl font-bold text-on-surface">Tablero de Operaciones</h2>
-                <p class="text-slate-500 text-sm mt-1">Monitoreo en tiempo real del ciclo de carnetización masiva.</p>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Tablero de Operaciones</h2>
+                <p class="text-slate-500 text-sm mt-1">Monitoreo en tiempo real del ciclo de carnetización.</p>
             </div>
-            <div class="flex gap-2">
-                <a href="{{ route('import.index') }}" class="bg-primary text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary-container transition-colors">
-                    <span class="material-symbols-outlined text-lg">upload_file</span> Cargar Lote
+            <div class="w-full sm:w-auto">
+                <a href="{{ route('import.index') }}" class="w-full sm:w-auto bg-primary text-white px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
+                    <i class="ph ph-cloud-arrow-up text-xl"></i> Cargar Lote
                 </a>
             </div>
         </div>
 
         {{-- Sync Heartbeat Indicator --}}
-        <div class="flex items-center gap-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 shadow-sm animate-fade-in">
-            <div class="flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-200 rounded-full shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50 shadow-sm animate-fade-in">
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-200 rounded-full shadow-sm w-fit">
                 <span class="relative flex h-2 w-2">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span class="text-[0.6rem] font-black text-emerald-600 uppercase tracking-widest">Sistema Online: Sincronización Activa</span>
+                <span class="text-[0.6rem] font-black text-emerald-600 uppercase tracking-widest">Sincronización Activa</span>
             </div>
-            <div class="h-4 w-px bg-emerald-200"></div>
-            <p class="text-[0.65rem] text-emerald-800 font-medium">Conectado a Firebase Realtime • Webhook SSL Habilitado • Latencia < 500ms</p>
+            <p class="text-[0.65rem] text-emerald-800 font-medium leading-relaxed">Conectado a Firebase Realtime • Webhook SSL Habilitado • Latencia < 500ms</p>
         </div>
     </div>
 
     <!-- KPI Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 gap-4 lg:gap-6">
         <!-- Total Affiliates -->
-        <div class="bg-surface-container-lowest p-6 rounded-2xl border-l-4 border-slate-400 shadow-sm relative overflow-hidden group">
-            <div class="absolute -right-2 -top-2 opacity-5 scale-150 transition-transform group-hover:scale-125 duration-700">
-                <span class="material-symbols-outlined text-8xl">groups</span>
+        <div class="col-span-2 sm:col-span-1 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                <i class="ph ph-users text-7xl text-slate-400"></i>
             </div>
-            <div class="flex flex-col h-full justify-between">
-                <span class="text-slate-400 font-bold uppercase text-[0.625rem] tracking-wider">Total Afiliados</span>
-                <span class="text-4xl font-extrabold font-headline text-slate-800 mt-2">{{ number_format($totalAfiliados) }}</span>
-                <p class="text-[0.65rem] text-slate-500 mt-2 font-medium">Registros históricos</p>
+            <div class="relative z-10 flex flex-col h-full justify-between">
+                <span class="text-slate-400 font-black uppercase text-[0.6rem] tracking-widest">Total Afiliados</span>
+                <span class="text-3xl lg:text-4xl font-black text-slate-800 mt-2">{{ number_format($totalAfiliados) }}</span>
+                <p class="text-[0.6rem] text-slate-400 mt-2 font-bold uppercase tracking-tighter">Registros históricos</p>
             </div>
         </div>
 
         <!-- Empresas FILIAL Card -->
-        <div class="bg-white p-6 rounded-2xl border-l-4 border-primary shadow-sm hover-card relative overflow-hidden group">
-            <div class="absolute -right-2 -top-2 opacity-5 scale-150 transition-transform group-hover:scale-120 duration-700">
-                <span class="material-symbols-outlined text-8xl text-primary">domain</span>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                <i class="ph-fill ph-buildings text-7xl text-primary"></i>
             </div>
-            <div class="flex flex-col h-full justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="p-1.5 bg-primary/10 rounded-lg"><span class="material-symbols-outlined text-primary text-sm">domain</span></span>
-                    <span class="text-primary font-bold uppercase text-[0.625rem] tracking-wider">Empresas FILIAL</span>
-                </div>
-                <span class="text-3xl font-extrabold font-headline text-slate-800 mt-3">{{ number_format($confirmadosFilial) }}</span>
-                <div class="mt-2 text-[0.65rem] font-bold text-slate-400">
-                    <div class="flex justify-between items-center mb-1">
-                        <span>CONFIRMADOS</span>
-                        <span>{{ $confirmadosFilial }}/{{ $totalFilial }}</span>
-                    </div>
-                    <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
+            <div class="relative z-10 flex flex-col h-full justify-between">
+                <span class="text-primary font-black uppercase text-[0.6rem] tracking-widest">Empresas ARS</span>
+                <span class="text-2xl lg:text-3xl font-black text-slate-800 mt-3">{{ number_format($confirmadosFilial) }}</span>
+                <div class="mt-3">
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                         <div class="bg-primary h-full transition-all duration-1000" style="width: {{ $totalFilial > 0 ? ($confirmadosFilial / $totalFilial) * 100 : 0 }}%"></div>
                     </div>
                 </div>
@@ -225,12 +217,12 @@
         </div>
 
         <!-- Tabla Actividad Reciente -->
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
-            <h3 class="text-lg font-bold text-slate-800 mb-6">Actividad Operativa Reciente</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="text-[0.65rem] font-black text-slate-400 uppercase border-b border-slate-50">
+        <div class="bg-white p-6 lg:p-8 rounded-3xl shadow-sm border border-slate-200/60 lg:col-span-2">
+            <h3 class="text-lg font-black text-slate-800 mb-6">Actividad Operativa Reciente</h3>
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left responsive-table">
+                    <thead class="hidden lg:table-header-group">
+                        <tr class="text-[0.65rem] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                             <th class="pb-4">Afiliado</th>
                             <th class="pb-4">Evento</th>
                             <th class="pb-4">Usuario</th>
@@ -239,18 +231,22 @@
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         @foreach($actividadReciente as $act)
-                        <tr class="group">
-                            <td class="py-4">
+                        <tr class="group hover:bg-slate-50/50 transition-all">
+                            <td class="py-4 afiliado-cell">
                                 <div class="flex flex-col">
-                                    <span class="text-xs font-bold text-slate-700 group-hover:text-primary">{{ $act->afiliado->nombre_completo ?? 'Afiliado no accesible' }}</span>
-                                    <span class="text-[0.6rem] text-slate-400 font-bold uppercase">{{ $act->afiliado->cedula_formatted ?? 'N/A' }}</span>
+                                    <span class="text-xs font-bold text-slate-700 group-hover:text-primary transition-colors">{{ $act->afiliado->nombre_completo ?? 'Afiliado no accesible' }}</span>
+                                    <span class="text-[0.6rem] text-slate-400 font-bold uppercase tracking-tighter">{{ $act->afiliado->cedula_formatted ?? 'N/A' }}</span>
                                 </div>
                             </td>
-                            <td class="py-4 text-xs font-bold text-slate-600">
-                                <span class="px-2 py-1 bg-slate-100 rounded-md text-[0.6rem] uppercase">{{ $act->estadoNuevo->nombre ?? 'N/A' }}</span>
+                            <td class="py-4" data-label="Evento">
+                                <span class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-wider">{{ $act->estadoNuevo->nombre ?? 'N/A' }}</span>
                             </td>
-                            <td class="py-4 text-xs text-slate-500 font-medium">{{ $act->user->name ?? 'Sistema' }}</td>
-                            <td class="py-4 text-[0.65rem] text-slate-400 font-bold text-right">{{ $act->created_at->diffForHumans() }}</td>
+                            <td class="py-4" data-label="Operador">
+                                <span class="text-xs text-slate-500 font-bold">{{ $act->user->name ?? 'Sistema' }}</span>
+                            </td>
+                            <td class="py-4 text-right" data-label="Hace">
+                                <span class="text-[10px] text-slate-400 font-black uppercase">{{ $act->created_at->diffForHumans() }}</span>
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>

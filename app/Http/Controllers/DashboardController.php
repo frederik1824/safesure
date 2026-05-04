@@ -126,16 +126,13 @@ class DashboardController extends Controller
                 });
         });
 
-        // Estadísticas mensuales (Tendencia últimos 6 meses)
-        $statsPorMes = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_statsPorMes", $ttl, function() {
-            // Ajuste para PostgreSQL (usamos TO_CHAR en lugar de DATE_FORMAT)
-            return DB::table('afiliados')
-                ->select(DB::raw("TO_CHAR(created_at, 'Month') as mes"), DB::raw('count(*) as total'))
-                ->where('created_at', '>=', now()->subMonths(6))
-                ->groupBy('mes')
-                ->orderBy(DB::raw("MIN(created_at)"))
-                ->get();
-        });
+        // Estadísticas mensuales usando el Trait dinámico
+        $statsPorMes = Afiliado::query()
+            ->selectMonthName('created_at')
+            ->selectRaw('count(*) as total')
+            ->where('created_at', '>=', now()->subMonths(6))
+            ->groupByMonth('created_at')
+            ->get();
 
         // Actividad Reciente (Filtramos por afiliados visibles al usuario)
         $actividadReciente = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_actividadReciente", 60, function() {

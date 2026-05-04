@@ -10,9 +10,17 @@ use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Traits\HasDynamicSql;
+
 class Afiliado extends Model
 {
-    use Auditable, HasUuids, SoftDeletes;
+    use Auditable, HasUuids, SoftDeletes, HasDynamicSql;
+    
+    // Constantes de Estado Operativo
+    const ESTADO_ENTREGADO = 6;
+    const ESTADO_COMPLETADO = 9;
+    const ESTADO_REVISION = 8;
+    const ESTADO_PENDIENTE = 1;
 
     /**
      * Define which columns should be generated as UUIDs.
@@ -49,25 +57,6 @@ class Afiliado extends Model
         'firebase_synced_at' => 'datetime'
     ];
     
-    public function getStatusColorClassAttribute()
-    {
-        $estadoId = $this->estado_id;
-        
-        // IDs 6 y 9 definidos por CMD como estados de terminacion
-        if (in_array($estadoId, [6, 9]) || $this->estado?->es_final) {
-            return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-        }
-        
-        $estadoNombre = strtolower($this->estado?->nombre ?? 'pendiente');
-        return match($estadoNombre) {
-            'pendiente'  => 'bg-amber-100 text-amber-700 border-amber-200',
-            'carnet entregado' => 'bg-blue-100 text-blue-700 border-blue-200',
-            'entregado'  => 'bg-blue-100 text-blue-700 border-blue-200',
-            'cancelado'  => 'bg-rose-100 text-rose-700 border-rose-200',
-            'en proceso' => 'bg-indigo-100 text-indigo-700 border-indigo-200',
-            default      => 'bg-slate-100 text-slate-700 border-slate-200',
-        };
-    }
 
     protected static function boot()
     {

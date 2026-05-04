@@ -1,18 +1,18 @@
-<div class="space-y-6">
-    {{-- TAB TOGGLES & FILTERS (Fusionado con la tabla debajo) --}}
-    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-        <div class="flex items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-inner">
-            <button wire:click="$set('activeTab', 'list')" @class(['px-6 py-2.5 rounded-xl text-[0.65rem] font-black uppercase tracking-widest transition-all flex items-center gap-2', 'bg-white text-primary shadow-sm' => $activeTab === 'list', 'text-slate-400 hover:text-slate-600' => $activeTab !== 'list'])>
-                <span class="material-symbols-outlined text-base">format_list_bulleted</span>
-                Listado de Registros
+<div class="space-y-6" x-data="{ activeTab: @entangle('activeTab') }">
+    {{-- TAB TOGGLES & FILTERS --}}
+    <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 shadow-inner w-full lg:w-auto">
+            <button wire:click="$set('activeTab', 'list')" @class(['flex-1 lg:flex-none px-6 py-3 rounded-xl text-[0.65rem] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2', 'bg-white text-primary shadow-sm' => $activeTab === 'list', 'text-slate-400 hover:text-slate-600' => $activeTab !== 'list'])>
+                <i class="ph ph-list-bullets text-lg"></i>
+                Listado
             </button>
-            <button wire:click="$set('activeTab', 'map')" @class(['px-6 py-2.5 rounded-xl text-[0.65rem] font-black uppercase tracking-widest transition-all flex items-center gap-2', 'bg-white text-secondary shadow-sm' => $activeTab === 'map', 'text-slate-400 hover:text-slate-600' => $activeTab !== 'map'])>
-                <span class="material-symbols-outlined text-base">map</span>
-                Vista Geográfica
+            <button wire:click="$set('activeTab', 'map')" @class(['flex-1 lg:flex-none px-6 py-3 rounded-xl text-[0.65rem] font-black uppercase tracking-widest transition-all flex items-center gap-2 justify-center', 'bg-white text-secondary shadow-sm' => $activeTab === 'map', 'text-slate-400 hover:text-slate-600' => $activeTab !== 'map'])>
+                <i class="ph ph-map-trifold text-lg"></i>
+                Mapa
             </button>
         </div>
         
-        <div class="text-[0.65rem] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+        <div class="w-full lg:w-auto text-center lg:text-left text-[0.65rem] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-6 py-3 rounded-xl border border-slate-100">
             Mostrando: <span class="text-slate-800">{{ $empresas->total() }} Entidades</span>
         </div>
     </div>
@@ -55,9 +55,9 @@
         </div>
 
         {{-- LIST TAB CONTENT --}}
-        <div x-show="$wire.activeTab === 'list'" class="overflow-x-auto min-h-[500px] animate-fade-in">
-            <table class="w-full text-left border-separate border-spacing-y-0">
-                <thead>
+        <div x-show="activeTab === 'list'" class="overflow-x-auto min-h-[500px] animate-fade-in">
+            <table class="w-full text-left border-separate border-spacing-y-0 responsive-table">
+                <thead class="hidden lg:table-header-group">
                     <tr class="bg-slate-50/50">
                         <th class="px-8 py-6 text-[0.65rem] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">Identificación Corporativa</th>
                         <th class="px-8 py-6 text-[0.65rem] font-black text-slate-400 uppercase tracking-widest text-center border-b border-slate-50">Nómina Activa</th>
@@ -67,47 +67,43 @@
                 <tbody class="divide-y divide-slate-50">
                     @forelse ($empresas as $empresa)
                         <tr class="hover:bg-slate-50/40 transition-all duration-300 group cursor-pointer" onclick="window.location='{{ route('empresas.show', $empresa) }}'">
-                            <td class="px-8 py-7">
+                            <td class="px-8 py-7 afiliado-cell">
                                 <div class="flex items-center gap-5">
-                                    <div class="relative">
+                                    <div class="relative shrink-0">
                                         <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-500 font-black text-xl shadow-inner group-hover:from-primary/10 group-hover:to-primary/5 group-hover:text-primary transition-all duration-500">
                                             {{ strtoupper(substr($empresa->nombre, 0, 1)) }}
                                         </div>
                                         @if($empresa->es_verificada)
                                         <div class="absolute -right-1 -bottom-1 w-6 h-6 bg-blue-500 border-4 border-white rounded-full flex items-center justify-center text-white shadow-sm">
-                                            <span class="material-symbols-outlined text-[10px] font-bold">verified</span>
+                                            <i class="ph-fill ph-seal-check text-[10px]"></i>
                                         </div>
                                         @endif
                                     </div>
                                     <div class="space-y-1">
-                                        <h5 class="text-sm font-black text-slate-800 leading-tight group-hover:text-primary transition-colors">{{ $empresa->nombre }}</h5>
-                                        <div class="flex items-center gap-3">
+                                        <h5 class="text-sm font-black text-slate-800 leading-tight group-hover:text-primary transition-colors line-clamp-1">{{ $empresa->nombre }}</h5>
+                                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
                                             <span class="text-[0.65rem] font-bold text-slate-400 flex items-center gap-1">
-                                                <span class="material-symbols-outlined text-[12px]">fingerprint</span>
+                                                <i class="ph ph-fingerprint text-sm"></i>
                                                 {{ $empresa->rnc ?? 'S/RNC' }}
                                             </span>
-                                            <span class="w-1 h-1 rounded-full bg-slate-200"></span>
+                                            <span class="hidden sm:inline w-1 h-1 rounded-full bg-slate-200"></span>
                                             <span class="text-[0.65rem] font-bold text-slate-500 flex items-center gap-1">
-                                                <span class="material-symbols-outlined text-[12px]">map</span>
+                                                <i class="ph ph-map-pin text-sm"></i>
                                                 {{ $empresa->provinciaRel->nombre ?? 'N/A' }}
                                             </span>
-                                            
-                                            {{-- SLA Indicator on Table --}}
-                                            @php $sla = $empresa->sla_status; @endphp
-                                            <span class="w-2 h-2 rounded-full bg-{{ $sla->color }}-500 {{ $sla->level === 'good' ? '' : 'animate-ping' }}" title="SLA: {{ $sla->message }}"></span>
                                         </div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-8 py-7 text-center">
+                            <td class="px-8 py-7 text-center" data-label="Nómina">
                                 <div class="inline-flex flex-col items-center">
                                     <span class="text-lg font-black text-slate-800 tracking-tighter">{{ number_format($empresa->afiliados_count) }}</span>
                                     <span class="text-[0.55rem] font-black text-slate-400 uppercase tracking-widest italic">Afiliados</span>
                                 </div>
                             </td>
-                            <td class="px-8 py-7 text-right">
-                                <div class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 text-slate-400 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-                                    <span class="material-symbols-outlined text-lg">chevron_right</span>
+                            <td class="px-8 py-7 text-right" data-label="Acciones">
+                                <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                                    <i class="ph ph-caret-right text-lg"></i>
                                 </div>
                             </td>
                         </tr>
@@ -127,7 +123,7 @@
         </div>
 
         {{-- MAP TAB CONTENT --}}
-        <div x-show="$wire.activeTab === 'map'" class="animate-fade-in relative" x-cloak>
+        <div x-show="activeTab === 'map'" class="animate-fade-in relative" x-cloak>
             <div id="map" wire:ignore class="h-[600px] w-full rounded-b-[2.5rem] bg-slate-100 z-10"></div>
             
             <div class="absolute top-6 right-6 z-20 space-y-2 pointer-events-none">
