@@ -41,6 +41,9 @@ class FirebaseSyncPull extends Command
 
     public function handle(FirebaseSyncService $firebase)
     {
+        ini_set('memory_limit', '512M');
+        \Illuminate\Support\Facades\DB::disableQueryLog();
+
         $hours = $this->option('hours');
         $since = $hours ? Carbon::now()->subHours($hours)->toDateTimeString() : null;
 
@@ -311,6 +314,9 @@ class FirebaseSyncPull extends Command
                 $this->error("   Error syncing record: " . $e->getMessage());
                 \Illuminate\Support\Facades\Log::error("Sync Error: " . $e->getMessage(), ['data' => $criteria]);
             }
+            
+            // Free memory
+            unset($model, $fillableData, $attributes, $mapped);
         }
         $bar->finish();
         $this->info("");
