@@ -149,14 +149,15 @@ class FirebaseSyncPull extends Command
                     return $mapped;
                 }, 'rnc'); // RNC is the primary lookup suggested CMD
 
-                $this->info("--- Syncing Afiliados ---");
+                $this->info("--- Descargando Afiliados de Firebase... ---");
                 $affiliatesFilters = $since ? ['updated_at' => $since] : [];
                 $afiliadosData = empty($affiliatesFilters) ? $firebase->getCollection('afiliados') : $firebase->search('afiliados', $affiliatesFilters);
+                $this->info("--- Afiliados encontrados: " . count($afiliadosData) . " ---");
                 
                 $this->processCollection($firebase, Afiliado::class, $afiliadosData, 'cedula', function($mapped) {
                     // Normalización de estados (algunos vienen como objetos JSON en lugar de IDs)
                     foreach (['estado_id', 'provincia_id', 'municipio_id', 'user_id', 'lote_id'] as $field) {
-                        if (isset($mapped[$field]) && (is_array($mapped[$field]) || is_object($mapped[$field]))) {
+                        if (isset($mapped[$field]) && (is_array($mapped[$field]) || is_object($mapped[$field])) ) {
                             // Intentamos extraer el ID si es un objeto
                             $data = (array)$mapped[$field];
                             $mapped[$field] = $data['id'] ?? $data[0]['id'] ?? null;
@@ -168,6 +169,8 @@ class FirebaseSyncPull extends Command
                     }
                     return $mapped;
                 });
+            } else {
+                $this->warn("--- No se detectó ninguna opción de carga (Full/Since/etc) ---");
             }
 
             if ($this->syncLog) {
