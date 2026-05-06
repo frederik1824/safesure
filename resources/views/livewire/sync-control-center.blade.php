@@ -181,11 +181,16 @@
                                     {{ str_contains(strtolower($log->type), 'incremental') ? 'Sincronización Delta' : 'Carga Completa' }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-[10px] px-3 py-1.5 rounded-lg font-bold uppercase tracking-wider 
-                                        {{ $log->status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
-                                           ($log->status === 'failed' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20') }}">
-                                        {{ $log->status === 'completed' ? 'Exitoso' : ($log->status === 'failed' ? 'Error' : 'En Proceso') }}
-                                    </span>
+                                    <div class="flex flex-col">
+                                        <span class="text-[10px] px-3 py-1.5 rounded-lg font-bold uppercase tracking-wider inline-block w-fit
+                                            {{ $log->status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
+                                               ($log->status === 'failed' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20') }}">
+                                            {{ $log->status === 'completed' ? 'Exitoso' : ($log->status === 'failed' ? 'Error' : 'En Proceso') }}
+                                        </span>
+                                        @if($log->message)
+                                            <span class="text-[10px] text-slate-500 mt-1 italic line-clamp-1" title="{{ $log->message }}">{{ $log->message }}</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 text-[12px] font-bold text-slate-300 hidden md:table-cell">
                                     {{ number_format($log->records_synced) }} <span class="text-[10px] font-normal text-slate-500">regs</span>

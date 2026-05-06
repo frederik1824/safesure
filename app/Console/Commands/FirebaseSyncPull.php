@@ -108,33 +108,19 @@ class FirebaseSyncPull extends Command
             });
 
             // 4. SYNC COMPANIES & AFILIADOS
+            \Illuminate\Support\Facades\Log::info("Firebase Sync: Iniciando bloque de Empresas y Afiliados. Full: " . ($this->option('full') ? 'SÍ' : 'NO'));
+            
             if ($this->option('full') || $since || $this->option('reales') || $this->option('verificadas')) {
                 $filters = [];
                 if ($since) $filters['updated_at'] = $since;
                 if ($this->option('reales')) $filters['es_real'] = true;
                 if ($this->option('verificadas')) $filters['es_verificada'] = true;
 
-                $this->info("--- Syncing Companies (Dual Resolve RNC/UUID) ---");
+                $this->info("--- Descargando Empresas de Firebase... ---");
                 $companiesData = empty($filters) ? $firebase->getCollection('empresas') : $firebase->search('empresas', $filters);
+                \Illuminate\Support\Facades\Log::info("Firebase Sync: Empresas encontradas: " . count($companiesData));
+                
                 $this->processCollection($firebase, Empresa::class, $companiesData, 'uuid', function($mapped) {
-                    // Normalize lat/lng if they come as latitud/longitud
-                    if (isset($mapped['latitud'])) $mapped['latitude'] = $mapped['latitud'];
-                    if (isset($mapped['longitud'])) $mapped['longitude'] = $mapped['longitud'];
-
-                    // Default values for NOT NULL fields
-                    $mapped['es_real'] = $mapped['es_real'] ?? false;
-                    $mapped['es_verificada'] = $mapped['es_verificada'] ?? false;
-                    $mapped['es_filial'] = $mapped['es_filial'] ?? false;
-                    $mapped['estado_contacto'] = $mapped['estado_contacto'] ?? 'Nuevo';
-                    $mapped['comision_tipo'] = $mapped['comision_tipo'] ?? 'porcentaje';
-                    $mapped['comision_valor'] = $mapped['comision_valor'] ?? 0;
-
-                    // Dispatch background job for geodata resolution if URL is present
-                    if (isset($mapped['google_maps_url']) && !empty($mapped['google_maps_url'])) {
-                        // We will dispatch the job AFTER the company is created/updated
-                        $mapped['_resolve_geo'] = $mapped['google_maps_url'];
-                    }
-
                     // Normalización de IDs (evitar objetos JSON de otras apps)
                     foreach (['estado_id', 'provincia_id', 'municipio_id', 'user_id'] as $field) {
                         if (isset($mapped[$field]) && (is_array($mapped[$field]) || is_object($mapped[$field]))) {
@@ -147,17 +133,17 @@ class FirebaseSyncPull extends Command
                     }
 
                     return $mapped;
-                }, 'rnc'); // RNC is the primary lookup suggested CMD
+                }, 'rnc');
 
                 $this->info("--- Descargando Afiliados de Firebase... ---");
                 $affiliatesFilters = $since ? ['updated_at' => $since] : [];
                 $afiliadosData = empty($affiliatesFilters) ? $firebase->getCollection('afiliados') : $firebase->search('afiliados', $affiliatesFilters);
-                $this->info("--- Afiliados encontrados: " . count($afiliadosData) . " ---");
+                \Illuminate\Support\Facades\Log::info("Firebase Sync: Afiliados encontrados: " . count($afiliadosData));
                 
                 $this->processCollection($firebase, Afiliado::class, $afiliadosData, 'cedula', function($mapped) {
                     // Normalización de estados (algunos vienen como objetos JSON en lugar de IDs)
                     foreach (['estado_id', 'provincia_id', 'municipio_id', 'user_id', 'lote_id'] as $field) {
-                        if (isset($mapped[$field]) && (is_array($mapped[$field]) || is_object($mapped[$field])) ) {
+                        if (isset($mapped[$field]) && (is_array($mapped[$field]) || is_object($mapped[$field]))) {
                             // Intentamos extraer el ID si es un objeto
                             $data = (array)$mapped[$field];
                             $mapped[$field] = $data['id'] ?? $data[0]['id'] ?? null;
@@ -170,6 +156,7 @@ class FirebaseSyncPull extends Command
                     return $mapped;
                 });
             } else {
+                \Illuminate\Support\Facades\Log::warning("Firebase Sync: No se detectó ninguna opción de carga (Full/Since/etc)");
                 $this->warn("--- No se detectó ninguna opción de carga (Full/Since/etc) ---");
             }
 
