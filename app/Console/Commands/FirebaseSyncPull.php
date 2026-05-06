@@ -134,13 +134,40 @@ class FirebaseSyncPull extends Command
                         // We will dispatch the job AFTER the company is created/updated
                         $mapped['_resolve_geo'] = $mapped['google_maps_url'];
                     }
+
+                    // Normalización de IDs (evitar objetos JSON de otras apps)
+                    foreach (['estado_id', 'provincia_id', 'municipio_id', 'user_id'] as $field) {
+                        if (isset($mapped[$field]) && (is_array($mapped[$field]) || is_object($mapped[$field]))) {
+                            $data = (array)$mapped[$field];
+                            $mapped[$field] = $data['id'] ?? $data[0]['id'] ?? null;
+                        } elseif (isset($mapped[$field]) && is_string($mapped[$field]) && str_starts_with($mapped[$field], '{')) {
+                            $data = json_decode($mapped[$field], true);
+                            $mapped[$field] = $data['id'] ?? $data[0]['id'] ?? null;
+                        }
+                    }
+
                     return $mapped;
                 }, 'rnc'); // RNC is the primary lookup suggested CMD
 
                 $this->info("--- Syncing Afiliados ---");
                 $affiliatesFilters = $since ? ['updated_at' => $since] : [];
                 $afiliadosData = empty($affiliatesFilters) ? $firebase->getCollection('afiliados') : $firebase->search('afiliados', $affiliatesFilters);
-                $this->processCollection($firebase, Afiliado::class, $afiliadosData, 'cedula');
+                
+                $this->processCollection($firebase, Afiliado::class, $afiliadosData, 'cedula', function($mapped) {
+                    // Normalización de estados (algunos vienen como objetos JSON en lugar de IDs)
+                    foreach (['estado_id', 'provincia_id', 'municipio_id', 'user_id', 'lote_id'] as $field) {
+                        if (isset($mapped[$field]) && (is_array($mapped[$field]) || is_object($mapped[$field]))) {
+                            // Intentamos extraer el ID si es un objeto
+                            $data = (array)$mapped[$field];
+                            $mapped[$field] = $data['id'] ?? $data[0]['id'] ?? null;
+                        } elseif (isset($mapped[$field]) && is_string($mapped[$field]) && str_starts_with($mapped[$field], '{')) {
+                            // Si es un string que parece JSON, lo decodificamos
+                            $data = json_decode($mapped[$field], true);
+                            $mapped[$field] = $data['id'] ?? $data[0]['id'] ?? null;
+                        }
+                    }
+                    return $mapped;
+                });
             }
 
             if ($this->syncLog) {
