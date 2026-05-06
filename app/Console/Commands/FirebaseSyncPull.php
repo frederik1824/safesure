@@ -255,66 +255,61 @@ class FirebaseSyncPull extends Command
         $bar->start();
 
         foreach ($data as $mapped) {
-            $model = null;
+            $attributes = $transformCallback ? $transformCallback($mapped) : $mapped;
+            $urlToResolve = $attributes['_resolve_geo'] ?? null;
+            unset($attributes['_resolve_geo']);
 
-            // Priority Check (e.g., RNC for Empresas)
+            // Filter attributes based on fillable to avoid SQL errors
+            $fillableData = array_intersect_key($attributes, array_flip((new $modelClass)->getFillable()));
+            
+            // Clean UUID if invalid format for Postgres
+            if (isset($fillableData['uuid']) && !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $fillableData['uuid'])) {
+                unset($fillableData['uuid']);
+            }
+
+            // Determine search criteria
+            $criteria = [];
             if ($priorityKey && isset($mapped[$priorityKey]) && !empty($mapped[$priorityKey])) {
-                $model = (new $modelClass)->where($priorityKey, $mapped[$priorityKey])->first();
+                $criteria[$priorityKey] = $mapped[$priorityKey];
+            } elseif (isset($mapped[$uniqueKey])) {
+                $criteria[$uniqueKey] = $mapped[$uniqueKey];
             }
 
-            // Fallback to Unique Key (e.g., UUID or Cedula)
-            if (!$model && isset($mapped[$uniqueKey])) {
-                $keyValue = $mapped[$uniqueKey];
+            if (empty($criteria)) {
+                $bar->advance();
+                continue;
+            }
+
+            try {
+                // We use updateOrCreate to handle race conditions and case-sensitivity better
+                $model = $modelClass::updateOrCreate($criteria, $fillableData);
                 
-                // Si la columna es UUID, validamos el formato para evitar errores de PostgreSQL
-                $isValidUuid = preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $keyValue);
-                
-                if ($uniqueKey !== 'uuid' || $isValidUuid) {
-                    $model = (new $modelClass)->where($uniqueKey, $keyValue)->first();
+                if ($model->wasRecentlyCreated === false) {
+                     $model->updateQuietly(['firebase_synced_at' => now()]);
                 }
-            }
 
-            if ($model) {
-                $attributes = $transformCallback ? $transformCallback($mapped) : $mapped;
-                $urlToResolve = $attributes['_resolve_geo'] ?? null;
-                unset($attributes['_resolve_geo']);
-                
-                $firebase->syncLocalModel($model, $attributes);
-                
                 if ($urlToResolve && empty($model->latitude)) {
                     \App\Jobs\ResolveCompanyGeodataJob::dispatch($model->id, $urlToResolve);
                 }
-            } else {
-                $attributes = $transformCallback ? $transformCallback($mapped) : $mapped;
-                $urlToResolve = $attributes['_resolve_geo'] ?? null;
-                unset($attributes['_resolve_geo']);
 
-                // Si el UUID es inválido, lo quitamos para que no rompa la inserción en Postgres
-                if (isset($attributes['uuid']) && !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $attributes['uuid'])) {
-                    unset($attributes['uuid']);
+                $bar->advance();
+                $this->globalSynced++;
+
+                if ($this->syncLog && $this->globalSynced % 25 == 0) {
+                     $currentLog = $this->syncLog->fresh();
+                     if ($currentLog->status === 'cancelled') {
+                         $this->warn("Sincronización abortada por el usuario.");
+                         return;
+                     }
+                     $this->syncLog->update([
+                         'records_synced' => $this->globalSynced,
+                         'last_heartbeat_at' => now()
+                     ]);
                 }
-
-                // Filter attributes based on fillable
-                $fillableData = array_intersect_key($attributes, array_flip((new $modelClass)->getFillable()));
-                $newModel = $modelClass::create($fillableData);
-
-                if ($urlToResolve) {
-                    \App\Jobs\ResolveCompanyGeodataJob::dispatch($newModel->id, $urlToResolve);
-                }
-            }
-
-            $bar->advance();
-            $this->globalSynced++;
-            if ($this->syncLog && $this->globalSynced % 25 == 0) {
-                 $currentLog = $this->syncLog->fresh();
-                 if ($currentLog->status === 'cancelled') {
-                     $this->warn("Sincronización abortada por el usuario.");
-                     return;
-                 }
-                 $this->syncLog->update([
-                     'records_synced' => $this->globalSynced,
-                     'last_heartbeat_at' => now()
-                 ]);
+            } catch (\Exception $e) {
+                $bar->advance();
+                $this->error("   Error syncing record: " . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error("Sync Error: " . $e->getMessage(), ['data' => $criteria]);
             }
         }
         $bar->finish();
