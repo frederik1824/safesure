@@ -72,6 +72,29 @@
             </div>
         </div>
     </header>
+    
+    @if($pendingJobs > 0)
+    <div class="mb-10 px-4">
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-[32px] p-6 flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-xl">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                    <i class="ph-bold ph-warning-diamond text-3xl"></i>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold text-lg">Motor de Tareas en Espera</h4>
+                    <p class="text-xs text-amber-500/80 font-medium">Hay {{ $pendingJobs }} procesos en cola. Si este número no disminuye, los workers del servidor están detenidos.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-amber-500/20 px-4 py-2 rounded-xl border border-amber-500/30">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-amber-500">Worker Status: Pending</span>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Main Content Canvas -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">

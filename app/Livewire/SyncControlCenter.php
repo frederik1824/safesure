@@ -20,6 +20,7 @@ class SyncControlCenter extends Component
 
     public $isStalled = false;
     public $webhooks = [];
+    public $pendingJobs = 0;
 
     public function mount()
     {
@@ -43,6 +44,8 @@ class SyncControlCenter extends Component
             ->limit(5)
             ->get();
             
+        $this->pendingJobs = \Illuminate\Support\Facades\DB::table('jobs')->count();
+            
         $this->isStalled = false;
 
         if ($this->recentLog) {
@@ -58,8 +61,9 @@ class SyncControlCenter extends Component
             if ($this->recentLog->status === 'started' || $this->recentLog->status === 'in_progress') {
                 $this->polling = true;
                 
-                // Detect stall if no heartbeat for > 2 minutes
-                if ($this->recentLog->last_heartbeat_at && $this->recentLog->last_heartbeat_at->diffInMinutes(now()) >= 2) {
+                // Detect stall if no heartbeat/activity for > 5 minutes
+                $lastActivity = $this->recentLog->last_heartbeat_at ?: $this->recentLog->started_at;
+                if ($lastActivity && $lastActivity->diffInMinutes(now()) >= 5) {
                     $this->isStalled = true;
                 }
             } else {

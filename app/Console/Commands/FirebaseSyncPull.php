@@ -48,28 +48,34 @@ class FirebaseSyncPull extends Command
             $this->warn("⚠️ Performing FULL Sync. This consumes significant Firebase quota!");
         }
 
+        $logId = $this->option('log-id');
+        $this->syncLog = $logId ? \App\Models\FirebaseSyncLog::find($logId) : null;
+
         $lock = Cache::lock('firebase_sync_lock', 7200); // 2 hours lock
 
         if (!$lock->get()) {
             $this->error("⚠️ A synchronization is already in progress.");
+            if ($this->syncLog) {
+                $this->syncLog->update([
+                    'status' => 'failed',
+                    'message' => 'Sincronización abortada: Ya hay un proceso activo (Lock detectado).',
+                    'completed_at' => now(),
+                ]);
+            }
             return 1;
         }
 
         try {
             $this->info("🚀 Starting Universal Firebase Cloud Sync (PULL)...");
 
-            $logId = $this->option('log-id');
-            
-            // Auto-create log if run via console without ID
-            if (!$logId) {
+            // Auto-create log if run via console without ID (and not already found)
+            if (!$this->syncLog) {
                 $this->syncLog = \App\Models\FirebaseSyncLog::create([
                     'user_id' => 1, // System/Admin
                     'type' => ($since ? 'Incremental' : 'Full') . ' (SSH)',
                     'status' => 'started',
                     'started_at' => now(),
                 ]);
-            } else {
-                $this->syncLog = \App\Models\FirebaseSyncLog::find($logId);
             }
             
             $this->globalSynced = 0;
