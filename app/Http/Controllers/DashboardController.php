@@ -18,6 +18,7 @@ class DashboardController extends Controller
 
         // Métricas Generales
         $totalAfiliados = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_totalAfiliados", $ttl, fn() => Afiliado::count());
+        $totalEmpresas = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_totalEmpresas", $ttl, fn() => \App\Models\Empresa::count());
         $totalAsignados = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_totalAsignados", $ttl, fn() => Afiliado::whereNotNull('responsable_id')->count());
         
         $totalEntregados = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_totalEntregados", $ttl, function() {
@@ -26,6 +27,10 @@ class DashboardController extends Controller
             })->count();
         });
         
+        $totalAcusesRecibidos = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_totalAcusesRecibidos", $ttl, function() {
+            return Afiliado::where('estado_id', 10)->count();
+        });
+
         $totalCompletados = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_totalCompletados", $ttl, function() {
             return Afiliado::whereHas('estado', function($q) {
                 $q->where('nombre', 'Completado');
@@ -90,6 +95,7 @@ class DashboardController extends Controller
 
         // Calcular porcentaje global
         $porcentajeCompletado = $totalAfiliados > 0 ? round(($totalCompletados / $totalAfiliados) * 100) : 0;
+        $porcentajeAcuses = $totalAfiliados > 0 ? round(($totalAcusesRecibidos / $totalAfiliados) * 100) : 0;
 
         // Breakdown por Estado (para gráficos)
         $afiliadosPorEstado = \Illuminate\Support\Facades\Cache::remember("dashboard_{$rid}_afiliadosPorEstado", $ttl, function() {
@@ -147,14 +153,17 @@ class DashboardController extends Controller
 
         return view('dashboard', compact(
             'totalAfiliados', 
+            'totalEmpresas',
             'totalAsignados', 
             'totalEntregados',
+            'totalAcusesRecibidos',
             'totalCompletados',
             'totalFilial',
             'confirmadosFilial',
             'totalOtras',
             'terminadosOtras',
             'porcentajeCompletado',
+            'porcentajeAcuses',
             'afiliadosPorEstado',
             'afiliadosPorCorte',
             'productividadResponsables',

@@ -18,9 +18,23 @@ class FirebaseSyncService
     protected $credentials;
     protected $accessToken;
 
+    // Métodos de Control de Cuota (SafeSync)
+    protected $readsInCurrentExecution = 0;
+    protected $writesInCurrentExecution = 0;
+    protected $syncLog = null;
+    protected $maxReadsPerExecution = 20000; // Límite de seguridad por ráfaga (Aumentado para reconstrucción total)
+    protected $circuitOpenKey = 'firebase_circuit_open';
+    protected $dailyReadsKey = 'firebase_daily_reads_count';
+
+    public function setSyncLog($log)
+    {
+        $this->syncLog = $log;
+    }
+
     public function __construct()
     {
         $this->projectId = env('FIREBASE_PROJECT_ID', 'syscarnet');
+        $this->maxReadsPerExecution = env('FIREBASE_MAX_READS_PER_SYNC', 20000);
         
         // 1. Intentar cargar desde variable de entorno (JSON directo)
         $rawJson = env('FIREBASE_CREDENTIALS_JSON');
@@ -40,7 +54,70 @@ class FirebaseSyncService
             return;
         }
 
-        $this->client = new Client(['timeout' => 15.0]);
+        $this->client = new Client(['timeout' => 30.0]); // Aumentamos timeout para red inestable
+    }
+
+    /**
+     * Verifica si el corta-circuitos está abierto (cuota agotada o error crítico)
+     */
+    public function isCircuitOpen(): bool
+    {
+        return Cache::get($this->circuitOpenKey, false);
+    }
+
+    /**
+     * Registra lecturas y verifica presupuesto
+     */
+    protected function trackReads(int $count)
+    {
+        if ($count <= 0) return;
+        
+        $this->readsInCurrentExecution += $count;
+        
+        // Actualizar contador diario en caché
+        $today = now()->format('Y-m-d');
+        $dailyCount = Cache::get($this->dailyReadsKey . '_' . $today, 0);
+        Cache::put($this->dailyReadsKey . '_' . $today, $dailyCount + $count, 86400);
+
+        if ($this->syncLog) {
+            try {
+                $this->syncLog->increment('firebase_reads', $count);
+            } catch (\Throwable $e) {
+                Log::warning("Failed to increment firebase_reads: " . $e->getMessage());
+            }
+        }
+
+        if ($this->readsInCurrentExecution > $this->maxReadsPerExecution) {
+            $msg = "SafeSync: Presupuesto de lecturas agotado para esta ejecución ({$this->readsInCurrentExecution}).";
+            \Illuminate\Support\Facades\Notification::route('mail', 'admin@safesure.com')->notify(new \App\Notifications\FirebaseAlertNotification('LÍMITE RÁFAGA SUPERADO', $msg));
+            throw new \Exception($msg);
+        }
+        
+        $dailyLimit = (int)env('FIREBASE_DAILY_READ_LIMIT', 5000000);
+        if ($dailyCount + $count > $dailyLimit) {
+            Cache::put($this->circuitOpenKey, true, 3600); // Bloquear por 1 hora
+            $msg = "SafeSync: Cuota diaria de Firebase cercana al límite de seguridad de {$dailyLimit} lecturas. Sistema protegido (Circuit Breaker Abierto).";
+            \Illuminate\Support\Facades\Notification::route('mail', 'admin@safesure.com')->notify(new \App\Notifications\FirebaseAlertNotification('CIRCUIT BREAKER ACTIVADO', $msg));
+            throw new \Exception($msg);
+        }
+    }
+
+    /**
+     * Registra escrituras y verifica presupuesto
+     */
+    protected function trackWrites(int $count)
+    {
+        if ($count <= 0) return;
+
+        $this->writesInCurrentExecution += $count;
+
+        if ($this->syncLog) {
+            try {
+                $this->syncLog->increment('firebase_writes', $count);
+            } catch (\Throwable $e) {
+                Log::warning("Failed to increment firebase_writes: " . $e->getMessage());
+            }
+        }
     }
 
     /**
@@ -97,57 +174,339 @@ class FirebaseSyncService
     }
 
     /**
-     * Retrieve all documents from a Firestore collection via REST (Handles Pagination)
+     * Prueba de conexión mínima (Pre-flight check)
+     * Realiza una petición de 1 solo documento para validar credenciales y cuota.
      */
-    public function getCollection(string $collectionName): array
+    public function ping(): bool
     {
-        $token = $this->getAccessToken();
-        if (!$token) return [];
-
-        $results = [];
-        $pageToken = null;
-        $retries = 0;
-
         try {
+            $token = $this->getAccessToken();
+            if (!$token) return false;
+
             $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
+            $response = $this->client->get("{$baseUrl}/afiliados?pageSize=1", [
+                'headers' => ['Authorization' => "Bearer {$token}"]
+            ]);
             
-            do {
-                $query = $pageToken ? "?pageToken={$pageToken}" : "";
-                
-                try {
-                    $response = $this->client->get("{$baseUrl}/{$collectionName}{$query}", [
-                        'headers' => ['Authorization' => "Bearer {$token}"]
-                    ]);
-                } catch (\GuzzleHttp\Exception\ClientException $e) {
-                    if ($e->getResponse()->getStatusCode() == 429 && $retries < 3) {
-                        $retries++;
-                        sleep(pow(2, $retries)); // Exponential backoff
-                        continue;
-                    }
-                    throw $e;
-                }
-
-                $data = json_decode($response->getBody()->getContents(), true);
-                
-                foreach ($data['documents'] ?? [] as $doc) {
-                    $results[] = $this->mapFirestoreRestDoc($doc);
-                }
-
-                $pageToken = $data['nextPageToken'] ?? null;
-
-            } while ($pageToken);
-
-            return $results;
-
+            return $response->getStatusCode() === 200;
         } catch (\Throwable $e) {
-            Log::error("Firebase Sync Error (GET $collectionName): " . $e->getMessage());
-            return $results;
+            if (method_exists($e, 'getResponse') && $e->getResponse() && $e->getResponse()->getStatusCode() === 429) {
+                Cache::put($this->circuitOpenKey, true, 3600); // Bloquear por 1 hora
+            } elseif ($e->getCode() === 429) {
+                Cache::put($this->circuitOpenKey, true, 3600); // Bloquear por 1 hora
+            }
+            Log::error("SafeSync Ping Failed: " . $e->getMessage());
+            return false;
         }
     }
 
     /**
-     * Search documents using Structured Query (Incremental Sync)
+     * Gets the exact total number of documents in a collection using runAggregationQuery.
+     * Costs only 1 read flat. Extremely fast and cost-effective.
      */
+    public function getCollectionCount(string $collectionName): int
+    {
+        if ($this->isCircuitOpen()) return 0;
+        $token = $this->getAccessToken();
+        if (!$token) return 0;
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents:runAggregationQuery";
+            
+            $body = [
+                'structuredAggregationQuery' => [
+                    'structuredQuery' => [
+                        'from' => [['collectionId' => $collectionName]]
+                    ],
+                    'aggregations' => [
+                        [
+                            'count' => new \stdClass(),
+                            'alias' => 'total_count'
+                        ]
+                    ]
+                ]
+            ];
+
+            $response = $this->client->post($baseUrl, [
+                'headers' => ['Authorization' => "Bearer {$token}"],
+                'json' => $body
+            ]);
+
+            $this->trackReads(1); // Cuesta 1 sola lectura
+
+            $data = json_decode($response->getBody()->getContents(), true);
+            
+            if (is_array($data) && isset($data[0]['result']['aggregateFields']['total_count']['integerValue'])) {
+                return (int)$data[0]['result']['aggregateFields']['total_count']['integerValue'];
+            }
+
+            return 0;
+        } catch (\Throwable $e) {
+            Log::error("Firebase runAggregationQuery count error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function getCollectionBatched(string $collectionName, int $pageSize = 300, ?string $pageToken = null): array
+    {
+        if ($this->isCircuitOpen()) return ['data' => [], 'nextPageToken' => null];
+        $token = $this->getAccessToken();
+        if (!$token) return ['data' => [], 'nextPageToken' => null];
+
+        $results = [];
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
+            $query = "?pageSize={$pageSize}" . ($pageToken ? "&pageToken={$pageToken}" : "");
+            
+            try {
+                $response = $this->client->get("{$baseUrl}/{$collectionName}{$query}", [
+                    'headers' => ['Authorization' => "Bearer {$token}"]
+                ]);
+                $this->trackReads(1);
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                if ($e->getResponse()->getStatusCode() == 429) {
+                    Cache::put($this->circuitOpenKey, true, 3600);
+                    throw new \Exception("SafeSync: Cuota excedida (429). El circuito se ha abierto.");
+                }
+                throw $e;
+            }
+
+            $data = json_decode($response->getBody()->getContents(), true);
+            $data = is_array($data) ? $data : [];
+            $batchCount = count($data['documents'] ?? []);
+            $this->trackReads($batchCount); // Each returned document = 1 read (Firestore billing)
+
+            foreach ($data['documents'] ?? [] as $doc) {
+                $results[] = $this->mapFirestoreRestDoc($doc);
+            }
+
+            return [
+                'data' => $results,
+                'nextPageToken' => (isset($data) && is_array($data)) ? ($data['nextPageToken'] ?? null) : null
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error("Firebase Sync Error (GET $collectionName): " . $e->getMessage());
+            return ['data' => $results, 'nextPageToken' => null];
+        }
+    }
+
+    /**
+     * Simple wrapper to get a collection's data without manual pagination.
+     */
+    public function getCollection(string $collectionName, int $limit = 500): array
+    {
+        $response = $this->getCollectionBatched($collectionName, $limit);
+        return $response['data'];
+    }
+
+    /**
+     * Trae un solo documento para resolución de conflictos.
+     */
+    public function getDocument(string $collectionName, string $documentId): ?array
+    {
+        if ($this->isCircuitOpen()) return null;
+        $token = $this->getAccessToken();
+        if (!$token) return null;
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
+            $response = $this->client->get("{$baseUrl}/{$collectionName}/{$documentId}", [
+                'headers' => ['Authorization' => "Bearer {$token}"]
+            ]);
+            $this->trackReads(1);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+            return $this->mapFirestoreRestDoc($data);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            if ($e->getResponse()->getStatusCode() == 404) return null; // No existe
+            Log::error("Firebase Sync Error (GET DOC $documentId): " . $e->getMessage());
+            return null;
+        } catch (\Throwable $e) {
+            Log::error("Firebase Sync Error (GET DOC $documentId): " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Borra un documento de Firebase.
+     */
+    public function deleteDocument(string $collectionName, string $documentId): bool
+    {
+        $token = $this->getAccessToken();
+        if (!$token) return false;
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
+            $this->client->delete("{$baseUrl}/{$collectionName}/{$documentId}", [
+                'headers' => ['Authorization' => "Bearer {$token}"]
+            ]);
+            $this->trackWrites(1);
+            return true;
+        } catch (\Throwable $e) {
+            Log::error("Firebase Delete Error ({$collectionName}/{$documentId}): " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Sincronización Incremental Optimizada (Basada en Cursors)
+     */
+    public function getIncremental(string $collection, string $since, int $limit = 500, array $cursor = null): array
+    {
+        if ($this->isCircuitOpen()) return [];
+        $token = $this->getAccessToken();
+        if (!$token) return [];
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents:runQuery";
+            
+            // Convertir fecha a formato ISO Firebase
+            $sinceDate = \Carbon\Carbon::parse($since)->toIso8601ZuluString('microsecond');
+
+            $structuredQuery = [
+                'from' => [['collectionId' => $collection]],
+                'where' => [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'updated_at'],
+                        'op' => 'GREATER_THAN',
+                        'value' => ['stringValue' => $sinceDate]
+                    ]
+                ],
+                'orderBy' => [
+                    ['field' => ['fieldPath' => 'updated_at'], 'direction' => 'ASCENDING']
+                ],
+                'limit' => $limit
+            ];
+
+            // Paginación basada en cursor si se proporciona
+            if ($cursor) {
+                $structuredQuery['startAt'] = [
+                    'values' => [
+                        ['stringValue' => $cursor['updated_at'] ?? ''],
+                        // ['referenceValue' => $cursor['id']] // Opcional para desambiguar
+                    ],
+                    'before' => false // false = startAfter
+                ];
+            }
+
+            $response = $this->client->post($baseUrl, [
+                'headers' => ['Authorization' => "Bearer {$token}"],
+                'json' => ['structuredQuery' => $structuredQuery]
+            ]);
+
+            $this->trackReads(1);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+            $results = [];
+            $docCount = 0;
+            
+            foreach ($data as $entry) {
+                if (isset($entry['document'])) {
+                    $results[] = $this->mapFirestoreRestDoc($entry['document']);
+                    $docCount++;
+                }
+            }
+            
+            // Track only actual document reads (not the query request itself)
+            // Firestore billing = 1 read per returned document
+            if ($docCount > 0) {
+                $this->trackReads($docCount);
+            }
+
+            return $results;
+
+        } catch (\Throwable $e) {
+            if ($e->getCode() == 429) Cache::put($this->circuitOpenKey, true, 3600);
+            Log::error("Firebase Incremental Sync Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Obtiene registros filtrados por campos específicos con soporte de lotes y paginación
+     */
+    public function getFilteredBatched(string $collection, array $filters, int $pageSize = 100, ?array $cursor = null): array
+    {
+        if ($this->isCircuitOpen()) return ['data' => [], 'cursor' => null];
+        $token = $this->getAccessToken();
+        if (!$token) return ['data' => [], 'cursor' => null];
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents:runQuery";
+            
+            $structuredQuery = [
+                'from' => [['collectionId' => $collection]],
+                'limit' => $pageSize
+            ];
+
+            $filterList = [];
+            foreach ($filters as $field => $value) {
+                if (is_int($value)) {
+                    $filterList[] = [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => $field],
+                            'op' => 'EQUAL',
+                            'value' => ['integerValue' => $value]
+                        ]
+                    ];
+                } else {
+                    $filterList[] = [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => $field],
+                            'op' => 'EQUAL',
+                            'value' => ['stringValue' => (string)$value]
+                        ]
+                    ];
+                }
+            }
+
+            if (count($filterList) > 1) {
+                $structuredQuery['where'] = ['compositeFilter' => ['op' => 'AND', 'filters' => $filterList]];
+            } elseif (count($filterList) === 1) {
+                $structuredQuery['where'] = $filterList[0];
+            }
+
+            // Paginación por offset para evitar requerir índices compuestos en Firebase
+            $offset = isset($cursor['offset']) ? (int)$cursor['offset'] : 0;
+            if ($offset > 0) {
+                $structuredQuery['offset'] = $offset;
+            }
+
+            $response = $this->client->post($baseUrl, [
+                'headers' => ['Authorization' => "Bearer {$token}"],
+                'json' => ['structuredQuery' => $structuredQuery]
+            ]);
+
+            $this->trackReads(1);
+            $data = json_decode($response->getBody()->getContents(), true);
+            $results = [];
+
+            if (is_array($data)) {
+                foreach ($data as $entry) {
+                    if (isset($entry['document'])) {
+                        $mapped = $this->mapFirestoreRestDoc($entry['document']);
+                        $results[] = $mapped;
+                        $this->trackReads(1);
+                    }
+                }
+            }
+
+            return [
+                'data' => $results,
+                'cursor' => [
+                    'offset' => $offset + count($results)
+                ]
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error("Firebase Filtered Sync Error: " . $e->getMessage());
+            return ['data' => [], 'cursor' => null];
+        }
+    }
+
     /**
      * Search documents using Structured Query (Incremental Sync)
      * Supports multiple filters (field => value)
@@ -178,20 +537,28 @@ class FirebaseSyncService
                             'value' => ['booleanValue' => $value]
                         ]
                     ];
-                } else {
-                    // Si el valor parece una fecha, usamos el formato ISO que usa Firebase
-                    if (preg_match('/^\d{4}-\d{2}-\d{2}/', $value)) {
-                        $value = \Carbon\Carbon::parse($value)->toIso8601ZuluString('microsecond');
-                    }
+                    } elseif (is_int($value)) {
+                        $filterList[] = [
+                            'fieldFilter' => [
+                                'field' => ['fieldPath' => $field],
+                                'op' => 'EQUAL',
+                                'value' => ['integerValue' => $value]
+                            ]
+                        ];
+                    } else {
+                        // Si el valor parece una fecha, usamos el formato ISO que usa Firebase
+                        if (preg_match('/^\d{4}-\d{2}-\d{2}/', (string)$value)) {
+                            $value = \Carbon\Carbon::parse($value)->toIso8601String();
+                        }
 
-                    $filterList[] = [
-                        'fieldFilter' => [
-                            'field' => ['fieldPath' => $field],
-                            'op' => 'GREATER_THAN_OR_EQUAL',
-                            'value' => ['stringValue' => (string)$value]
-                        ]
-                    ];
-                }
+                        $filterList[] = [
+                            'fieldFilter' => [
+                                'field' => ['fieldPath' => $field],
+                                'op' => 'EQUAL',
+                                'value' => ['stringValue' => (string)$value]
+                            ]
+                        ];
+                    }
             }
 
             if (count($filterList) > 1) {
@@ -213,12 +580,16 @@ class FirebaseSyncService
                 'json' => ['structuredQuery' => $structuredQuery]
             ]);
 
+            $this->trackReads(1); // Query overhead
             $data = json_decode($response->getBody()->getContents(), true);
             $results = [];
 
-            foreach ($data as $item) {
-                if (isset($item['document'])) {
-                    $results[] = $this->mapFirestoreRestDoc($item['document']);
+            if (is_array($data)) {
+                foreach ($data as $item) {
+                    if (isset($item['document'])) {
+                        $results[] = $this->mapFirestoreRestDoc($item['document']);
+                        $this->trackReads(1); // Document read
+                    }
                 }
             }
 
@@ -289,6 +660,15 @@ class FirebaseSyncService
             return false;
         }
 
+        // --- OPTIMIZACIÓN POR HASH (Senior Architecture) ---
+        $currentHash = $this->calculateDataHash($data);
+
+        if ($model && $model->last_sync_hash === $currentHash && $model->firebase_sync_status === 'synced') {
+            // Ya está sincronizado con este contenido exacto. Saltamos escritura (Ahorro de Cuota).
+            \Illuminate\Support\Facades\Cache::increment('firebase_sync_savings');
+            return 'skipped';
+        }
+
         try {
             $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
             
@@ -305,22 +685,26 @@ class FirebaseSyncService
                 'json' => $formattedData
             ]);
 
-            if ($model) $this->markAsSynced($model);
-            return true;
+            $this->trackWrites(1);
+
+            if ($model) $this->markAsSynced($model, $currentHash);
+            return 'synced';
 
         } catch (\Throwable $e) {
             Log::error("Firebase Push Error ({$collection}/{$documentId}): " . $e->getMessage());
             if ($model) $this->markAsFailed($model, $e->getMessage());
-            return false;
+            return 'failed';
         }
     }
 
-    protected function markAsSynced($model)
+    protected function markAsSynced($model, string $hash = null)
     {
         $model->updateQuietly([
             'firebase_sync_status' => 'synced',
             'firebase_synced_at' => now(),
-            'firebase_error_log' => null
+            'last_sync_hash' => $hash,
+            'firebase_error_log' => null,
+            'conflict_status' => false
         ]);
     }
 
@@ -328,7 +712,8 @@ class FirebaseSyncService
     {
         $model->updateQuietly([
             'firebase_sync_status' => 'error',
-            'firebase_error_log' => substr($error, 0, 500)
+            'firebase_error_log' => substr($error, 0, 500),
+            'conflict_status' => true
         ]);
     }
 
@@ -366,55 +751,96 @@ class FirebaseSyncService
     }
 
     /**
-     * Compares local model with remote data and updates local if remote is newer
+     * Compares local model with remote data and updates local if remote is newer or different.
      */
-    public function syncLocalModel($model, array $remoteData): bool
+    public function syncLocalModel($model, array $remoteData, bool $force = false): bool
     {
-        $remoteUpdatedAt = isset($remoteData['updated_at']) ? \Carbon\Carbon::parse($remoteData['updated_at']) : null;
-        $localUpdatedAt = $model->updated_at;
+        $remoteUpdatedAt = isset($remoteData['firebase_updated_at_meta']) ? \Carbon\Carbon::parse($remoteData['firebase_updated_at_meta']) : 
+                          (isset($remoteData['updated_at']) ? \Carbon\Carbon::parse($remoteData['updated_at']) : null);
+        
+        $localUpdatedAt = $model->firebase_updated_at ?? $model->updated_at;
 
-        // If remote is newer or local is significantly older, we update
-        if ($remoteUpdatedAt && (!$localUpdatedAt || $remoteUpdatedAt->gt($localUpdatedAt->addSeconds(2)))) {
-            // Remove meta fields that shouldn't be mass assigned directly
-            unset($remoteData['firebase_id']);
+        // --- PRE-FLIGHT VALIDATION (Error-Proofing) ---
+        $required = ['nombre_completo', 'cedula'];
+        foreach ($required as $field) {
+            if (empty($remoteData[$field])) {
+                Log::warning("SafeSync Validation Failed: Missing {$field} for document {$model->id}");
+                $model->updateQuietly([
+                    'firebase_sync_status' => 'error',
+                    'firebase_error_log' => "Error de Validación: Campo '{$field}' ausente en Nube."
+                ]);
+                return false;
+            }
+        }
+
+        // 1. Generar Hash de los datos remotos relevantes (Detección por Checksum)
+        $remoteHash = $this->calculateDataHash($remoteData);
+
+        // 2. Si el hash es idéntico, saltamos la actualización (Ahorro de CPU y DB)
+        if (!$force && $model->last_sync_hash === $remoteHash) {
+            return false;
+        }
+
+        // 3. Verificar si el dato remoto es realmente más reciente
+        $remoteVersion = (int)($remoteData['firebase_sync_version'] ?? 0);
+        $localVersion = (int)($model->firebase_sync_version ?? 0);
+
+        // --- DETECCIÓN DE CONFLICTOS (Bidirectional Architecture) ---
+        $isLocallyModified = ($model->firebase_sync_status === 'pending' || $model->firebase_sync_status === 'modified');
+        $hasRemoteChanges = ($remoteVersion > $localVersion);
+
+        if ($isLocallyModified && $hasRemoteChanges) {
+            $model->conflict_status = true;
+            $model->firebase_error_log = "⚠️ CONFLICTO DETECTADO: Cambios locales y remotos detectados simultáneamente.";
+            Log::warning("SafeSync Conflict: Registro {$model->id} modificado en ambas fuentes.");
+        }
+
+        if ($force || $remoteVersion > $localVersion || ($remoteUpdatedAt && (!$localUpdatedAt || $remoteUpdatedAt->gt($localUpdatedAt)))) {
             
-            // We use forceFill if we want to bypass fillable for certain system fields, 
-            // but for safety we'll just use fill and filter
+            // 4. Mapeo de campos descriptivos para transparencia UI
+            if (isset($remoteData['estado_nombre'])) $remoteData['estado_nombre_remote'] = $remoteData['estado_nombre'];
+            if (isset($remoteData['responsable_nombre'])) $remoteData['responsable_nombre_remote'] = $remoteData['responsable_nombre'];
+
+            // 5. Preparar datos para el modelo
+            unset($remoteData['firebase_id'], $remoteData['id'], $remoteData['firebase_updated_at_meta'], $remoteData['last_sync_hash']);
             $fillableData = array_intersect_key($remoteData, array_flip($model->getFillable()));
             
-            // Special handling for firebase_synced_at to prevent infinite loops
             $model->fill($fillableData);
-            $model->firebase_synced_at = now();
-            $model->saveQuietly();
             
-            return true;
+            // Metadatos de sincronización SafeSync
+            if ($model instanceof \App\Models\Afiliado) {
+                $model->updated_from = 'firebase';
+                if (empty($model->corte_id)) {
+                    $model->corte_id = \App\Models\Corte::first()->id ?? 1;
+                }
+                if (empty($model->estado_id)) {
+                    $model->estado_id = \App\Models\Estado::first()->id ?? 1;
+                }
+                if (is_null($model->conflict_status)) {
+                    $model->conflict_status = false;
+                }
+            }
+            $model->last_sync_hash = $remoteHash;
+            $model->firebase_updated_at = $remoteUpdatedAt;
+            $model->firebase_sync_version = $remoteVersion;
+            $model->firebase_synced_at = now();
+            $model->firebase_sync_status = 'synced';
+            $model->last_sync_attempt_at = now();
+
+            try {
+                $model->saveQuietly(); 
+                return true;
+            } catch (\Throwable $e) {
+                Log::error("SafeSync Save Error: " . $e->getMessage());
+                return false;
+            }
         }
 
         return false;
     }
 
     /**
-     * Deletes a document from Firestore via REST (DELETE)
-     */
-    public function deleteDocument(string $collection, string $documentId)
-    {
-        $token = $this->getAccessToken();
-        if (!$token) return false;
-
-        try {
-            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents";
-            $this->client->delete("{$baseUrl}/{$collection}/{$documentId}", [
-                'headers' => ['Authorization' => "Bearer {$token}"]
-            ]);
-            return true;
-        } catch (\Throwable $e) {
-            Log::error("Firebase Delete Error ({$collection}/{$documentId}): " . $e->getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Maps a Firestore REST API document (with typed fields) to a flat array
+     * Maps a Firestore REST API document to a flat array, including system metadata.
      */
     protected function mapFirestoreRestDoc(array $doc): array
     {
@@ -423,9 +849,12 @@ class FirebaseSyncService
 
         $nameParts = explode('/', $doc['name'] ?? '');
         $mapped['firebase_id'] = end($nameParts);
+        
+        // Capturar metadatos del sistema (Útil para sincronización incremental robusta)
+        $mapped['firebase_updated_at_meta'] = $doc['updateTime'] ?? null;
+        $mapped['firebase_created_at_meta'] = $doc['createTime'] ?? null;
 
         foreach ($fields as $key => $values) {
-            // Firestore REST returns: "stringValue": "...", "integerValue": "...", etc.
             $val = reset($values);
             $type = key($values);
 
@@ -433,10 +862,39 @@ class FirebaseSyncService
             if ($type === 'doubleValue') $val = (float)$val;
             if ($type === 'booleanValue') $val = (bool)$val;
             
+            // Especial: Aplanado de objetos anidados (como estado => {id: 9})
+            if (is_array($val)) {
+                if (isset($val['id'])) {
+                    $mapped[$key . '_id'] = $val['id'];
+                }
+                if (isset($val['nombre'])) {
+                    $mapped[$key . '_nombre_remote'] = $val['nombre'];
+                }
+            }
+
             $mapped[$key] = $val;
         }
 
         return $mapped;
+    }
+
+    /**
+     * Calcula un hash MD5 de los datos ignorando metadatos de sincronización volátiles.
+     */
+    public function calculateDataHash(array $data): string
+    {
+        $hashFields = $data;
+        $toIgnore = [
+            'firebase_id', 'id', 'firebase_sync_version', 'firebase_updated_at_meta', 
+            'last_sync_hash', 'last_system_update', 'firebase_synced_at', 
+            'updated_at', 'created_at', 'last_sync_attempt_at'
+        ];
+        
+        foreach ($toIgnore as $field) {
+            unset($hashFields[$field]);
+        }
+        
+        return md5(json_encode($hashFields));
     }
 
     /**

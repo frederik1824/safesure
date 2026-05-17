@@ -71,4 +71,25 @@ class FirebaseSyncController extends Controller
             return back()->with('error', 'Error al iniciar la sincronización: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Cancel the current sync and release the lock.
+     */
+    public function cancel()
+    {
+        // 1. Marcar logs activos como cancelados
+        FirebaseSyncLog::whereIn('status', ['started', 'running'])
+            ->update([
+                'status' => 'failed',
+                'message' => 'Cancelado manualmente por el usuario.',
+                'completed_at' => now()
+            ]);
+
+        // 2. Liberar el candado de caché de forma agresiva
+        \Illuminate\Support\Facades\Cache::lock('firebase_sync_lock')->forceRelease();
+        \Illuminate\Support\Facades\Cache::forget('firebase_sync_lock');
+        \Illuminate\Support\Facades\Cache::forget('firebase_circuit_open');
+
+        return back()->with('success', 'Sistema liberado exitosamente. Se han forzado los bloqueos. Ya puedes iniciar un nuevo proceso.');
+    }
 }

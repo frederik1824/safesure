@@ -27,10 +27,15 @@ class Empresa extends Model
         static::addGlobalScope(new \App\Scopes\EmpresaScope);
 
         // Lógica de versionamiento para sincronización
+        // Versioning logic for synchronization — mirrored from Afiliado model
+        // Uses is_firebase_sync flag as guard to prevent observer from running
+        // during Firebase sync operations, avoiding infinite version increment loops
         static::updating(function ($model) {
-            if (!$model->isDirty('firebase_sync_status') || $model->firebase_sync_status !== 'synced') {
-                $model->firebase_sync_status = 'modified';
-                $model->firebase_sync_version++;
+            if (!isset($model->is_firebase_sync) || !$model->is_firebase_sync) {
+                if ($model->isDirty()) {
+                    $model->firebase_sync_status = 'modified';
+                    $model->firebase_sync_version++;
+                }
             }
         });
     }
@@ -55,7 +60,7 @@ class Empresa extends Model
         'latitude', 'longitude', 'google_maps_url',
         // Legacy fields marked for future removal
         'provincia', 'municipio', 'firebase_synced_at', 'es_verificada',
-        'firebase_sync_status', 'firebase_sync_version', 'firebase_error_log'
+        'firebase_sync_status', 'firebase_sync_version', 'firebase_error_log', 'last_sync_hash'
     ];
 
     protected $casts = [

@@ -1,336 +1,172 @@
 @extends('layouts.app')
+
+@section('title', 'Safesure Enterprise Hub')
+
 @section('content')
-<div class="p-8 max-w-[1600px] mx-auto space-y-8">
-    <!-- Header & Quick Filters -->
-    <div class="flex flex-col gap-6">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-            <div>
-                <h2 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Tablero de Operaciones</h2>
-                <p class="text-slate-500 text-sm mt-1">Monitoreo en tiempo real del ciclo de carnetización.</p>
+<div class="space-y-10 pb-12 animate-in fade-in duration-700">
+    <!-- Header & Greeting -->
+    <div class="flex flex-col md:flex-row justify-between items-end gap-6">
+        <div>
+            <h1 class="text-4xl font-display font-black text-slate-900 tracking-tight mb-2">Bienvenido, {{ Auth::user()->name }}</h1>
+            <p class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+                Centro de Operaciones Safesure Enterprise
+            </p>
+        </div>
+        <div class="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="px-4 py-2 text-right">
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Estado del Sistema</p>
+                <p class="text-xs font-black text-slate-800">Sincronización Activa</p>
             </div>
-            <div class="w-full sm:w-auto">
-                <a href="{{ route('import.index') }}" class="w-full sm:w-auto bg-primary text-white px-6 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all">
-                    <i class="ph ph-cloud-arrow-up text-xl"></i> Cargar Lote
+            <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 border border-emerald-100">
+                <i class="ph-bold ph-check-circle text-2xl"></i>
+            </div>
+        </div>
+    </div>
+    <!-- Executive KPI Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <!-- KPI: Total Afiliados -->
+        <div class="bg-white rounded-[2rem] p-8 border border-slate-200/60 shadow-sm relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
+                <i class="ph-bold ph-users text-7xl text-cyan-600"></i>
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Total Afiliados</p>
+            <h3 class="text-5xl font-black text-cyan-600 tracking-tighter">{{ number_format($totalAfiliados) }}</h3>
+            <div class="mt-6 flex items-center gap-2">
+                <span class="text-[10px] font-bold text-slate-400">Expedientes Personales</span>
+                <div class="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-cyan-500" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI: Total Empresas -->
+        <div class="bg-white rounded-[2rem] p-8 border border-slate-200/60 shadow-sm relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
+                <i class="ph-bold ph-buildings text-7xl text-purple-600"></i>
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Total Empresas</p>
+            <h3 class="text-5xl font-black text-purple-600 tracking-tighter">{{ number_format($totalEmpresas) }}</h3>
+            <div class="mt-6 flex items-center gap-2">
+                <span class="text-[10px] font-bold text-slate-400">Registros Patronales</span>
+                <div class="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-purple-500" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI: Acuses Recibidos -->
+        <div class="bg-white rounded-[2rem] p-8 border border-slate-200/60 shadow-sm relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
+                <i class="ph-bold ph-shield-check text-7xl text-blue-600"></i>
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Acuses Recibidos</p>
+            <h3 class="text-5xl font-black text-blue-600 tracking-tighter">{{ number_format($totalAcusesRecibidos) }}</h3>
+            <div class="mt-6 flex items-center gap-2">
+                <span class="text-[10px] font-bold text-blue-400">{{ $porcentajeAcuses }}% con acuse</span>
+                <div class="flex-1 h-1 bg-blue-50 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 shadow-[0_0_8px_#3b82f6]" style="width: {{ $porcentajeAcuses }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI: Completados -->
+        <div class="bg-white rounded-[2rem] p-8 border border-slate-200/60 shadow-sm relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
+                <i class="ph-bold ph-check-square text-7xl text-emerald-600"></i>
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Completados</p>
+            <h3 class="text-5xl font-black text-emerald-600 tracking-tighter">{{ number_format($totalCompletados) }}</h3>
+            <div class="mt-6 flex items-center gap-2">
+                <span class="text-[10px] font-bold text-emerald-600">{{ $porcentajeCompletado }}% Tasa Éxito</span>
+                <div class="flex-1 h-1 bg-emerald-50 rounded-full overflow-hidden">
+                    <div class="h-full bg-emerald-500 shadow-[0_0_8px_#10b981]" style="width: {{ $porcentajeCompletado }}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI: Por Liquidar -->
+        <div class="bg-slate-900 rounded-[2rem] p-8 border border-slate-800 shadow-xl relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                <i class="ph-bold ph-coins text-7xl text-amber-400"></i>
+            </div>
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Por Liquidar (ARS)</p>
+            <h3 class="text-4xl font-black text-white tracking-tighter">RD$ {{ number_format($montoArs, 0) }}</h3>
+            <div class="mt-6">
+                <a href="{{ route('liquidacion.index') }}" class="text-[10px] font-black text-amber-400 uppercase tracking-widest hover:underline flex items-center gap-2">
+                    Ir a liquidación <i class="ph-bold ph-arrow-right"></i>
                 </a>
             </div>
         </div>
-
-        {{-- Sync Heartbeat Indicator --}}
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50 shadow-sm animate-fade-in">
-            <div class="flex items-center gap-2 px-3 py-1.5 bg-white border border-emerald-200 rounded-full shadow-sm w-fit">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span class="text-[0.6rem] font-black text-emerald-600 uppercase tracking-widest">Sincronización Activa</span>
-            </div>
-            <p class="text-[0.65rem] text-emerald-800 font-medium leading-relaxed">Conectado a Firebase Realtime • Webhook SSL Habilitado • Latencia < 500ms</p>
-        </div>
     </div>
 
-    <!-- KPI Cards Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 gap-4 lg:gap-6">
-        <!-- Total Affiliates -->
-        <div class="col-span-2 sm:col-span-1 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                <i class="ph ph-users text-7xl text-slate-400"></i>
-            </div>
-            <div class="relative z-10 flex flex-col h-full justify-between">
-                <span class="text-slate-400 font-black uppercase text-[0.6rem] tracking-widest">Total Afiliados</span>
-                <span class="text-3xl lg:text-4xl font-black text-slate-800 mt-2">{{ number_format($totalAfiliados) }}</span>
-                <p class="text-[0.6rem] text-slate-400 mt-2 font-bold uppercase tracking-tighter">Registros históricos</p>
-            </div>
+    <!-- App Grid (Launcher) -->
+    <div>
+        <div class="flex items-center gap-4 mb-8">
+            <div class="h-px flex-1 bg-slate-200"></div>
+            <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Aplicaciones y Workspaces</h2>
+            <div class="h-px flex-1 bg-slate-200"></div>
         </div>
 
-        <!-- Empresas FILIAL Card -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                <i class="ph-fill ph-buildings text-7xl text-primary"></i>
-            </div>
-            <div class="relative z-10 flex flex-col h-full justify-between">
-                <span class="text-primary font-black uppercase text-[0.6rem] tracking-widest">Empresas ARS</span>
-                <span class="text-2xl lg:text-3xl font-black text-slate-800 mt-3">{{ number_format($confirmadosFilial) }}</span>
-                <div class="mt-3">
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                        <div class="bg-primary h-full transition-all duration-1000" style="width: {{ $totalFilial > 0 ? ($confirmadosFilial / $totalFilial) * 100 : 0 }}%"></div>
-                    </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            <!-- App: Admisión -->
+            @can('manage_affiliates')
+            <a href="{{ route('afiliados.otros') }}" class="group block bg-white rounded-[2.5rem] p-10 border border-slate-200/60 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:border-blue-300 transition-all text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="w-24 h-24 mx-auto bg-gradient-to-br from-blue-50 to-blue-100 rounded-3xl flex items-center justify-center text-blue-600 mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all shadow-inner border border-blue-200/50">
+                    <i class="ph-bold ph-tray text-5xl"></i>
                 </div>
-            </div>
-        </div>
+                <h3 class="text-xl font-black text-slate-800 mb-2 tracking-tight">Admisión</h3>
+                <p class="text-xs text-slate-500 font-medium leading-relaxed">Gestión de expedientes, importación masiva y validaciones de campo.</p>
+            </a>
+            @endcan
 
-        <!-- OTRAS Card -->
-        <div class="bg-white p-6 rounded-2xl border-l-4 border-blue-400 shadow-sm hover-card relative overflow-hidden group">
-            <div class="absolute -right-2 -top-2 opacity-5 scale-150 transition-transform group-hover:scale-120 duration-700">
-                <span class="material-symbols-outlined text-8xl text-blue-400">corporate_fare</span>
-            </div>
-            <div class="flex flex-col h-full justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="p-1.5 bg-blue-50 rounded-lg"><span class="material-symbols-outlined text-blue-600 text-sm">corporate_fare</span></span>
-                    <span class="text-blue-400 font-bold uppercase text-[0.625rem] tracking-wider">Otras Empresas</span>
+            <!-- App: Logística -->
+            @canany(['manage_logistics', 'manage_closures'])
+            <a href="{{ route('logistica.dashboard') }}" class="group block bg-white rounded-[2.5rem] p-10 border border-slate-200/60 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:border-amber-300 transition-all text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-amber-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="w-24 h-24 mx-auto bg-gradient-to-br from-amber-50 to-amber-100 rounded-3xl flex items-center justify-center text-amber-600 mb-8 group-hover:scale-110 group-hover:-rotate-3 transition-all shadow-inner border border-amber-200/50">
+                    <i class="ph-bold ph-truck text-5xl"></i>
                 </div>
-                <span class="text-3xl font-extrabold font-headline text-slate-800 mt-3">{{ number_format($totalOtras) }}</span>
-                <div class="mt-2">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-[0.6rem] text-blue-500 font-bold uppercase">Completados</span>
-                        <span class="text-[0.6rem] text-slate-500 font-bold">{{ $terminadosOtras }}/{{ $totalOtras }}</span>
-                    </div>
-                    <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
-                        <div class="bg-blue-400 h-full transition-all duration-1000" style="width: {{ $totalOtras > 0 ? ($terminadosOtras / $totalOtras) * 100 : 0 }}%"></div>
-                    </div>
+                <h3 class="text-xl font-black text-slate-800 mb-2 tracking-tight">Logística</h3>
+                <p class="text-xs text-slate-500 font-medium leading-relaxed">Control de lotes, despachos, mensajeros y cierre operativo de rutas.</p>
+            </a>
+            @endcanany
+
+            <!-- App: Analíticas -->
+            <a href="{{ route('reportes.supervision') }}" class="group block bg-white rounded-[2.5rem] p-10 border border-slate-200/60 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:border-emerald-300 transition-all text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="w-24 h-24 mx-auto bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-3xl flex items-center justify-center text-emerald-600 mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all shadow-inner border border-emerald-200/50">
+                    <i class="ph-bold ph-chart-line-up text-5xl"></i>
                 </div>
-            </div>
-        </div>
+                <h3 class="text-xl font-black text-slate-800 mb-2 tracking-tight">Analíticas</h3>
+                <p class="text-xs text-slate-500 font-medium leading-relaxed">Monitoreo de SLAs, KPIs ejecutivos y reportes gerenciales en tiempo real.</p>
+            </a>
 
-        <!-- Asignados -->
-        <div class="bg-surface-container-lowest p-6 rounded-2xl border-l-4 border-secondary shadow-sm">
-            <span class="text-slate-400 font-bold uppercase text-[0.625rem] tracking-wider">Ya Asignados</span>
-            <div class="mt-4">
-                <span class="text-2xl font-bold font-headline text-slate-800">{{ number_format($totalAsignados) }}</span>
-                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                    <div class="bg-secondary h-full" style="width: {{ $totalAfiliados > 0 ? round(($totalAsignados/$totalAfiliados)*100) : 0 }}%"></div>
+            <!-- App: Traspasos -->
+            @can('access_admin_panel')
+            <a href="{{ route('traspasos.index') }}" class="group block bg-white rounded-[2.5rem] p-10 border border-slate-200/60 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:border-indigo-300 transition-all text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="w-24 h-24 mx-auto bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-3xl flex items-center justify-center text-indigo-600 mb-8 group-hover:scale-110 group-hover:rotate-3 transition-all shadow-inner border border-indigo-200/50">
+                    <i class="ph-bold ph-swap text-5xl"></i>
                 </div>
-            </div>
-        </div>
+                <h3 class="text-xl font-black text-slate-800 mb-2 tracking-tight">Traspasos</h3>
+                <p class="text-xs text-slate-500 font-medium leading-relaxed">Módulo Receptor de Traspasos: consulta de expedientes, filtros por agente y estatus Unipago.</p>
+            </a>
+            @endcan
 
-        <!-- Entregados -->
-        <div class="bg-surface-container-lowest p-6 rounded-2xl border-l-4 border-amber-500 shadow-sm">
-            <span class="text-slate-400 font-bold uppercase text-[0.625rem] tracking-wider">Pend. Evidencia</span>
-            <div class="mt-4">
-                <span class="text-2xl font-bold font-headline text-slate-800">{{ number_format($totalEntregados) }}</span>
-                <p class="text-[0.65rem] text-amber-600 font-black uppercase mt-1">En tránsito</p>
-            </div>
-        </div>
-
-        <!-- Completados -->
-        <div class="bg-surface-container-lowest p-6 rounded-2xl border-l-4 border-emerald-500 shadow-sm relative overflow-hidden group">
-            <div class="absolute -right-2 -top-2 opacity-5 scale-150 transition-transform group-hover:scale-125 duration-700">
-                <span class="material-symbols-outlined text-8xl text-emerald-500">check_circle</span>
-            </div>
-            <div class="flex flex-col h-full justify-between">
-                <span class="text-slate-400 font-bold uppercase text-[0.625rem] tracking-wider">Completados</span>
-                <span class="text-3xl font-extrabold font-headline text-slate-800 mt-2">{{ number_format($totalCompletados) }}</span>
-                <p class="text-[0.65rem] text-emerald-600 font-black uppercase mt-1">{{ $porcentajeCompletado }}% Efectividad</p>
-            </div>
-        </div>
-
-        <!-- Por Liquidar -->
-        <div class="bg-white p-6 rounded-2xl border-l-4 border-amber-500 shadow-sm hover-card relative overflow-hidden group">
-            <div class="absolute -right-2 -top-2 opacity-5 scale-150 transition-transform group-hover:scale-120 duration-700">
-                <span class="material-symbols-outlined text-8xl text-amber-500">payments</span>
-            </div>
-            <div class="flex flex-col h-full justify-between">
-                <span class="text-slate-400 font-bold uppercase text-[0.625rem] tracking-wider">Por Liquidar</span>
-                <div class="mt-2 space-y-1">
-                    <div class="flex justify-between items-center text-[0.7rem] font-bold">
-                        <span class="text-slate-500">ARS:</span>
-                        <span class="text-slate-800">${{ number_format($montoArs, 0) }}</span>
-                    </div>
-                    <div class="flex justify-between items-center text-[0.7rem] font-bold">
-                        <span class="text-slate-500">OTR:</span>
-                        <span class="text-slate-600">${{ number_format($montoNoArs, 0) }}</span>
-                    </div>
+            <!-- App: Configuración -->
+            @canany(['manage_users', 'access_admin_panel'])
+            <a href="{{ route('admin.sync.index') }}" class="group block bg-white rounded-[2.5rem] p-10 border border-slate-200/60 shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:border-slate-400 transition-all text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-slate-900 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="w-24 h-24 mx-auto bg-gradient-to-br from-slate-100 to-slate-200 rounded-3xl flex items-center justify-center text-slate-700 mb-8 group-hover:scale-110 group-hover:-rotate-3 transition-all shadow-inner border border-slate-300/50">
+                    <i class="ph-bold ph-gear-six text-5xl"></i>
                 </div>
-                <p class="text-[0.65rem] text-amber-600 mt-2 font-bold uppercase">Total: ${{ number_format($montoArs + $montoNoArs, 0) }}</p>
-            </div>
-        </div>
-
-        <!-- Empresas Verificadas -->
-        <div class="bg-emerald-50 p-6 rounded-2xl border-l-4 border-emerald-600 shadow-sm hover-card relative overflow-hidden group">
-            <div class="absolute -right-2 -top-2 opacity-5 scale-150 transition-transform group-hover:scale-120 duration-700">
-                <span class="material-symbols-outlined text-8xl text-emerald-600">verified</span>
-            </div>
-            <div class="flex flex-col h-full justify-between">
-                <span class="text-emerald-600 font-bold uppercase text-[0.625rem] tracking-wider">Empresas Verificadas</span>
-                <span class="text-3xl font-extrabold font-headline text-emerald-800 mt-2">{{ number_format($confirmadosVerificadas) }}</span>
-                <div class="mt-2">
-                    <div class="flex justify-between items-center text-[0.6rem] font-black text-emerald-600 uppercase mb-1">
-                        <span>CONFIRMADOS</span>
-                        <span>{{ $confirmadosVerificadas }}/{{ $totalVerificadas }}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div class="flex-1 bg-emerald-200 h-1 rounded-full overflow-hidden">
-                            <div class="bg-emerald-600 h-full" style="width: {{ $totalVerificadas > 0 ? ($confirmadosVerificadas / $totalVerificadas) * 100 : 0 }}%"></div>
-                        </div>
-                        <span class="text-[0.6rem] font-black text-emerald-600">{{ $totalVerificadas > 0 ? round(($confirmadosVerificadas / $totalVerificadas) * 100) : 0 }}%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Fuera de SLA -->
-        <div class="bg-rose-50 p-6 rounded-2xl border-l-4 border-rose-500 shadow-sm hover-card relative overflow-hidden group">
-            <div class="absolute -right-2 -top-2 opacity-5 scale-150 transition-transform group-hover:scale-120 duration-700">
-                <span class="material-symbols-outlined text-8xl text-rose-500">alarm_off</span>
-            </div>
-            <div class="flex flex-col h-full justify-between">
-                <span class="text-rose-400 font-bold uppercase text-[0.625rem] tracking-wider">Fuera de SLA</span>
-                <span class="text-4xl font-extrabold font-headline text-rose-700 mt-2">{{ $fueraSlaCount }}</span>
-                <p class="text-[0.6rem] text-rose-600 font-black uppercase mt-2 animate-pulse">Críticos (>20 días)</p>
-            </div>
+                <h3 class="text-xl font-black text-slate-800 mb-2 tracking-tight">Configuración</h3>
+                <p class="text-xs text-slate-500 font-medium leading-relaxed">Gestión de usuarios, auditoría, sincronización cloud y ajustes del sistema.</p>
+            </a>
+            @endcanany
         </div>
     </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Gráfica de Estados (Doughnut) -->
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-slate-800">Distribución por Estados</h3>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Global</span>
-            </div>
-            <div class="relative h-[300px] flex items-center justify-center">
-                <canvas id="estadoChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Gráfica de Tendencia (Line) -->
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-slate-800">Tendencia de Carga</h3>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Últimos 6 Meses</span>
-            </div>
-            <div class="relative h-[300px]">
-                <canvas id="trendChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Actividad Reciente y Productividad -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Productividad por Responsable (Simplificado) -->
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-            <h3 class="text-lg font-bold text-slate-800 mb-6">Rendimiento por Equipo</h3>
-            <div class="space-y-6">
-                @forelse($productividadResponsables as $resp)
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-[0.7rem] font-black text-slate-500 uppercase tracking-tighter">
-                            <span>{{ $resp->responsable->nombre }}</span>
-                            <span>{{ $resp->porcentaje }}%</span>
-                        </div>
-                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-primary h-full transition-all duration-1000" style="width: {{ $resp->porcentaje }}%"></div>
-                        </div>
-                    </div>
-                @empty
-                    <p class="text-xs text-slate-500 italic">Sin datos de responsables.</p>
-                @endforelse
-            </div>
-        </div>
-
-        <!-- Tabla Actividad Reciente -->
-        <div class="bg-white p-6 lg:p-8 rounded-3xl shadow-sm border border-slate-200/60 lg:col-span-2">
-            <h3 class="text-lg font-black text-slate-800 mb-6">Actividad Operativa Reciente</h3>
-            <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left responsive-table">
-                    <thead class="hidden lg:table-header-group">
-                        <tr class="text-[0.65rem] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                            <th class="pb-4">Afiliado</th>
-                            <th class="pb-4">Evento</th>
-                            <th class="pb-4">Usuario</th>
-                            <th class="pb-4 text-right">Fecha</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        @foreach($actividadReciente as $act)
-                        <tr class="group hover:bg-slate-50/50 transition-all">
-                            <td class="py-4 afiliado-cell">
-                                <div class="flex flex-col">
-                                    <span class="text-xs font-bold text-slate-700 group-hover:text-primary transition-colors">{{ $act->afiliado->nombre_completo ?? 'Afiliado no accesible' }}</span>
-                                    <span class="text-[0.6rem] text-slate-400 font-bold uppercase tracking-tighter">{{ $act->afiliado->cedula_formatted ?? 'N/A' }}</span>
-                                </div>
-                            </td>
-                            <td class="py-4" data-label="Evento">
-                                <span class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-wider">{{ $act->estadoNuevo->nombre ?? 'N/A' }}</span>
-                            </td>
-                            <td class="py-4" data-label="Operador">
-                                <span class="text-xs text-slate-500 font-bold">{{ $act->user->name ?? 'Sistema' }}</span>
-                            </td>
-                            <td class="py-4 text-right" data-label="Hace">
-                                <span class="text-[10px] text-slate-400 font-black uppercase">{{ $act->created_at->diffForHumans() }}</span>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    {{-- SLA Alertas Center has been moved to a dedicated page (/reportes/alertas-sla) for performance --}}
 </div>
-
-<!-- Contenedores de Datos Ocultos (Para evitar errores de linter) -->
-<div id="dashboard-data" class="hidden"
-    data-estados-labels='{{ json_encode($afiliadosPorEstado->map(fn($i) => $i->estado->nombre)) }}'
-    data-estados-total='{{ json_encode($afiliadosPorEstado->pluck("total")) }}'
-    data-trend-labels='{{ json_encode($statsPorMes->pluck("mes")) }}'
-    data-trend-total='{{ json_encode($statsPorMes->pluck("total")) }}'>
-</div>
-
-<!-- Scripts de Gráficos -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const dataContainer = document.getElementById('dashboard-data');
-    if (!dataContainer) return;
-
-    // 1. Gráfica de Estados (Doughnut)
-    const ctxEstado = document.getElementById('estadoChart').getContext('2d');
-    new Chart(ctxEstado, {
-        type: 'doughnut',
-        data: {
-            labels: JSON.parse(dataContainer.dataset.estadosLabels),
-            datasets: [{
-                data: JSON.parse(dataContainer.dataset.estadosTotal),
-                backgroundColor: [
-                    '#00346f', '#0288d1', '#10b981', '#f59e0b', '#ba1a1a', '#6366f1', '#8b5cf6'
-                ],
-                hoverOffset: 15,
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { usePointStyle: true, font: { weight: 'bold', size: 10 } }
-                }
-            },
-            cutout: '70%'
-        }
-    });
-
-    // 2. Gráfica de Tendencia (Line)
-    const ctxTrend = document.getElementById('trendChart').getContext('2d');
-    new Chart(ctxTrend, {
-        type: 'line',
-        data: {
-            labels: JSON.parse(dataContainer.dataset.trendLabels),
-            datasets: [{
-                label: 'Nuevos Afiliados',
-                data: JSON.parse(dataContainer.dataset.trendTotal),
-                borderColor: '#0288d1',
-                backgroundColor: 'rgba(2, 136, 209, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 5,
-                pointBackgroundColor: '#fff',
-                pointBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true, grid: { display: false } },
-                x: { grid: { display: false } }
-            }
-        }
-    });
-});
-</script>
 @endsection

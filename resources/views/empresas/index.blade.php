@@ -1,81 +1,82 @@
 @extends('layouts.app')
 
+@section('title', 'Portafolio Corporativo')
+
 @section('content')
-<div class="p-6 lg:p-10 space-y-10 animate-fade-in pb-20">
-    {{-- Original Header Section (Fusionado con mejoras) --}}
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="space-y-2">
-            <nav class="flex items-center gap-2 text-[0.65rem] font-black uppercase tracking-[0.2em] text-slate-400">
-                <span class="text-primary/60">Sistema de Gestión</span>
-                <span class="material-symbols-outlined text-[10px]">chevron_right</span>
-                <span class="text-primary text-bold">Portafolio Corporativo</span>
-            </nav>
-            <h2 class="text-4xl font-black text-slate-800 tracking-tight leading-none">Módulo de Empresas</h2>
-            <p class="text-slate-500 text-sm font-medium">Control estratégico y trazabilidad de entidades vinculadas.</p>
+<div class="space-y-6 animate-page-transition">
+    
+    <!-- Header Section -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm">
+        <div>
+            <h1 class="text-2xl font-display font-bold text-slate-800 tracking-tight">
+                Directorio Corporativo <span class="text-blue-500 font-medium text-lg ml-2">ARS / Entidades</span>
+            </h1>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestión de relaciones y trazabilidad empresarial</p>
         </div>
         
         <div class="flex items-center gap-3">
-            <a href="{{ route('empresas.enrich') }}" class="inline-flex items-center px-5 py-3 bg-white text-slate-500 rounded-2xl font-bold text-[0.65rem] uppercase tracking-widest border border-slate-200 hover:bg-slate-50 transition-all gap-2 shadow-sm">
-                <span class="material-symbols-outlined text-base">auto_fix_high</span>
-                Saneamiento
+            <a href="{{ route('empresas.enrich') }}" class="w-10 h-10 bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200 rounded-xl transition-all flex items-center justify-center shadow-sm" title="Saneamiento de Datos">
+                <i class="ph-bold ph-magic-wand text-lg"></i>
             </a>
-            <a href="{{ route('empresas.create') }}" class="inline-flex items-center justify-center px-8 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-[0.65rem] uppercase tracking-widest hover:bg-primary hover:-translate-y-1 transition-all shadow-xl shadow-slate-200 gap-3 group">
-                <span class="material-symbols-outlined text-lg group-hover:rotate-90 transition-transform">add_business</span>
-                Nueva Entidad
+            <a href="{{ route('empresas.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2">
+                <i class="ph-bold ph-plus"></i> Nueva Entidad
             </a>
         </div>
     </div>
 
-    {{-- Original KPI Grid Restoration --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {{-- Total Card --}}
-        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative overflow-hidden">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <div class="relative z-10">
-                <div class="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 mb-6 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                    <span class="material-symbols-outlined text-2xl">database</span>
+    <!-- KPI & Analytics Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Card -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm group hover:border-blue-500/20 transition-all">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Base de Datos</span>
+                <div class="w-7 h-7 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center">
+                    <i class="ph ph-database text-sm"></i>
                 </div>
-                <p class="text-[0.6rem] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Total Registros</p>
-                <h3 class="text-4xl font-black text-slate-800 tracking-tighter">{{ number_format($stats['total']) }}</h3>
             </div>
+            <h3 class="text-2xl font-display font-bold text-slate-800 tracking-tight">{{ number_format($stats['total']) }}</h3>
+            <p class="text-[9px] text-slate-400 font-bold uppercase mt-1">Registros Totales</p>
         </div>
 
-        {{-- Verified Card --}}
-        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500 group relative overflow-hidden">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <div class="relative z-10">
-                <div class="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500 mb-6 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
-                    <span class="material-symbols-outlined text-2xl">verified</span>
+        <!-- Verified Card -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm group hover:border-emerald-500/20 transition-all">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Entidades Reales</span>
+                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <i class="ph-fill ph-seal-check text-sm"></i>
                 </div>
-                <p class="text-[0.6rem] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Entidades Reales</p>
-                <h3 class="text-4xl font-black text-slate-800 tracking-tighter">{{ number_format($stats['reales']) }}</h3>
             </div>
+            <h3 class="text-2xl font-display font-bold text-slate-800 tracking-tight">{{ number_format($stats['reales']) }}</h3>
+            <p class="text-[9px] text-emerald-500 font-bold uppercase mt-1">Verificadas</p>
         </div>
 
-        {{-- Filial Card --}}
-        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-500 group relative overflow-hidden">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-            <div class="relative z-10">
-                <div class="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-500 mb-6 group-hover:bg-purple-500 group-hover:text-white transition-colors duration-300">
-                    <span class="material-symbols-outlined text-2xl">account_tree</span>
+        <!-- Filial Card -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm group hover:border-purple-500/20 transition-all">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sucursales ARS</span>
+                <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                    <i class="ph ph-git-fork text-sm"></i>
                 </div>
-                <p class="text-[0.6rem] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Sucursales ARS</p>
-                <h3 class="text-4xl font-black text-slate-800 tracking-tighter">{{ number_format($stats['filiales']) }}</h3>
             </div>
+            <h3 class="text-2xl font-display font-bold text-slate-800 tracking-tight">{{ number_format($stats['filiales']) }}</h3>
+            <p class="text-[9px] text-purple-500 font-bold uppercase mt-1">Dependencias</p>
         </div>
 
-        {{-- Analytics / Distribution --}}
-        <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
-            <div class="absolute right-0 top-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2"></div>
-            <p class="text-[0.55rem] font-black uppercase text-slate-400 tracking-[0.2em] mb-6 relative z-10">Mix de Portafolio</p>
-            <div class="relative z-10 flex items-center justify-center h-20">
+        <!-- Distribution Chart -->
+        <div class="bg-slate-900 p-5 rounded-2xl shadow-xl relative overflow-hidden flex flex-col justify-between">
+            <div class="absolute right-0 top-0 w-20 h-20 bg-blue-500/10 blur-2xl rounded-full"></div>
+            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest relative z-10">Mix Portafolio</span>
+            <div class="h-16 relative z-10 mt-2">
                 <canvas id="distributionChart"></canvas>
             </div>
         </div>
     </div>
 
-    {{-- Interactive Livewire Core (Fusion de los ajustes de búsqueda/mapa con la vista anterior) --}}
-    <livewire:empresa.index />
+    <!-- Interactive Table Core -->
+    <div class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
+        <livewire:empresa.index />
+    </div>
+
 </div>
 @endsection
 
@@ -92,17 +93,18 @@
                 labels: ['Verificadas', 'Sucursales', 'Otros'],
                 datasets: [{
                     data: [distribution.reales, distribution.filiales, distribution.otros],
-                    backgroundColor: ['#3b82f6', '#a855f7', '#475569'],
+                    backgroundColor: ['#2563eb', '#a855f7', '#334155'],
                     borderWidth: 0,
-                    weight: 0.5
+                    hoverOffset: 4
                 }]
             },
             options: {
-                cutout: '70%',
+                cutout: '80%',
                 plugins: {
                     legend: { display: false }
                 },
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
+                animation: { duration: 2000, easing: 'easeOutQuart' }
             }
         });
     });

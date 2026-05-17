@@ -45,7 +45,9 @@ class Afiliado extends Model
         'fecha_entrega_proveedor', 'liquidado', 'fecha_liquidacion', 'recibo_liquidacion',
         'fecha_entrega_safesure', 'lote_liquidacion_id',
         'provincia_id', 'municipio_id', 'reasignado', 'firebase_synced_at',
-        'firebase_sync_status', 'firebase_sync_version', 'firebase_error_log'
+        'firebase_sync_status', 'firebase_sync_version', 'firebase_error_log',
+        'updated_from', 'last_updated_by', 'conflict_status', 'remote_version',
+        'corte_nombre', 'estado_nombre_remote', 'responsable_nombre_remote', 'last_sync_hash'
     ];
 
     protected $casts = [
@@ -54,7 +56,8 @@ class Afiliado extends Model
         'fecha_entrega_proveedor' => 'datetime',
         'liquidado' => 'boolean',
         'reasignado' => 'boolean',
-        'firebase_synced_at' => 'datetime'
+        'firebase_synced_at' => 'datetime',
+        'conflict_status' => 'boolean'
     ];
     
 
@@ -65,10 +68,15 @@ class Afiliado extends Model
 
         // Lógica de versionamiento para sincronización
         static::updating(function ($model) {
-            // Si no estamos marcándolo como sincronizado, lo marcamos como modificado
-            if (!$model->isDirty('firebase_sync_status') || $model->firebase_sync_status !== 'synced') {
-                $model->firebase_sync_status = 'modified';
-                $model->firebase_sync_version++;
+            // Si el cambio es local (no viene marcado como sync desde el servicio/webhook)
+            if (!isset($model->is_firebase_sync) || !$model->is_firebase_sync) {
+                // Si ha cambiado algo relevante
+                if ($model->isDirty()) {
+                    $model->firebase_sync_status = 'pending';
+                    $model->firebase_sync_version++;
+                    $model->updated_from = 'local';
+                    $model->last_updated_by = auth()->id() ?? 1;
+                }
             }
         });
     }
@@ -232,6 +240,11 @@ class Afiliado extends Model
         return $this->belongsTo(Proveedor::class);
     }
 
+    public function lastUpdatedBy()
+    {
+        return $this->belongsTo(User::class, 'last_updated_by');
+    }
+
     public function historialEstados()
     {
         return $this->hasMany(HistorialEstado::class);
@@ -324,5 +337,23 @@ class Afiliado extends Model
         }
 
         return false;
+    }
+
+    /**
+     * Normaliza la dirección del afiliado eliminando caracteres extraños,
+     * dobles espacios y estandarizando el formato.
+     */
+    public function normalizeAddress()
+    {
+        if (!$this->direccion) return;
+
+        $search  = ['  ', '  ', ' ,', ',,', '#', 'N°', 'No.', 'Nro'];
+        $replace = [' ', ' ', ',', ',', '', '', '', ''];
+        
+        $clean = str_replace($search, $replace, $this->direccion);
+        $clean = trim($clean);
+        $clean = mb_strtoupper($clean);
+        
+        $this->direccion = $clean;
     }
 }

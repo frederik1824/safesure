@@ -64,82 +64,45 @@
     <!-- Alpine.js (Livewire 3 ya lo incluye, evitamos conflictos) -->
     {{-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> --}}
     
-    <!-- Tailwind CSS (CDN for prototype, should be compiled via Vite in prod) -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script id="tailwind-config">
-        @php
-            $isGestora = auth()->check() && auth()->user()->isGestora();
-            $brandPrimary = $isGestora ? "#01579b" : "#00346f"; // Dark Blue for SAFE, Deep Navy for CMD
-            $brandSecondary = $isGestora ? "#0288d1" : "#0060ac";
-        @endphp
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "surface-container-lowest": "#ffffff",
-                        "on-tertiary-container": "#ffa77e",
-                        "on-surface": "#191c1d",
-                        "surface": "#f8f9fa",
-                        "primary": "#00346f", // SafeSure Deep Navy
-                        "secondary": "#0288d1", // SafeSure Vibrant Blue
-                        "accent": "#f59e0b", // Amber/Gold for highlights
-                        "surface-container-low": "#f3f4f5",
-                        "error": "#ba1a1a",
-                        "surface-container-high": "#e7e8e9",
-                        "outline-variant": "#c2c6d3",
-                        "on-surface-variant": "#424751"
-                    },
-                    fontFamily: {
-                        "headline": ["Plus Jakarta Sans", "Manrope", "sans-serif"],
-                        "body": ["Inter", "sans-serif"],
-                        "label": ["Inter", "sans-serif"]
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-            color: #191c1d;
-        }
-        h1, h2, h3, .font-headline {
-            font-family: 'Manrope', sans-serif;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #e1e3e4;
-            border-radius: 10px;
-        }
+    <!-- Styles & Scripts (Vite) -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    @php
+        $isGestora = auth()->check() && auth()->user()->isGestora();
+        $brandPrimary = $isGestora ? "#01579b" : "#00346f"; 
+        $brandSecondary = $isGestora ? "#0288d1" : "#0060ac";
+    @endphp
 
-        /* --- Transitions & Animations --- */
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+    <style>
+        :root {
+            --brand-primary: {{ $brandPrimary }};
+            --brand-secondary: {{ $brandSecondary }};
         }
-        .skeleton {
-            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite linear;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .page-transition {
-            animation: fadeIn 0.4s ease-out;
-        }
+    </style>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Glassmorphism */
+        .glass-panel { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .glass-dark { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+
+        /* Shadow Depth */
+        .shadow-enterprise { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 10px -2px rgba(0, 0, 0, 0.05); }
+        .shadow-modal { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .page-transition { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .skeleton { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 2s infinite linear; }
 
         /* --- Responsive Table Overhaul --- */
         @media (max-width: 1024px) {
@@ -211,14 +174,230 @@
         }
     </style>
 </head>
-    <body class="bg-slate-50 font-sans text-slate-900 antialiased selection:bg-primary/10 selection:text-primary" 
+    <body class="bg-[#F8FAFC] font-sans text-slate-900 antialiased selection:bg-blue-500/10 selection:text-blue-600" 
+      data-success="{{ session('success') }}" 
+      data-error="{{ session('error') }}"
       x-data="{ 
           sidebarOpen: false,
           notificationsOpen: false,
-          userMenuOpen: false
-      }">
-    
-    <!-- Mobile Backdrop -->
+          userMenuOpen: false,
+          commandPaletteOpen: false,
+          slideOverOpen: false,
+          slideOverUrl: '',
+          slideOverTitle: ''
+      }"
+      x-init="$watch('commandPaletteOpen', value => { if(value) window.dispatchEvent(new CustomEvent('palette-focus')) })"
+      @keydown.window="if ((event.ctrlKey || event.metaKey) && event.key === 'k') { event.preventDefault(); commandPaletteOpen = true; }"
+      @open-slideover.window="slideOverUrl = $event.detail.url; slideOverTitle = $event.detail.title; slideOverOpen = true">
+
+    @php /** @var \App\Models\User $user */ $user = Auth::user(); @endphp
+    @php
+        $activeApp = '';
+        if(request()->routeIs('import.*', 'afiliados.cmd', 'afiliados.otros', 'afiliados.salida_inmediata', 'empresas.*')) {
+            $activeApp = 'admision';
+        } elseif(request()->routeIs('afiliados.index', 'lotes.*', 'cierre.*', 'mensajeros.*', 'rutas.*', 'despachos.*', 'logistica.dashboard')) {
+            $activeApp = 'logistica';
+        } elseif(request()->routeIs('evidencias.*', 'liquidacion.*', 'pagos.*')) {
+            $activeApp = 'gestion';
+        } elseif(request()->routeIs('reportes.*')) {
+            $activeApp = 'reportes';
+        } elseif(request()->routeIs('proveedores.*', 'catalogo.*', 'admin.audit.index', 'usuarios.*', 'admin.sync.*', 'traspasos.*')) {
+            $activeApp = 'sistema';
+        }
+        $isHome = request()->routeIs('dashboard');
+    @endphp
+
+    <!-- GLOBAL TOP NAVBAR (Enterprise Level) -->
+    <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-50 relative shadow-sm w-full">
+        <div class="flex items-center gap-4">
+            <!-- App Launcher Button (Grid) -->
+            <a href="{{ route('dashboard') }}" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors" title="Centro de Aplicaciones">
+                <i class="ph-bold ph-squares-four text-xl"></i>
+            </a>
+            
+            <!-- Logo -->
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
+                <img src="{{ asset('images/logo-web-ss.png') }}" alt="SS" class="h-5 w-auto grayscale contrast-200">
+                <span class="text-sm font-display font-black text-slate-800 tracking-tight">Safesure <span class="font-normal text-slate-400">Enterprise</span></span>
+            </a>
+            
+            @if(!$isHome && $activeApp)
+            <div class="hidden md:flex items-center gap-2 ml-4 px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg shadow-sm">
+                <span class="w-2 h-2 rounded-full {{ $activeApp == 'logistica' ? 'bg-amber-500' : ($activeApp == 'admision' ? 'bg-blue-500' : 'bg-slate-500') }}"></span>
+                <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{{ $activeApp }}</span>
+            </div>
+            @endif
+        </div>
+        
+        <!-- Center: Global Search (Command Palette Trigger) -->
+        <div class="hidden md:flex flex-1 max-w-xl mx-4">
+            <button @click="commandPaletteOpen = true" class="w-full flex items-center justify-between pl-3 pr-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 hover:border-slate-300 transition-all text-slate-500 group">
+                <div class="flex items-center gap-2">
+                    <i class="ph-bold ph-magnifying-glass group-hover:text-blue-500 transition-colors"></i>
+                    <span class="text-xs font-medium">Buscar expedientes, acciones o empresas...</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-bold text-slate-400 bg-white border border-slate-200 rounded">Ctrl</kbd>
+                    <kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-bold text-slate-400 bg-white border border-slate-200 rounded">K</kbd>
+                </div>
+            </button>
+        </div>
+
+        <!-- COMMAND PALETTE OVERLAY -->
+        <div x-show="commandPaletteOpen" style="display: none;" 
+             class="fixed inset-0 z-[100] overflow-y-auto p-4 sm:p-6 md:p-20" role="dialog" aria-modal="true">
+            <!-- Backdrop -->
+            <div x-show="commandPaletteOpen" 
+                 x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="commandPaletteOpen = false"></div>
+
+            <!-- Command Palette Panel -->
+            <div x-show="commandPaletteOpen" 
+                 x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                 class="mx-auto max-w-2xl transform divide-y divide-slate-100 overflow-hidden rounded-2xl glass-panel shadow-modal ring-1 ring-black/5 transition-all relative">
+                
+                <div class="relative">
+                    <i class="ph-bold ph-magnifying-glass absolute left-4 top-3.5 text-xl text-slate-400"></i>
+                    <input type="text" id="command-palette-input" 
+                           class="h-14 w-full border-0 bg-transparent pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:ring-0 sm:text-sm font-medium" 
+                           placeholder="¿Qué necesitas hacer hoy?" role="combobox" aria-expanded="false" aria-controls="options">
+                </div>
+
+                <!-- Results -->
+                <div id="command-results" class="max-h-96 scroll-py-3 overflow-y-auto p-3 hidden">
+                    <h2 class="mb-2 mt-4 px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Acciones Rápidas</h2>
+                    <ul class="text-sm text-slate-700" id="command-actions-container">
+                        <!-- Dynamic Actions -->
+                    </ul>
+
+                    <h2 class="mb-2 mt-4 px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest hidden" id="command-expedientes-title">Expedientes</h2>
+                    <ul class="text-sm text-slate-700" id="command-expedientes-container">
+                        <!-- Dynamic Expedientes -->
+                    </ul>
+                </div>
+
+                <!-- Empty State -->
+                <div id="command-empty" class="px-6 py-14 text-center text-sm sm:px-14 hidden">
+                    <i class="ph-bold ph-ghost text-4xl text-slate-300 mb-4 inline-block"></i>
+                    <p class="font-bold text-slate-900">No encontramos resultados</p>
+                    <p class="mt-1 text-slate-500">Prueba buscando un nombre, cédula o módulo.</p>
+                </div>
+                
+                <!-- Initial State -->
+                <div id="command-initial" class="px-6 py-10 text-center text-sm sm:px-14">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-50 text-blue-500 mb-4">
+                        <i class="ph-bold ph-command text-2xl"></i>
+                    </div>
+                    <p class="font-bold text-slate-900">Busca en todo Safesure</p>
+                    <p class="mt-1 text-slate-500">Comienza a escribir para ver expedientes o acciones rápidas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side -->
+        <div class="flex items-center gap-3">
+            <button @click="sidebarOpen = true" class="md:hidden p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition-all">
+                <i class="ph-bold ph-list text-xl"></i>
+            </button>
+
+            <!-- Cloud Status Indicator -->
+            <a href="{{ route('admin.sync.index') }}" class="hidden sm:flex items-center gap-2 px-2.5 py-1 hover:bg-slate-50 rounded-md border border-transparent hover:border-slate-200 transition-all" title="Ver estado de sincronización">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Nube OK</span>
+            </a>
+
+            <!-- Notifications -->
+            <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                <button @click="open = !open" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-lg relative transition-colors">
+                    <i class="ph-bold ph-bell text-lg"></i>
+                    @if(auth()->user()->unreadNotifications->count() > 0)
+                    <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white"></span>
+                    @endif
+                </button>
+
+                <!-- Notifications Dropdown -->
+                <div x-show="open" 
+                     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" 
+                     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" 
+                     class="absolute right-0 mt-2 w-80 origin-top-right rounded-xl glass-panel shadow-modal ring-1 ring-black ring-opacity-5 focus:outline-none z-[120] overflow-hidden" 
+                     style="display: none;">
+                    
+                    <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-slate-800">Notificaciones</h3>
+                        <span class="bg-blue-100 text-blue-700 text-[10px] font-black px-1.5 py-0.5 rounded-full">{{ auth()->user()->unreadNotifications->count() }}</span>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto custom-scrollbar">
+                        @forelse(auth()->user()->unreadNotifications as $notification)
+                            <div class="p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                                <p class="text-sm font-medium text-slate-900">{{ $notification->data['message'] ?? 'Nueva notificación' }}</p>
+                                <p class="text-[10px] text-slate-400 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                            </div>
+                        @empty
+                            <div class="py-10 px-6 text-center">
+                                <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
+                                    <i class="ph-bold ph-bell-slash text-2xl"></i>
+                                </div>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Sin notificaciones</p>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    @if(auth()->user()->unreadNotifications->count() > 0)
+                    <div class="p-2 bg-slate-50 border-t border-slate-100">
+                        <form method="POST" action="{{ route('notifications.markAllAsRead') }}">
+                            @csrf
+                            <button type="submit" class="w-full py-2 text-center text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 transition-colors">
+                                Marcar todas como leídas
+                            </button>
+                        </form>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="h-4 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+
+            <!-- Profile -->
+            <div class="relative hidden sm:block" x-data="{ open: false }" @click.away="open = false">
+                <button @click="open = !open" class="flex items-center gap-2 p-1 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200">
+                    <img src="{{ $user->avatar_url }}" class="w-6 h-6 rounded border border-slate-200 object-cover" alt="User">
+                    <i class="ph-bold ph-caret-down text-slate-400 text-[10px]"></i>
+                </button>
+
+                <div x-show="open" 
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="opacity-0 translate-y-2"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-50">
+                    <div class="p-3 bg-slate-50 border-b border-slate-100">
+                        <p class="text-xs font-bold text-slate-800 truncate">{{ $user->name }}</p>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5 truncate">{{ $user->getRoleNames()->first() ?? 'Usuario' }}</p>
+                    </div>
+                    <div class="p-1">
+                        <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                            <i class="ph-bold ph-user-circle text-base"></i> Perfil Personal
+                        </a>
+                    </div>
+                    <div class="p-1 border-t border-slate-100">
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors text-left">
+                                <i class="ph-bold ph-sign-out text-base"></i> Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE BACKDROP -->
     <div x-show="sidebarOpen" 
          x-transition:enter="transition opacity-ease-out duration-300"
          x-transition:enter-start="opacity-0"
@@ -227,365 +406,167 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          @click="sidebarOpen = false"
-         class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden">
+         class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden">
     </div>
 
-    <div class="flex h-screen overflow-hidden relative">
-
-    <!-- SIDEBAR (DRAWER ON MOBILE) -->
-    <aside 
-        class="fixed inset-y-0 left-0 z-50 w-72 bg-white/95 backdrop-blur-xl border-r border-slate-200/60 shadow-2xl transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 lg:z-0 lg:shadow-none"
-        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-    >
-        <!-- Mobile Close Button -->
-        <button @click="sidebarOpen = false" class="lg:hidden absolute top-4 right-4 p-2 text-slate-400 hover:text-primary transition-colors">
-            <i class="ph ph-x text-2xl"></i>
-        </button>
-
-        <div class="h-full flex flex-col py-8 overflow-hidden">
-        <!-- Soft Branding Accents -->
-        <div class="absolute -top-24 -left-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute top-1/2 -right-24 w-32 h-64 bg-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- MAIN WRAPPER (h-screen - navbar height) -->
+    <div class="flex h-[calc(100vh-3.5rem)] overflow-hidden relative bg-[#F8FAFC]">
         
-        @php /** @var \App\Models\User $user */ $user = Auth::user(); @endphp
-        <div class="px-8 mb-10 w-full relative z-10">
-            <div class="flex items-center gap-4">
-                <a href="{{ route('dashboard') }}" class="relative w-full h-14 bg-slate-50 backdrop-blur-sm rounded-2xl p-2.5 flex items-center justify-center shadow-sm border border-slate-200 group/logo overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-white to-slate-100 opacity-50"></div>
-                    <img src="{{ asset('images/logo-web-ss.png') }}" alt="SafeSure Logo" class="h-full w-auto object-contain relative z-10 transition-transform duration-500 group-hover/logo:scale-110">
-                </a>
-            </div>
-        </div>
-
-        <nav class="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar" x-data="{ 
-            activeGroup: '{{ 
-                request()->routeIs('import.*', 'afiliados.cmd', 'afiliados.otros', 'afiliados.salida_inmediata', 'empresas.*') ? 'admision' : (
-                request()->routeIs('afiliados.index', 'lotes.*', 'cierre.*', 'mensajeros.*', 'rutas.*', 'despachos.*') ? 'logistica' : (
-                request()->routeIs('evidencias.*', 'liquidacion.*', 'pagos.*') ? 'gestion' : (
-                request()->routeIs('reportes.*') ? 'reportes' : (
-                request()->routeIs('proveedores.*', 'catalogo.*', 'admin.audit.index', 'usuarios.*') ? 'sistema' : ''
-            )))) }}' 
-        }">
-            @php $isGestora = auth()->user()->isGestora(); @endphp
-            <!-- Navigation Links -->
-            <a class="{{ request()->routeIs('dashboard') ? 'flex items-center gap-4 px-6 py-4 text-primary font-black bg-primary/5 border-l-[4px] border-primary shadow-sm rounded-r-2xl transition-all relative overflow-hidden' : 'flex items-center gap-4 px-6 py-4 text-slate-500 hover:text-primary hover:bg-slate-50 rounded-r-2xl transition-all group/link' }} mb-6 mt-0.5" href="{{ route('dashboard') }}">
-                @if(request()->routeIs('dashboard'))
-                    <div class="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-transparent"></div>
-                @endif
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors {{ request()->routeIs('dashboard') ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-slate-100 text-slate-400 group-hover/link:bg-primary/10 group-hover/link:text-primary' }}">
-                    <i class="ph ph-squares-four text-lg"></i>
-                </div>
-                <span class="text-[0.75rem] tracking-[0.15em] uppercase font-black relative z-10">Dashboard</span>
-            </a>
-
-            <!-- ADMISIÓN -->
-            <div class="space-y-1">
-                <button @click="activeGroup = activeGroup === 'admision' ? '' : 'admision'" 
-                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('import.*', 'afiliados.cmd', 'afiliados.otros', 'afiliados.salida_inmediata') ? 'bg-slate-50' : 'hover:bg-slate-50' }}">
-                    <div class="flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all shadow-sm" :class="activeGroup === 'admision' ? 'bg-primary/10 text-primary' : ''">
-                            <i class="ph ph-tray text-lg"></i>
-                        </div>
-                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'admision' ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-700'">Admisión</span>
-                    </div>
-                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-400" :class="activeGroup === 'admision' ? 'rotate-180 text-primary' : ''"></i>
-                </button>
-                <div x-show="activeGroup === 'admision'" x-collapse class="pl-6 pr-2 space-y-1">
-                    @can('manage_affiliates')
-                    <x-nav-link route="import.index" icon="ph ph-upload-simple" label="Importar" />
-                    <x-nav-link route="afiliados.otros" icon="ph ph-buildings" label="Mis Afiliados" />
-                    <a class="{{ request()->routeIs('afiliados.salida_inmediata') ? 'flex items-center justify-between px-4 py-3 text-primary font-black bg-primary/5 border-l-[3px] border-primary shadow-sm rounded-r-xl relative overflow-hidden' : 'flex items-center justify-between px-4 py-3 text-slate-500 hover:text-primary hover:bg-slate-50 rounded-r-xl transition-all group/link' }} mt-0.5" href="{{ route('afiliados.salida_inmediata') }}">
-                        <div class="flex items-center gap-3 relative z-10">
-                            <i class="ph ph-user-check text-lg {{ request()->routeIs('afiliados.salida_inmediata') ? 'text-primary' : 'group-hover/link:text-primary text-slate-400' }}"></i>
-                            <span class="text-[0.65rem] tracking-wider uppercase font-extrabold">Salida Inmediata</span>
-                        </div>
-                        @php
-                            $countSalida = \App\Models\Afiliado::whereHas('empresaModel', function($q) {
-                                $q->where('es_verificada', true);
-                            })->whereNull('fecha_entrega_safesure')->count();
-                        @endphp
-                        @if($countSalida > 0)
-                            <span class="bg-primary text-white text-[0.6rem] font-black px-2 py-0.5 rounded-full shadow-lg shadow-primary/40 relative z-10">{{ $countSalida }}</span>
-                        @endif
-                    </a>
-                    @endcan
-                    @can('manage_companies')
-                    <x-nav-link route="empresas.index" icon="ph ph-briefcase" label="Empresas" />
-                    @endcan
-                </div>
-            </div>
-
-            <!-- LOGÍSTICA & DESPACHO -->
-            @canany(['manage_logistics', 'manage_closures'])
-            <div class="space-y-1">
-                <button @click="activeGroup = activeGroup === 'logistica' ? '' : 'logistica'" 
-                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('afiliados.index', 'lotes.*', 'cierre.*', 'mensajeros.*', 'rutas.*', 'despachos.*') ? 'bg-slate-50' : 'hover:bg-slate-50' }}">
-                    <div class="flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all" :class="activeGroup === 'logistica' ? 'bg-primary/10 text-primary' : ''">
-                            <i class="ph ph-truck text-lg"></i>
-                        </div>
-                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'logistica' ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-700'">Logística</span>
-                    </div>
-                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-400" :class="activeGroup === 'logistica' ? 'rotate-180 text-primary' : ''"></i>
-                </button>
-                <div x-show="activeGroup === 'logistica'" x-collapse class="pl-6 pr-2 space-y-1">
-                    @can('manage_logistics')
-                    <x-nav-link route="logistica.dashboard" icon="ph ph-squares-four" label="Monitor Logístico" />
-                    @unless($isGestora)
-                        <x-nav-link route="afiliados.index" icon="ph ph-address-book" label="Asignaciones" query="asignacion=pendiente" />
-                    @endunless
-                    <x-nav-link route="lotes.index" icon="ph ph-check-square-offset" label="Control Lotes" />
-                    <x-nav-link route="despachos.index" icon="ph ph-rocket-launch" label="Despachos" />
-                    <x-nav-link route="mensajeros.index" icon="ph ph-person-simple-run" label="Mensajeros" />
-                    <x-nav-link route="rutas.index" icon="ph ph-map-trifold" label="Gestión Rutas" />
-                    @endcan
-                    @can('manage_closures')
-                    <x-nav-link route="cierre.index" icon="ph ph-folder-lock" label="Cierre Físico" />
-                    @endcan
-                </div>
-            </div>
-            @endcanany
-
-            <!-- GESTIÓN & PAGOS -->
-            @canany(['manage_evidencias', 'manage_liquidations'])
-            <div class="space-y-1">
-                <button @click="activeGroup = activeGroup === 'gestion' ? '' : 'gestion'" 
-                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('evidencias.*', 'liquidacion.*', 'pagos.*') ? 'bg-slate-50' : 'hover:bg-slate-50' }}">
-                    <div class="flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all shadow-sm" :class="activeGroup === 'gestion' ? 'bg-primary/10 text-primary' : ''">
-                            <i class="ph ph-receipt text-lg"></i>
-                        </div>
-                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'gestion' ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-700'">Gestión</span>
-                    </div>
-                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-400" :class="activeGroup === 'gestion' ? 'rotate-180 text-primary' : ''"></i>
-                </button>
-                <div x-show="activeGroup === 'gestion'" x-collapse class="pl-6 pr-2 space-y-1">
-                    @can('manage_evidencias')
-                    <x-nav-link route="evidencias.index" icon="ph ph-files" label="Expedientes" />
-                    @endcan
-                    @can('manage_liquidations')
-                    <x-nav-link route="liquidacion.index" icon="ph ph-money" label="Liquidaciones" />
-                    @endcan
-                </div>
-            </div>
-            @endcanany
-
-            <!-- REPORTES -->
-            @can('view_reports')
-            <div class="space-y-1">
-                <button @click="activeGroup = activeGroup === 'reportes' ? '' : 'reportes'" 
-                        :class="activeGroup === 'reportes' ? 'text-primary' : 'text-slate-500'"
-                        class="w-full flex items-center justify-between px-6 py-3 hover:bg-slate-50 rounded-xl transition-colors group">
-                    <div class="flex items-center gap-4">
-                        <i class="ph ph-chart-pie-slice text-[22px] group-hover:text-primary transition-colors"></i>
-                        <span class="text-[0.75rem] tracking-widest uppercase font-black text-slate-500 group-hover:text-slate-700 transition-colors">Reportes</span>
-                    </div>
-                    <i class="ph ph-caret-down text-sm transition-transform duration-300 text-slate-400" :class="activeGroup === 'reportes' ? 'rotate-180 text-primary' : ''"></i>
-                </button>
-                <div x-show="activeGroup === 'reportes'" x-collapse class="pl-4 space-y-1">
-                    <x-nav-link route="reportes.index" icon="ph ph-chart-line-up" label="Estadísticas" />
-                    <x-nav-link route="reportes.supervision" icon="ph ph-eye" label="Supervisión" />
-                    <x-nav-link route="reportes.heatmap" icon="ph ph-globe-hemisphere-west" label="Mapa Global" />
-                    <x-nav-link route="reportes.sla_alerts" icon="ph ph-bell-ringing" label="Alertas SLA" />
-                    <x-nav-link route="reportes.comparativa" icon="ph ph-scales" label="Comparativa" />
-                </div>
-            </div>
-            @endcan
-
-            <!-- SISTEMA -->
-            @canany(['manage_companies', 'access_admin_panel', 'manage_users'])
-            <div class="space-y-1">
-                <button @click="activeGroup = activeGroup === 'sistema' ? '' : 'sistema'" 
-                        class="w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all duration-300 group {{ request()->routeIs('empresas.*', 'proveedores.*', 'catalogo.*', 'admin.audit.index', 'usuarios.*') ? 'bg-slate-50' : 'hover:bg-slate-50' }}">
-                    <div class="flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all shadow-sm" :class="activeGroup === 'sistema' ? 'bg-primary/10 text-primary' : ''">
-                            <i class="ph ph-gear-six text-lg"></i>
-                        </div>
-                        <span class="text-[0.7rem] tracking-[0.15em] uppercase font-black transition-colors" :class="activeGroup === 'sistema' ? 'text-slate-800' : 'text-slate-500 group-hover:text-slate-700'">Sistema</span>
-                    </div>
-                    <i class="ph ph-caret-down text-xs transition-transform duration-300 text-slate-400" :class="activeGroup === 'sistema' ? 'rotate-180 text-primary' : ''"></i>
-                </button>
-                <div x-show="activeGroup === 'sistema'" x-collapse class="pl-6 pr-2 space-y-1">
-                    @can('access_admin_panel')
-                    <x-nav-link route="proveedores.index" icon="ph ph-package" label="Proveedores" />
-                    <x-nav-link route="catalogo.index" icon="ph ph-tag" label="Catálogos" />
-                    <x-nav-link route="admin.sync.index" icon="ph ph-arrows-clockwise" label="Sincronizar Firebase" />
-                    <x-nav-link route="admin.system.index" icon="ph ph-terminal-window" label="Control de Sistema" />
-                    <x-nav-link route="admin.audit.index" icon="ph ph-clock-counter-clockwise" label="Auditoría" />
-                    @endcan
-                    @can('manage_users')
-                    <x-nav-link route="usuarios.index" icon="ph ph-users" label="Usuarios & Roles" />
-                    @endcan
-                </div>
-            </div>
-            @endcanany
-        </nav>
-
-        <div class="px-6 mt-auto pt-6 border-t border-slate-100">
-            <a href="{{ route('profile.edit') }}" class="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl hover:bg-slate-100 border border-slate-200 transition-all group relative overflow-hidden mb-4 shadow-sm">
-                <div class="relative">
-                    <img src="{{ $user->avatar_url }}" class="w-11 h-11 rounded-xl object-cover border-2 border-white shadow-md relative z-10" alt="Avatar">
-                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full z-20"></div>
-                </div>
-                <div class="overflow-hidden relative z-10">
-                    <p class="text-[0.75rem] font-black text-slate-800 truncate">{{ $user->name }}</p>
-                    <p class="text-[0.6rem] font-bold text-slate-400 uppercase tracking-widest mt-0.5 truncate">{{ $user->getRoleNames()->first() ?? 'Usuario' }}</p>
-                </div>
-                <i class="ph ph-caret-right text-slate-400 text-xs ml-auto group-hover:translate-x-1 group-hover:text-primary transition-all relative z-10"></i>
-            </a>
-        </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f8fafc] relative">
-        <!-- TopNavBar Component -->
-        <header class="h-20 lg:h-24 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 lg:px-10 flex items-center justify-between sticky top-0 z-30">
-            <div class="flex items-center gap-4">
-                <!-- Hamburger Trigger -->
-                <button @click="sidebarOpen = true" class="lg:hidden p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-primary/10 hover:text-primary transition-all active:scale-95">
-                    <i class="ph ph-list text-2xl"></i>
-                </button>
-                
-                <div class="hidden lg:block">
-                    <h2 class="text-xl font-bold text-slate-800 tracking-tight">@yield('title', 'Dashboard')</h2>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5">Gestión de Logística y Carnetización</p>
-                </div>
-                
-                <!-- Mobile Logo (Small) -->
-                <div class="lg:hidden">
-                    <img src="{{ asset('images/logo-web-ss.png') }}" alt="SafeSure" class="h-8 w-auto">
-                </div>
-            </div>
+        @if(!$isHome && $activeApp)
+        <!-- CONTEXTUAL SIDEBAR (ENTERPRISE STYLE) -->
+        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shadow-sm z-50 absolute md:static inset-y-0 left-0 transform transition-transform duration-300"
+               :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
             
-            <div class="flex items-center gap-4">
-                <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-full relative group">
-                        <i class="ph ph-bell text-[22px] group-hover:scale-110 transition-transform"></i>
-                        @if(auth()->user()->unreadNotifications->count() > 0)
-                        <span class="absolute top-2 right-2 w-4 h-4 bg-red-500 rounded-full border-[2px] border-white text-[0.6rem] text-white flex items-center justify-center font-bold">
-                            {{ auth()->user()->unreadNotifications->count() }}
-                        </span>
-                        @endif
-                    </button>
+            <!-- Mobile Close -->
+            <button @click="sidebarOpen = false" class="md:hidden absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 border border-slate-200 rounded-lg bg-white">
+                <i class="ph-bold ph-x text-xl"></i>
+            </button>
 
-                    <!-- Notifications Dropdown -->
-                    <div x-show="open" @click.outside="open = false" 
-                         x-transition:enter="transition ease-out duration-200"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         class="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden">
-                        
-                        <div class="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                            <h3 class="text-sm font-black text-slate-800">Notificaciones</h3>
-                            <span class="text-[0.6rem] font-bold uppercase text-slate-400">{{ auth()->user()->unreadNotifications->count() }} Pendientes</span>
-                        </div>
-
-                        <div class="max-h-96 overflow-y-auto">
-                            @forelse($user->notifications->take(5) as $notification)
-                                <a href="{{ $notification->data['url'] ?? '#' }}" class="block p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 {{ $notification->read_at ? 'opacity-60' : '' }}">
-                                    <div class="flex gap-3">
-                                        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                                            @php 
-                                            $ni = $notification->data['icon'] ?? 'notifications';
-                                            $phIcon = 'ph-bell';
-                                            if ($ni == 'task_alt') $phIcon = 'ph-check-circle';
-                                            elseif ($ni == 'warning') $phIcon = 'ph-warning';
-                                            elseif ($ni == 'error') $phIcon = 'ph-x-circle';
-                                            @endphp
-                                            <i class="ph {{ $phIcon }} text-lg"></i>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-bold text-slate-800 mb-0.5">{{ $notification->data['title'] }}</p>
-                                            <p class="text-[0.7rem] text-slate-500 leading-relaxed">{{ $notification->data['message'] }}</p>
-                                            <p class="text-[0.6rem] text-slate-400 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
-                                        </div>
-                                    </div>
-                                </a>
-                            @empty
-                                <div class="p-8 text-center flex flex-col items-center">
-                                    <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3 text-slate-300">
-                                        <i class="ph ph-bell-slash text-2xl"></i>
-                                    </div>
-                                    <p class="text-xs text-slate-400 font-medium">No tienes notificaciones por el momento.</p>
-                                </div>
-                            @endforelse
-                        </div>
-
-                        @if($user->unreadNotifications->count() > 0)
-                        <div class="p-3 bg-slate-50 text-center border-t border-slate-100">
-                            <form action="{{ route('notifications.markAllAsRead') }}" method="POST">
-                                @csrf
-                                <button type="submit" class="text-[0.65rem] font-black uppercase text-blue-600 hover:text-blue-800 tracking-wider">Marcar todas como leídas</button>
-                            </form>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-                
-                <div class="h-8 w-[1px] bg-slate-200 mx-2"></div>
-                
-                <!-- User Professional Dropdown -->
-                <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                    <button @click="open = !open" class="flex items-center gap-3 p-1 pr-4 bg-white hover:bg-slate-50 border border-slate-100 hover:border-slate-200 rounded-full shadow-sm hover:shadow transition-all duration-200">
-                        <img src="{{ $user->avatar_url }}" class="w-8 h-8 rounded-full object-cover border border-slate-200" alt="User">
-                        <div class="hidden md:flex flex-col text-left">
-                            <span class="text-[0.75rem] font-black text-slate-800 leading-tight">{{ $user->name }}</span>
-                            <span class="text-[0.6rem] font-bold text-blue-600 uppercase tracking-tighter">{{ $user->getRoleNames()->first() ?? 'Usuario' }}</span>
-                        </div>
-                        <i class="ph ph-caret-down text-slate-400 text-sm transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
-                    </button>
-
-                    <!-- Dropdown Menu -->
-                    <div x-show="open" 
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="opacity-100 scale-100"
-                         x-transition:leave-end="opacity-0 scale-95"
-                         class="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50">
-                        
-                        <div class="p-4 bg-slate-50/50 border-b border-slate-100">
-                            <p class="text-[0.6rem] font-black text-slate-400 uppercase tracking-widest mb-1">Sesión activa</p>
-                            <p class="text-[0.8rem] font-bold text-slate-800 truncate">{{ $user->email }}</p>
-                        </div>
-
-                        <div class="p-2">
-                            <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-colors group">
-                                <i class="ph ph-user-circle text-lg opacity-60 group-hover:opacity-100 transition-opacity"></i>
-                                <span class="font-bold">Mi Perfil</span>
-                            </a>
-                        </div>
-
-                        <div class="p-2 border-t border-slate-50">
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-600 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition-colors group text-left">
-                                    <i class="ph ph-sign-out text-lg opacity-60 group-hover:opacity-100 transition-opacity"></i>
-                                    <span class="font-bold">Cerrar Sesión</span>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Page Header (Optional Slot) -->
-        @if (isset($header))
-            <div class="px-8 py-6 bg-white border-b border-slate-100 mb-6">
-                {{ $header }}
-            </div>
+            @if($activeApp == 'admision')
+                @include('layouts.sidebars.admision')
+            @elseif($activeApp == 'logistica')
+                @include('layouts.sidebars.logistica')
+            @elseif($activeApp == 'sistema')
+                @include('layouts.sidebars.sistema')
+            @endif
+        </aside>
         @endif
 
-        <!-- Page Content -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-8">
-            <div class="max-w-[1600px] mx-auto space-y-6 lg:space-y-8">
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar relative">
+            <!-- Page Header (Optional Slot) -->
+            @if (isset($header))
+                <div class="px-4 md:px-8 py-6 bg-white border-b border-slate-100 shadow-sm z-10 sticky top-0">
+                    {{ $header }}
+                </div>
+            @endif
+
+            <div class="w-full max-w-[1600px] mx-auto p-4 md:p-8 space-y-6">
                 {{ $slot ?? '' }}
                 @yield('content')
             </div>
+        </main>
+    </div>
+
+    <!-- Enterprise Slide-over (Quick View) -->
+    <div x-show="slideOverOpen" class="fixed inset-0 z-[110] overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true" style="display: none;">
+        <div class="absolute inset-0 overflow-hidden">
+            <!-- Background overlay -->
+            <div x-show="slideOverOpen" x-transition:enter="ease-in-out duration-500" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-500" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" @click="slideOverOpen = false"></div>
+
+            <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+                <!-- Slide-over panel -->
+                <div x-show="slideOverOpen" x-transition:enter="transform transition ease-in-out duration-500 sm:duration-700" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transform transition ease-in-out duration-500 sm:duration-700" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="pointer-events-auto w-screen max-w-2xl">
+                    <div class="flex h-full flex-col overflow-y-scroll bg-white shadow-2xl border-l border-slate-200">
+                        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between sm:px-6">
+                            <h2 class="text-base font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2" id="slide-over-title">
+                                <i class="ph-bold ph-identification-card text-blue-600 text-xl"></i>
+                                <span x-text="slideOverTitle">Detalles del Expediente</span>
+                            </h2>
+                            <div class="ml-3 flex h-7 items-center">
+                                <button type="button" @click="slideOverOpen = false" class="relative rounded-md bg-white text-slate-400 hover:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                                    <span class="absolute -inset-2.5"></span>
+                                    <span class="sr-only">Cerrar panel</span>
+                                    <i class="ph-bold ph-x text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="relative flex-1">
+                            <!-- Show loading spinner while iframe loads -->
+                            <div class="absolute inset-0 flex items-center justify-center bg-white" x-show="slideOverUrl !== ''" id="slideover-loader">
+                                <div class="flex flex-col items-center gap-3">
+                                    <i class="ph-bold ph-spinner-gap text-4xl text-blue-500 animate-spin"></i>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Cargando expediente...</p>
+                                </div>
+                            </div>
+                            <template x-if="slideOverUrl">
+                                <iframe :src="slideOverUrl" class="w-full h-full border-0 absolute inset-0 z-10 bg-white" onload="document.getElementById('slideover-loader').style.display = 'none';"></iframe>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </main>
+    </div>
+
+    <!-- GLOBAL COMMAND PALETTE (Enterprise Search) -->
+    <div x-show="commandPaletteOpen" 
+         class="fixed inset-0 z-[100] p-4 sm:p-6 md:p-20 overflow-y-auto" 
+         role="dialog" aria-modal="true" style="display: none;"
+         @keydown.escape.window="commandPaletteOpen = false">
+        
+        <!-- Backdrop -->
+        <div x-show="commandPaletteOpen" 
+             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" 
+             x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" 
+             class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="commandPaletteOpen = false"></div>
+
+        <!-- Palette Panel -->
+        <div x-show="commandPaletteOpen" 
+             x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" 
+             x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" 
+             class="mx-auto max-w-2xl transform divide-y divide-slate-100 overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition-all relative z-10">
+            
+            <div class="relative">
+                <i class="ph-bold ph-magnifying-glass pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-slate-400"></i>
+                <input type="text" id="command-palette-input"
+                       class="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-slate-900 placeholder:text-slate-400 focus:ring-0 sm:text-sm font-medium" 
+                       placeholder="Buscar expedientes, empresas o acciones... (Ctrl+K)" 
+                       role="combobox" aria-expanded="false" aria-controls="options">
+            </div>
+
+            <!-- Initial State / Recommendations -->
+            <div id="command-initial" class="p-4">
+                <h2 class="mb-2 px-2 text-xs font-black uppercase tracking-widest text-slate-400">Sugerencias rápidas</h2>
+                <ul class="text-sm text-slate-700">
+                    <li>
+                        <a href="{{ route('dashboard') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-slate-50 group transition-colors">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-squares-four text-lg"></i>
+                            </div>
+                            <span class="font-bold">Ir al App Center</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('afiliados.index') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-slate-50 group transition-colors">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                <i class="ph-bold ph-users text-lg"></i>
+                            </div>
+                            <span class="font-bold">Ver Afiliados Recientes</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Results State -->
+            <div id="command-results" class="hidden max-h-96 overflow-y-auto p-4 custom-scrollbar">
+                <div class="mb-4">
+                    <h2 class="mb-2 px-2 text-xs font-black uppercase tracking-widest text-slate-400">Acciones</h2>
+                    <ul id="command-actions-container" class="space-y-1"></ul>
+                </div>
+                <div>
+                    <h2 id="command-expedientes-title" class="mb-2 px-2 text-xs font-black uppercase tracking-widest text-slate-400">Expedientes encontrados</h2>
+                    <ul id="command-expedientes-container" class="space-y-1"></ul>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="command-empty" class="hidden px-6 py-14 text-center sm:px-14">
+                <i class="ph-bold ph-ghost mx-auto h-12 w-12 text-slate-300"></i>
+                <p class="mt-4 text-sm font-bold text-slate-900 uppercase tracking-widest">No se encontraron resultados</p>
+                <p class="mt-2 text-xs text-slate-500">Prueba buscando por nombre, cédula o el nombre de una acción.</p>
+            </div>
+
+            <!-- Footer Help -->
+            <div class="flex items-center justify-between bg-slate-50 px-4 py-2.5 text-[10px] text-slate-500 font-bold uppercase tracking-tighter border-t border-slate-100">
+                <div class="flex gap-4">
+                    <span><kbd class="font-sans font-black text-slate-400">ESC</kbd> Cerrar</span>
+                    <span><kbd class="font-sans font-black text-slate-400">ENTER</kbd> Seleccionar</span>
+                </div>
+                <span>Safesure Intelligent Search v2</span>
+            </div>
+        </div>
+    </div>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -593,7 +574,7 @@
         // Global Toast Configuration
         const Toast = Swal.mixin({
             toast: true,
-            position: 'top-end',
+            position: 'bottom-end',
             showConfirmButton: false,
             timer: 3000,
             timerProgressBar: true,
@@ -623,134 +604,147 @@
             });
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
+        function initEnterpriseUI() {
+            console.log("Safesure UI Initializing...");
             const successMsg = document.body.dataset.success;
             const errorMsg = document.body.dataset.error;
 
-            if (successMsg) {
+            if (successMsg && successMsg !== 'null' && successMsg !== '') {
+                console.log("Firing Success Toast:", successMsg);
                 Toast.fire({ icon: 'success', title: successMsg });
+                document.body.dataset.success = ''; 
             }
-            if (errorMsg) {
+            if (errorMsg && errorMsg !== 'null' && errorMsg !== '') {
+                console.log("Firing Error Toast:", errorMsg);
                 Toast.fire({ icon: 'error', title: errorMsg });
+                document.body.dataset.error = '';
             }
+            
+            // Global Slide-over handlers
+            window.openQuickView = (url, title) => {
+                console.log("Opening Quick View:", url);
+                window.dispatchEvent(new CustomEvent('open-slideover', { detail: { url, title } }));
+            };
 
-            // --- Smart Search Logic ---
-            const searchInput = document.getElementById('navbar-search');
-            const searchResults = document.getElementById('search-results');
-            const resultsContainer = document.getElementById('results-container');
-            const searchEmpty = document.getElementById('search-empty');
+            // --- Command Palette Logic ---
+            const cpInput = document.getElementById('command-palette-input');
+            const cpResults = document.getElementById('command-results');
+            const cpActionsContainer = document.getElementById('command-actions-container');
+            const cpExpedientesContainer = document.getElementById('command-expedientes-container');
+            const cpExpedientesTitle = document.getElementById('command-expedientes-title');
+            const cpEmpty = document.getElementById('command-empty');
+            const cpInitial = document.getElementById('command-initial');
             let searchTimeout;
 
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.trim();
-                clearTimeout(searchTimeout);
-
-                if (query.length < 3) {
-                    searchResults.classList.add('hidden');
-                    return;
-                }
-
-                searchTimeout = setTimeout(() => {
-                    const quickActions = [
-                        { nombre: 'Nueva Empresa', url: '{{ route("empresas.create") }}', icon: 'add_business', keywords: ['nueva', 'crear', 'empresa'] },
-                        { nombre: 'Importar Excel', url: '{{ route("import.index") }}', icon: 'upload_file', keywords: ['importar', 'excel', 'subir'] },
-                        { nombre: 'Ver Auditoría', url: '{{ route("admin.audit.index") }}', icon: 'history', keywords: ['auditoria', 'logs', 'historial'] },
-                        { nombre: 'Reporte Supervisión', url: '{{ route("reportes.supervision") }}', icon: 'monitoring', keywords: ['reporte', 'supervision', 'graficos'] }
-                    ];
-
-                    const filteredActions = quickActions.filter(a => 
-                        a.keywords.some(k => k.includes(query.toLowerCase())) || 
-                        a.nombre.toLowerCase().includes(query.toLowerCase())
-                    );
-
-                    fetch(`{{ route('afiliados.search_ajax') }}?q=${encodeURIComponent(query)}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            searchResults.classList.remove('hidden');
-                            resultsContainer.innerHTML = '';
-                            
-                            if (data.length === 0 && filteredActions.length === 0) {
-                                searchEmpty.classList.remove('hidden');
-                                resultsContainer.classList.add('hidden');
-                            } else {
-                                searchEmpty.classList.add('hidden');
-                                resultsContainer.classList.remove('hidden');
-                                
-                                // Render Actions First
-                                if (filteredActions.length > 0) {
-                                    const actionHeader = document.createElement('div');
-                                    actionHeader.className = 'p-3 bg-slate-50/50 border-b border-slate-50';
-                                    actionHeader.innerHTML = '<span class="text-[0.6rem] font-black uppercase tracking-[0.2em] text-slate-400">Acciones Rápidas</span>';
-                                    resultsContainer.appendChild(actionHeader);
-
-                                    filteredActions.forEach(action => {
-                                        const row = document.createElement('a');
-                                        row.href = action.url;
-                                        row.className = 'flex items-center gap-4 p-4 hover:bg-primary/5 transition-colors group cursor-pointer border-l-4 border-transparent hover:border-primary';
-                                        row.innerHTML = `
-                                            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:rotate-12 transition-transform">
-                                                <span class="material-symbols-outlined text-xl">${action.icon}</span>
-                                            </div>
-                                            <div class="flex-1">
-                                                <p class="text-sm font-bold text-slate-800">${action.nombre}</p>
-                                                <p class="text-[0.65rem] font-medium text-slate-400">Acceso directo al módulo</p>
-                                            </div>
-                                            <span class="material-symbols-outlined text-slate-300 text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
-                                        `;
-                                        resultsContainer.appendChild(row);
-                                    });
-                                }
-
-                                // Render Affiliates
-                                if (data.length > 0) {
-                                    const affiliateHeader = document.createElement('div');
-                                    affiliateHeader.className = 'p-3 bg-slate-50/50 border-y border-slate-50';
-                                    affiliateHeader.innerHTML = `<span class="text-[0.6rem] font-black uppercase tracking-[0.2em] text-slate-400">Expedientes (${data.length})</span>`;
-                                    resultsContainer.appendChild(affiliateHeader);
-
-                                    data.forEach(item => {
-                                        const row = document.createElement('a');
-                                        row.href = item.url;
-                                        row.className = 'flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors group cursor-pointer';
-                                        row.innerHTML = `
-                                            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                                <span class="material-symbols-outlined text-xl">person</span>
-                                            </div>
-                                            <div class="flex-1 overflow-hidden">
-                                                <div class="flex justify-between items-center mb-0.5">
-                                                    <p class="text-sm font-bold text-slate-800 truncate">${item.nombre}</p>
-                                                    <span class="text-[0.6rem] font-black uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">${item.estado}</span>
-                                                </div>
-                                                <div class="flex items-center gap-3">
-                                                    <span class="text-[0.7rem] font-medium text-slate-400">ID: ${item.cedula}</span>
-                                                    <span class="w-1 h-1 bg-slate-200 rounded-full"></span>
-                                                    <span class="text-[0.7rem] font-medium text-slate-400">Póliza: ${item.poliza}</span>
-                                                </div>
-                                            </div>
-                                        `;
-                                        resultsContainer.appendChild(row);
-                                    });
-                                }
-                            }
-                        });
-                }, 300);
+            // Auto-focus input when palette opens via Alpine event
+            document.addEventListener('alpine:init', () => {
+                // We can't easily use x-effect here from outside, but we can watch for the open event
             });
 
-            // --- Command Palette (Ctrl+K) ---
-            document.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    searchInput.focus();
-                }
+            // Handle focus via window events that Alpine can trigger or we can listen to
+            window.addEventListener('palette-focus', () => {
+                setTimeout(() => cpInput && cpInput.focus(), 100);
             });
 
-            // Close search when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-                    searchResults.classList.add('hidden');
+            if(cpInput && cpInitial && cpResults && cpEmpty) {
+                // Ensure we don't attach multiple listeners
+                if (!cpInput.dataset.listenerAttached) {
+                    cpInput.addEventListener('input', (e) => {
+                        const query = e.target.value.trim();
+                        clearTimeout(searchTimeout);
+
+                        if (query.length === 0) {
+                            cpInitial.classList.remove('hidden');
+                            cpResults.classList.add('hidden');
+                            cpEmpty.classList.add('hidden');
+                            return;
+                        }
+
+                        if (query.length < 3) return;
+
+                        searchTimeout = setTimeout(() => {
+                            const quickActions = [
+                                { nombre: 'Ir al Dashboard (App Center)', url: '{{ route("dashboard") }}', icon: 'squares-four', keywords: ['inicio', 'home', 'dashboard', 'apps'] },
+                                { nombre: 'Nueva Empresa', url: '{{ route("empresas.create") }}', icon: 'buildings', keywords: ['nueva', 'crear', 'empresa'] },
+                                { nombre: 'Importar Excel', url: '{{ route("import.index") }}', icon: 'file-xls', keywords: ['importar', 'excel', 'subir'] },
+                                { nombre: 'Ver Auditoría', url: '{{ route("admin.audit.index") }}', icon: 'clipboard-text', keywords: ['auditoria', 'logs', 'historial'] },
+                                { nombre: 'Reporte Supervisión', url: '{{ route("reportes.supervision") }}', icon: 'chart-line-up', keywords: ['reporte', 'supervision', 'graficos'] }
+                            ];
+
+                            const filteredActions = quickActions.filter(a => 
+                                a.keywords.some(k => k.includes(query.toLowerCase())) || 
+                                a.nombre.toLowerCase().includes(query.toLowerCase())
+                            );
+
+                            fetch(`{{ route('afiliados.search_ajax') }}?q=${encodeURIComponent(query)}`)
+                                .then(res => res.json())
+                                .then(data => {
+                                    cpInitial.classList.add('hidden');
+                                    
+                                    if (data.length === 0 && filteredActions.length === 0) {
+                                        cpEmpty.classList.remove('hidden');
+                                        cpResults.classList.add('hidden');
+                                    } else {
+                                        cpEmpty.classList.add('hidden');
+                                        cpResults.classList.remove('hidden');
+                                        
+                                        if (cpActionsContainer) {
+                                            cpActionsContainer.innerHTML = '';
+                                            if (filteredActions.length > 0) {
+                                                filteredActions.forEach(action => {
+                                                    const li = document.createElement('li');
+                                                    li.innerHTML = `
+                                                        <a href="${action.url}" class="group flex cursor-default select-none items-center rounded-xl p-3 hover:bg-slate-50 transition-colors">
+                                                            <div class="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-slate-100 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                                                <i class="ph-bold ph-${action.icon} text-lg"></i>
+                                                            </div>
+                                                            <div class="ml-4 flex-auto">
+                                                                <p class="text-sm font-bold text-slate-900">${action.nombre}</p>
+                                                            </div>
+                                                            <i class="ph-bold ph-caret-right text-slate-400 group-hover:text-blue-500 transition-colors"></i>
+                                                        </a>`;
+                                                    cpActionsContainer.appendChild(li);
+                                                });
+                                            }
+                                        }
+
+                                        if (cpExpedientesContainer) {
+                                            cpExpedientesContainer.innerHTML = '';
+                                            if (data.length > 0) {
+                                                if (cpExpedientesTitle) cpExpedientesTitle.classList.remove('hidden');
+                                                data.forEach(item => {
+                                                    const li = document.createElement('li');
+                                                    li.innerHTML = `
+                                                        <a href="${item.url}" class="group flex cursor-default select-none items-center rounded-xl p-3 hover:bg-slate-50 transition-colors">
+                                                            <div class="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                                                <i class="ph-bold ph-user text-lg"></i>
+                                                            </div>
+                                                            <div class="ml-4 flex-auto">
+                                                                <div class="flex items-center gap-2">
+                                                                    <p class="text-sm font-bold text-slate-900">${item.nombre}</p>
+                                                                    <span class="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[9px] font-black uppercase text-blue-700 ring-1 ring-inset ring-blue-700/10">${item.estado}</span>
+                                                                </div>
+                                                                <p class="text-[10px] font-medium text-slate-500 mt-0.5">Cédula: ${item.cedula} &middot; Póliza: ${item.poliza}</p>
+                                                            </div>
+                                                        </a>`;
+                                                    cpExpedientesContainer.appendChild(li);
+                                                });
+                                            } else {
+                                                if (cpExpedientesTitle) cpExpedientesTitle.classList.add('hidden');
+                                            }
+                                        }
+                                    }
+                                })
+                                .catch(err => console.error('Search error:', err));
+                        }, 300);
+                    });
+                    cpInput.dataset.listenerAttached = "true";
                 }
-            });
-        });
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", initEnterpriseUI);
+        document.addEventListener("livewire:navigated", initEnterpriseUI);
     </script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     @stack('scripts')

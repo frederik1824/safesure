@@ -30,8 +30,12 @@ Route::middleware('auth')->group(function () {
         // Centro de Sincronización Firebase
         Route::get('firebase-sync', [\App\Http\Controllers\FirebaseSyncController::class, 'index'])->name('admin.sync.index');
         Route::post('firebase-sync/trigger', [\App\Http\Controllers\FirebaseSyncController::class, 'trigger'])->name('admin.sync.trigger');
+        Route::post('firebase-sync/cancel', [\App\Http\Controllers\FirebaseSyncController::class, 'cancel'])->name('admin.sync.cancel');
         
         Route::get('auditoria', [\App\Http\Controllers\AuditLogController::class, 'index'])->name('admin.audit.index');
+
+        // Módulo Receptor de Traspasos Firebase
+        Route::get('traspasos', [\App\Http\Controllers\TraspasoController::class, 'index'])->name('traspasos.index');
 
         // Centro de Control del Sistema (DevOps)
         Route::get('sistema/control', [\App\Http\Controllers\Admin\SystemController::class, 'index'])->name('admin.system.index');

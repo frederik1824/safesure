@@ -12,13 +12,16 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
-                headline: ["Space Grotesk"],
-                body: ["Inter"],
-                label: ["Inter"],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
+                headline: ["Manrope", "Plus Jakarta Sans", "sans-serif"],
+                body: ["Inter", "sans-serif"],
                 mono: ["JetBrains Mono"],
             },
             colors: {
+                "primary": "var(--brand-primary)", 
+                "secondary": "var(--brand-secondary)",
+                "accent": "#f59e0b",
+                // Preserve the rest of the palette if needed, or replace with standard slate
                 "surface-container-lowest": "#0a0e14",
                 "on-surface-variant": "#bac9cc",
                 "surface-container-highest": "#31353c",
@@ -34,7 +37,6 @@ export default {
                 "on-secondary-container": "#c0acff",
                 "tertiary-fixed-dim": "#3ce36a",
                 "surface": "#10141a",
-                "primary": "#c3f5ff",
                 "secondary-fixed-dim": "#cdbdff",
                 "outline": "#849396",
                 "on-error-container": "#ffdad6",

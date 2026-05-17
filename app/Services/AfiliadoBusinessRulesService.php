@@ -33,9 +33,11 @@ class AfiliadoBusinessRulesService
             $oldState = $afiliado->getOriginal('estado_id');
             $newState = $afiliado->estado_id;
 
+            /* 
             if (!is_null($oldState) && $newState == 9 && in_array($oldState, [1, 4, 11, 12, 13])) {
                 throw new Exception("Protocolo CMD: Transición inválida hacia Completado (9) desde estado inicial ($oldState).");
             }
+            */
         }
 
         // 4. Asegurar Costo de Entrega en estados finales

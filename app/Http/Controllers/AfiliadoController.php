@@ -76,7 +76,16 @@ class AfiliadoController extends Controller
 
     protected function processIndex(Request $request, $segment = null)
     {
-        $query = \App\Models\Afiliado::with(['corte', 'responsable', 'estado', 'empresaModel', 'evidenciasAfiliado']);
+        $query = \App\Models\Afiliado::with([
+            'corte', 
+            'responsable', 
+            'estado', 
+            'empresaModel', 
+            'evidenciasAfiliado',
+            'historialEstados.estadoAnterior',
+            'historialEstados.estadoNuevo',
+            'historialEstados.user'
+        ]);
 
         if ($segment === 'CMD') {
             $query->ars()->whereNotNull('responsable_id');
@@ -295,7 +304,17 @@ class AfiliadoController extends Controller
             abort(404, 'El afiliado no pudo ser localizado localmente ni en la nube.');
         }
 
-        $afiliado->load(['corte', 'responsable', 'estado', 'empresaModel', 'evidenciasAfiliado', 'historialEstados.user', 'notas.user']);
+        $afiliado->load([
+            'corte', 
+            'responsable', 
+            'estado', 
+            'empresaModel', 
+            'evidenciasAfiliado', 
+            'historialEstados.user', 
+            'historialEstados.estadoAnterior', 
+            'historialEstados.estadoNuevo', 
+            'notas.user'
+        ]);
         return view('afiliados.show', compact('afiliado'));
     }
 
@@ -559,7 +578,7 @@ class AfiliadoController extends Controller
 
             $observacionFinal = $request->motivo_rapido ?: ($request->observacion ?? 'Estado actualizado individualmente.');
             $this->afiliadoService->updateStatus($afiliado, $request->estado_id, $observacionFinal, auth()->id());
-            return redirect()->route('afiliados.show', $afiliado)->with('success', 'Estado del afiliado actualizado correctamente.');
+            return back()->with('success', 'Estado del afiliado actualizado correctamente.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }

@@ -33,5 +33,24 @@ while ! nc -z 127.0.0.1 9000; do
   sleep 1
 done
 
+# Start Queue Worker in background if enabled
+if [ "${RUN_QUEUE_WORKER:-true}" = "true" ]; then
+    echo "Starting Laravel Queue Worker in the background..."
+    touch /var/log/nginx/queue-worker.log
+    chown www-data:www-data /var/log/nginx/queue-worker.log
+    php artisan queue:work --tries=3 --delay=5 --timeout=300 --queue=default,high > /var/log/nginx/queue-worker.log 2>&1 &
+fi
+
+# Start Cron Scheduler loop in background if enabled
+if [ "${RUN_SCHEDULER:-true}" = "true" ]; then
+    echo "Starting Laravel Scheduler loop in the background..."
+    (
+        while true; do
+            php artisan schedule:run --no-interaction > /dev/null 2>&1
+            sleep 60
+        done
+    ) &
+fi
+
 echo "Starting Nginx..."
 nginx -g 'daemon off;'

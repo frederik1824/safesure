@@ -31,3 +31,28 @@ Para que esta logística funcione, solicitamos al equipo de Safesure asegurar lo
 
 ---
 *Documento preparado para coordinación con el equipo técnico de Safesure.*
+
+Repuerar espacio
+ Comandos para Recuperar Espacio en el VPS
+Accede a tu servidor por SSH y ejecuta estos comandos en orden:
+
+1. Limpieza General (Imágenes, Contenedores y Redes no utilizados)
+Este comando eliminará todo lo que no esté siendo usado actualmente por un contenedor activo.
+
+bash
+docker system prune -a --volumes -f
+-a: Elimina imágenes que no están siendo usadas (no solo las huérfanas).
+--volumes: Elimina volúmenes que no están conectados a ningún contenedor (ten cuidado si guardas datos fuera de la base de datos principal, aunque normalmente Dokploy maneja esto bien).
+-f: Fuerza la ejecución sin pedir confirmación.
+2. Limpieza de Caché de Construcción
+El caché de las compilaciones de Docker suele ser el mayor culpable del consumo de espacio.
+
+bash
+docker builder prune -a -f
+3. Limpieza de Logs de Contenedores (Opcional pero recomendado)
+A veces los archivos de log crecen sin control. Puedes vaciarlos con este comando (necesitas permisos de root):
+
+bash
+truncate -s 0 /var/lib/docker/containers/*/*-json.log
+💡 Recomendación Pro (Dokploy)
+Dentro del panel de Dokploy, busca la configuración de "Auto Prune" o "Clean up". La mayoría de estos sistemas permiten programar una limpieza automática después de cada despliegue exitoso para evitar que esto vuelva a ocurrir.

@@ -1,782 +1,625 @@
+
 @extends('layouts.app')
+@section('title', 'Gestión de Afiliados')
+
 @section('content')
-    <div class="p-8 space-y-6">
-        <!-- Page Header & Bulk Actions -->
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">
-                    @if(!$segment)
-                        Asignaciones <span class="text-primary/50 text-xl font-medium">(Pendientes)</span>
-                    @elseif($segment === 'CMD')
-                        Afiliados CMD
-                    @else
-                        Afiliados Otras Empresas
-                    @endif
-                </h1>
-                <p class="text-slate-500 text-sm font-medium mt-1">Gestión y seguimiento del proceso de carnetización.</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <div id="bulk-actions-wrapper" class="hidden animate-in fade-in zoom-in duration-300 w-full lg:w-auto">
-                    <div class="flex items-center justify-around bg-primary/5 p-1 rounded-2xl border border-primary/20 shadow-sm w-full lg:w-auto">
-                        <button type="button" onclick="openAssignModal()" class="flex-1 lg:flex-none px-4 py-2.5 text-xs font-black text-primary hover:bg-primary hover:text-white rounded-xl transition-all flex items-center justify-center gap-2">
-                            <i class="ph-fill ph-user-plus text-lg"></i> Asignar
-                        </button>
-                        <div class="w-[1px] h-4 bg-primary/20 mx-1"></div>
-                        <button type="button" onclick="openStatusModal()" class="flex-1 lg:flex-none px-4 py-2.5 text-xs font-black text-primary hover:bg-primary hover:text-white rounded-xl transition-all flex items-center justify-center gap-2">
-                            <i class="ph-fill ph-arrows-counter-clockwise text-lg"></i> Estado
-                        </button>
-                        <div class="w-[1px] h-4 bg-primary/20 mx-1"></div>
-                        <button type="button" onclick="openCompanyModal()" class="flex-1 lg:flex-none px-4 py-2.5 text-xs font-black text-primary hover:bg-primary hover:text-white rounded-xl transition-all flex items-center justify-center gap-2">
-                            <i class="ph-fill ph-buildings text-lg"></i> Empresa
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full lg:w-auto">
-                    <form action="{{ route('afiliados.sanitize') }}" method="POST" class="contents">
-                        @csrf
-                        <button type="submit" class="px-4 py-3 bg-white border border-slate-200 hover:border-primary/30 hover:bg-primary/5 text-slate-600 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
-                            <i class="ph ph-magic-wand text-lg"></i>
-                            <span class="hidden sm:inline">Normalizar</span>
-                        </button>
-                    </form>
-                    <a href="{{ route('afiliados.export', request()->all()) }}" class="px-4 py-3 bg-slate-800 text-white font-bold text-xs rounded-xl shadow-lg hover:bg-slate-900 transition-all flex items-center justify-center gap-2">
-                        <i class="ph ph-download-simple text-lg"></i>
-                        <span class="hidden sm:inline">Exportar</span>
-                    </a>
-                    <a href="{{ route('afiliados.create', ['segment' => $segment]) }}" class="col-span-2 sm:col-span-1 bg-primary text-white px-6 py-3 rounded-xl shadow-xl shadow-primary/20 text-sm font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all">
-                        <i class="ph ph-plus-circle text-lg"></i> Nuevo Afiliado
-                    </a>
-                </div>
+<div class="space-y-6 animate-page-transition">
+    
+    <!-- Page Header & Global Stats -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm">
+        <div>
+            <h1 class="text-2xl font-display font-bold text-slate-800 tracking-tight">
+                @if(!$segment)
+                    Control de Asignaciones <span class="text-blue-500 font-medium text-lg ml-2">Pendientes</span>
+                @else
+                    Módulo de Afiliados <span class="text-slate-400 font-medium text-lg ml-2">{{ $segment }}</span>
+                @endif
+            </h1>
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Monitoreo y despacho de flota logística</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- Removed bulk actions from header, now floating -->
+
+            <div class="flex items-center gap-2">
+                <form action="{{ route('afiliados.sanitize') }}" method="POST" class="contents">
+                    @csrf
+                    <button type="submit" class="w-10 h-10 bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200 rounded-xl transition-all flex items-center justify-center shadow-sm" title="Normalizar Datos">
+                        <i class="ph-bold ph-magic-wand text-lg"></i>
+                    </button>
+                </form>
+                <a href="{{ route('afiliados.export', request()->all()) }}" class="w-10 h-10 bg-white border border-slate-200 text-slate-400 hover:text-emerald-600 hover:border-emerald-200 rounded-xl transition-all flex items-center justify-center shadow-sm" title="Exportar Excel">
+                    <i class="ph-bold ph-download-simple text-lg"></i>
+                </a>
+                <a href="{{ route('afiliados.create', ['segment' => $segment]) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2 ml-2">
+                    <i class="ph-bold ph-plus"></i> Registro Manual
+                </a>
             </div>
         </div>
+    </div>
 
-        @if(isset($statsPorPeriodo) && $statsPorPeriodo->count() > 0)
-        <!-- Panel de Avance por Periodo -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            @foreach($statsPorPeriodo as $stat)
-            <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="text-[0.6rem] font-black uppercase text-slate-400 tracking-wider">{{ $stat->nombre }}</span>
-                    <span class="text-xs font-bold text-primary">{{ $stat->porcentaje }}%</span>
+    @if(isset($statsPorPeriodo) && $statsPorPeriodo->count() > 0)
+    <!-- Period Progress -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        @foreach($statsPorPeriodo as $stat)
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm group hover:border-blue-500/20 transition-all">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ $stat->nombre }}</span>
+                <span class="text-[11px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{{ $stat->porcentaje }}%</span>
+            </div>
+            <div class="flex items-end justify-between">
+                <div>
+                    <p class="text-2xl font-display font-bold text-slate-800 tracking-tight">{{ number_format($stat->total) }}</p>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase">Total Base</p>
                 </div>
-                <div class="flex items-end justify-between">
-                    <div>
-                        <p class="text-lg font-black text-slate-800">{{ $stat->total }}</p>
-                        <p class="text-[0.6rem] text-slate-400 font-bold uppercase">Total</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-bold text-amber-600">{{ $stat->pendiente }}</p>
-                        <p class="text-[0.6rem] text-slate-400 font-bold uppercase">Pendiente</p>
-                    </div>
-                </div>
-                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
-                    <div class="bg-primary h-full rounded-full" style="width: {{ $stat->porcentaje }}%"></div>
+                <div class="text-right">
+                    <p class="text-sm font-bold text-amber-600">{{ number_format($stat->pendiente) }}</p>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Pendiente</p>
                 </div>
             </div>
-            @endforeach
+            <div class="w-full bg-slate-100 h-1.5 rounded-full mt-4 overflow-hidden">
+                <div class="bg-blue-600 h-full rounded-full transition-all duration-1000" style="width: {{ $stat->porcentaje }}%"></div>
+            </div>
         </div>
-        @endif
+        @endforeach
+    </div>
+    @endif
 
-        <!-- Filter Bar -->
-        <div x-data="{ filtersOpen: false }" class="space-y-4">
-            <button @click="filtersOpen = !filtersOpen" class="lg:hidden w-full flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 text-slate-700 font-bold text-sm rounded-2xl border border-slate-200 transition-all active:scale-95">
-                <i class="ph ph-sliders text-xl"></i>
-                <span x-text="filtersOpen ? 'Ocultar Filtros' : 'Mostrar Filtros de Búsqueda'"></span>
-            </button>
-
-            <form id="filterForm" method="GET" action="{{ route(Route::currentRouteName()) }}" 
-                  class="bg-white p-6 rounded-2xl flex flex-wrap items-center gap-4 border border-slate-200/60 shadow-sm transition-all duration-300"
-                  :class="filtersOpen ? 'flex' : 'hidden lg:flex'">
-                
-                <div class="w-full lg:flex-1 lg:min-w-[250px] relative">
-                    <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por Nombre / Cédula" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm font-medium pl-12 pr-4 py-3 focus:ring-4 focus:ring-primary/10 transition-all">
+    <!-- Filters Section -->
+    <div x-data="{ open: false }" class="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
+        <div class="px-8 py-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center cursor-pointer select-none" @click="open = !open">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400">
+                    <i class="ph ph-funnel text-base"></i>
+                </div>
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Filtros Avanzados</span>
+            </div>
+            <i class="ph ph-caret-down text-xs text-slate-400 transition-transform duration-300" :class="open ? 'rotate-180' : ''"></i>
+        </div>
+        
+        <div x-show="open" x-collapse>
+            <form id="filterForm" method="GET" action="{{ route(Route::currentRouteName()) }}" class="p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Búsqueda General</label>
+                    <div class="relative">
+                        <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Nombre o Cédula..." class="w-full bg-slate-50 border-slate-200 rounded-xl text-xs font-medium pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+                    </div>
                 </div>
 
-                <div class="w-full sm:w-[calc(50%-0.5rem)] lg:flex-1 lg:min-w-[200px] relative">
-                    <select name="estado_id" class="w-full appearance-none bg-slate-50 border-slate-200 rounded-xl text-sm font-medium px-4 py-3 pr-10 focus:ring-4 focus:ring-primary/10 transition-all">
-                        <option value="">Estado: Todos</option>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Estado de Proceso</label>
+                    <select name="estado_id" class="w-full bg-slate-50 border-slate-200 rounded-xl text-xs font-medium px-4 py-2.5 focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+                        <option value="">Cualquier estado</option>
                         @foreach(\App\Models\Estado::all() as $est)
                             <option value="{{ $est->id }}" {{ request('estado_id') == $est->id ? 'selected' : '' }}>{{ $est->nombre }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <div class="w-full sm:w-[calc(50%-0.5rem)] lg:flex-1 lg:min-w-[200px] relative">
-                    <select name="corte_id" class="w-full appearance-none bg-slate-50 border-slate-200 rounded-xl text-sm font-medium px-4 py-3 pr-10 focus:ring-4 focus:ring-primary/10 transition-all">
-                        <option value="">Corte: Todos</option>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Corte Operativo</label>
+                    <select name="corte_id" class="w-full bg-slate-50 border-slate-200 rounded-xl text-xs font-medium px-4 py-2.5 focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+                        <option value="">Todos los cortes</option>
                         @foreach(\App\Models\Corte::all() as $c)
                             <option value="{{ $c->id }}" {{ request('corte_id') == $c->id ? 'selected' : '' }}>{{ $c->nombre }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <div class="w-full sm:w-[calc(50%-0.5rem)] lg:flex-1 lg:min-w-[200px] relative">
-                    <input type="text" name="rnc_empresa" value="{{ request('rnc_empresa') }}" list="empresas_filter_list" placeholder="Empresa / RNC" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm font-medium px-4 py-3 focus:ring-4 focus:ring-primary/10 transition-all">
-                    <datalist id="empresas_filter_list">
-                        @foreach(\App\Models\Empresa::orderBy('nombre')->get(['nombre', 'rnc']) as $emp)
-                            <option value="{{ $emp->rnc }}">{{ $emp->nombre }}</option>
-                        @endforeach
-                    </datalist>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Entidad / RNC</label>
+                    <input type="text" name="rnc_empresa" value="{{ request('rnc_empresa') }}" placeholder="Filtrar empresa..." class="w-full bg-slate-50 border-slate-200 rounded-xl text-xs font-medium px-4 py-2.5 focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
                 </div>
 
-                <div class="w-full sm:w-[calc(50%-0.5rem)] lg:flex-1 lg:min-w-[120px] relative">
-                    <select name="sexo" class="w-full appearance-none bg-slate-50 border-slate-200 rounded-xl text-sm font-medium px-4 py-3 pr-10 focus:ring-4 focus:ring-primary/10 transition-all">
-                        <option value="">Sexo: Todos</option>
-                        <option value="M" {{ request('sexo') == 'M' ? 'selected' : '' }}>Masculino</option>
-                        <option value="F" {{ request('sexo') == 'F' ? 'selected' : '' }}>Femenino</option>
-                    </select>
-                </div>
-
-                <div class="flex items-center gap-2 w-full lg:w-auto ml-auto">
-                    <button type="submit" class="flex-1 lg:flex-none bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10">
-                        <i class="ph ph-funnel text-lg"></i> Filtrar
+                <div class="flex items-end gap-2">
+                    <button type="submit" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm">
+                        Aplicar Filtros
                     </button>
-                    <a href="{{ route(Route::currentRouteName()) }}" class="p-3 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 transition-all" title="Limpiar filtros">
-                        <i class="ph ph-arrow-counter-clockwise text-xl"></i>
+                    <a href="{{ route(Route::currentRouteName()) }}" class="w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl flex items-center justify-center transition-all" title="Limpiar">
+                        <i class="ph ph-arrow-counter-clockwise"></i>
                     </a>
                 </div>
             </form>
         </div>
+    </div>
 
-        <!-- Table Container -->
-        <div id="tableContainer" class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 transition-all duration-300">
-            <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left border-collapse responsive-table">
-                    <thead>
-                        <tr class="bg-surface-container-high dark:bg-slate-800/50">
-                            <th class="py-4 px-6 border-b border-slate-200 dark:border-slate-700">
-                                <input id="selectAll" class="rounded text-primary focus:ring-primary border-slate-300 w-4 h-4 cursor-pointer" type="checkbox"/>
+        <!-- Table Container (Modern Floating Cards) -->
+        <div id="tableContainer" class="transition-all duration-300 flex flex-col h-[650px]">
+            <div class="overflow-x-auto overflow-y-auto custom-scrollbar flex-1 pr-2">
+                <table class="w-full text-left border-separate border-spacing-y-3">
+                    <thead class="sticky top-0 z-20">
+                        <tr class="bg-slate-100/50 backdrop-blur-md">
+                            <th class="py-4 px-6 text-[10px] font-black tracking-widest uppercase text-slate-400">
+                                <input id="selectAll" class="rounded text-slate-900 focus:ring-slate-500 border-slate-300 w-4 h-4 cursor-pointer" type="checkbox"/>
                             </th>
-                            <th class="py-4 px-2 border-b border-slate-200 dark:border-slate-700 text-[0.6875rem] font-medium tracking-wider uppercase text-on-surface-variant dark:text-slate-400">
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'nombre', 'direction' => request('sort') === 'nombre' && request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="flex items-center gap-1 hover:text-primary transition-colors">
-                                    Afiliado @if(request('sort') === 'nombre') <span class="material-symbols-outlined text-xs">{{ request('direction') === 'asc' ? 'expand_less' : 'expand_more' }}</span> @endif
+                            <th class="py-4 px-2 text-[10px] font-black tracking-widest uppercase text-slate-400">
+                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'nombre', 'direction' => request('sort') === 'nombre' && request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="flex items-center gap-1 hover:text-slate-900 transition-colors">
+                                    Afiliado @if(request('sort') === 'nombre') <i class="ph ph-caret-{{ request('direction') === 'asc' ? 'up' : 'down' }}"></i> @endif
                                 </a>
                             </th>
-                            <th class="py-4 px-4 border-b border-slate-200 dark:border-slate-700 text-[0.6875rem] font-medium tracking-wider uppercase text-on-surface-variant dark:text-slate-400">
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'contrato', 'direction' => request('sort') === 'contrato' && request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="flex items-center gap-1 hover:text-primary transition-colors">
-                                    Contrato @if(request('sort') === 'contrato') <span class="material-symbols-outlined text-xs">{{ request('direction') === 'asc' ? 'expand_less' : 'expand_more' }}</span> @endif
-                                </a>
-                            </th>
-                            <th class="py-4 px-4 border-b border-slate-200 dark:border-slate-700 text-[0.6875rem] font-medium tracking-wider uppercase text-on-surface-variant dark:text-slate-400 w-32">RNC</th>
-                            <th class="py-4 px-4 border-b border-slate-200 dark:border-slate-700 text-[0.6875rem] font-medium tracking-wider uppercase text-on-surface-variant dark:text-slate-400">
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'empresa', 'direction' => request('sort') === 'empresa' && request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="flex items-center gap-1 hover:text-primary transition-colors">
-                                    Empresa @if(request('sort') === 'empresa') <span class="material-symbols-outlined text-xs">{{ request('direction') === 'asc' ? 'expand_less' : 'expand_more' }}</span> @endif
-                                </a>
-                            </th>
-                            <th class="py-4 px-4 border-b border-slate-200 dark:border-slate-700 text-[0.6875rem] font-medium tracking-wider uppercase text-on-surface-variant dark:text-slate-400">Corte</th>
-                            <th class="py-4 px-4 border-b border-slate-200 dark:border-slate-700 text-[0.6875rem] font-medium tracking-wider uppercase text-on-surface-variant dark:text-slate-400">
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'responsable', 'direction' => request('sort') === 'responsable' && request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="flex items-center gap-1 hover:text-primary transition-colors">
-                                    Responsable @if(request('sort') === 'responsable') <span class="material-symbols-outlined text-xs">{{ request('direction') === 'asc' ? 'expand_less' : 'expand_more' }}</span> @endif
-                                </a>
-                            </th>
-                            <th class="py-4 px-4 border-b border-slate-200 dark:border-slate-700 text-[0.6875rem] font-medium tracking-wider uppercase text-on-surface-variant dark:text-slate-400 text-center">
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'entrega', 'direction' => request('sort') === 'entrega' && request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="flex items-center justify-center gap-1 hover:text-primary transition-colors">
-                                    Entrega @if(request('sort') === 'entrega') <span class="material-symbols-outlined text-xs">{{ request('direction') === 'asc' ? 'expand_less' : 'expand_more' }}</span> @endif
-                                </a>
-                            </th>
-                            <th class="py-4 px-4 border-b border-slate-200 dark:border-slate-700 text-[0.6875rem] font-medium tracking-wider uppercase text-on-surface-variant dark:text-slate-400 text-center">Docs</th>
-                            <th class="py-4 px-4 border-b border-slate-200 dark:border-slate-700 text-[0.6875rem] font-medium tracking-wider uppercase text-on-surface-variant dark:text-slate-400">
-                                <a href="{{ request()->fullUrlWithQuery(['sort' => 'estado', 'direction' => request('sort') === 'estado' && request('direction') === 'asc' ? 'desc' : 'asc']) }}" class="flex items-center gap-1 hover:text-primary transition-colors">
-                                    Estado @if(request('sort') === 'estado') <span class="material-symbols-outlined text-xs">{{ request('direction') === 'asc' ? 'expand_less' : 'expand_more' }}</span> @endif
-                                </a>
-                            </th>
-                            <th class="py-4 px-6 border-b border-slate-200 dark:border-slate-700 text-[0.6875rem] font-medium tracking-wider uppercase text-on-surface-variant dark:text-slate-400 text-right">Acciones</th>
+                            <th class="py-4 px-4 text-[10px] font-black tracking-widest uppercase text-slate-400">Contrato</th>
+                            <th class="py-4 px-4 text-[10px] font-black tracking-widest uppercase text-slate-400">Entidad</th>
+                            <th class="py-4 px-4 text-[10px] font-black tracking-widest uppercase text-slate-400">Corte</th>
+                            <th class="py-4 px-4 text-[10px] font-black tracking-widest uppercase text-slate-400 text-center">Responsable</th>
+                            <th class="py-4 px-4 text-[10px] font-black tracking-widest uppercase text-slate-400 text-center">Entrega</th>
+                            <th class="py-4 px-4 text-[10px] font-black tracking-widest uppercase text-slate-400 text-center">Estado</th>
+                            <th class="py-4 px-6 text-[10px] font-black tracking-widest uppercase text-slate-400 text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-50 dark:divide-slate-800/50 transition-opacity duration-300">
-                        <!-- Skeleton Rows (Hidden by default) -->
-                        <template id="skeleton-row">
-                            <tr class="animate-pulse">
-                                <td class="py-4 px-6"><div class="w-4 h-4 bg-slate-100 rounded"></div></td>
-                                <td class="py-4 px-2">
-                                    <div class="space-y-2">
-                                        <div class="h-4 bg-slate-100 rounded w-3/4 skeleton"></div>
-                                        <div class="h-3 bg-slate-50 rounded w-1/2 skeleton"></div>
-                                    </div>
-                                </td>
-                                <td class="py-4 px-4"><div class="h-4 bg-slate-50 rounded w-2/3 skeleton"></div></td>
-                                <td class="py-4 px-4"><div class="h-4 bg-slate-50 rounded w-24 skeleton"></div></td>
-                                <td class="py-4 px-4"><div class="h-4 bg-slate-50 rounded w-32 skeleton"></div></td>
-                                <td class="py-4 px-4"><div class="h-4 bg-slate-50 rounded w-16 skeleton"></div></td>
-                                <td class="py-4 px-4"><div class="h-8 bg-slate-50 rounded-full w-24 skeleton"></div></td>
-                                <td class="py-4 px-4"><div class="h-4 bg-slate-50 rounded w-20 skeleton"></div></td>
-                                <td class="py-4 px-4"><div class="h-4 bg-slate-50 rounded w-12 skeleton"></div></td>
-                                <td class="py-4 px-4"><div class="h-6 bg-slate-50 rounded-full w-20 skeleton"></div></td>
-                                <td class="py-4 px-6 text-right"><div class="h-8 bg-slate-50 rounded-xl w-16 ml-auto skeleton"></div></td>
-                            </tr>
-                        </template>
-
-                        @forelse($afiliados as $afiliado)
-                        <tr class="hover:bg-slate-50/80 transition-all group border-b border-slate-100 last:border-0 dark:border-slate-800">
-                            <td class="py-4 px-6 afiliado-cell">
+                    <tbody id="tableBody">
+                        @foreach($afiliados as $afiliado)
+                        <tr class="group transition-all duration-300 hover:-translate-y-0.5">
+                            <td class="bg-white py-4 px-6 rounded-l-[20px] shadow-sm group-hover:shadow-md transition-all border-y border-l border-slate-100 group-hover:border-blue-200 relative overflow-hidden">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-slate-100 group-hover:bg-blue-600 transition-all"></div>
+                                <input name="selected[]" value="{{ $afiliado->id }}" class="rounded text-slate-900 focus:ring-slate-500 border-slate-300 w-4 h-4 cursor-pointer affiliate-checkbox" type="checkbox"/>
+                            </td>
+                            <td class="bg-white py-4 px-2 shadow-sm group-hover:shadow-md transition-all border-y border-slate-100 group-hover:border-blue-200">
                                 <div class="flex items-center gap-3">
-                                    <input name="selected[]" value="{{ $afiliado->id }}" class="rounded text-primary focus:ring-primary border-slate-300 w-5 h-5 cursor-pointer affiliate-checkbox" type="checkbox"/>
+                                    <button type="button" onclick="openQuickView('{{ route('afiliados.show', $afiliado) }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
+                                            class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500 text-sm font-black border border-slate-100 transition-all hover:bg-blue-600 hover:text-white hover:border-blue-600 shadow-inner">
+                                        {{ substr($afiliado->nombre_completo, 0, 1) }}{{ substr(strrchr($afiliado->nombre_completo, " "), 1, 1) ?: '' }}
+                                    </button>
                                     <div class="flex flex-col">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-sm font-bold text-slate-800">{{ $afiliado->nombre_completo }}</span>
-                                            @if($afiliado->sexo)
-                                                <i class="ph-fill {{ $afiliado->sexo === 'M' ? 'ph-gender-male text-blue-500' : 'ph-gender-female text-pink-500' }} text-base"></i>
-                                            @endif
-                                            @if($afiliado->reasignado)
-                                                <span class="px-1.5 py-0.5 bg-rose-50 text-rose-600 rounded-lg text-[9px] font-black uppercase border border-rose-100">REASIGNADO</span>
-                                            @endif
-                                        </div>
-                                        <span class="text-xs text-slate-500 font-medium">{{ $afiliado->cedula_formatted }}</span>
+                                        <button type="button" onclick="openQuickView('{{ route('afiliados.show', $afiliado) }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
+                                                class="text-sm font-black text-slate-800 hover:text-blue-600 transition-all text-left uppercase tracking-tight leading-tight">
+                                            {{ $afiliado->nombre_completo }}
+                                        </button>
+                                        <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-tighter">{{ $afiliado->cedula_formatted }}</span>
                                     </div>
                                 </div>
                             </td>
-                            <td class="py-4 px-4" data-label="Contrato">
-                                <span class="text-xs font-bold text-slate-700">{{ $afiliado->contrato ?? 'N/A' }}</span>
+                            <td class="bg-white py-4 px-4 shadow-sm group-hover:shadow-md transition-all border-y border-slate-100 group-hover:border-blue-200">
+                                <span class="text-[10px] font-mono font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">{{ $afiliado->contrato ?? '---' }}</span>
                             </td>
-                            <td class="py-4 px-4" data-label="RNC">
-                                <span class="text-[0.7rem] font-mono font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">
-                                    {{ $afiliado->empresaModel->rnc ?? ($afiliado->rnc_empresa ?? '----------') }}
-                                </span>
+                            <td class="bg-white py-4 px-4 shadow-sm group-hover:shadow-md transition-all border-y border-slate-100 group-hover:border-blue-200">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-black text-slate-700 truncate max-w-[150px] uppercase">{{ $afiliado->empresaModel->nombre ?? $afiliado->empresa }}</span>
+                                    <span class="text-[9px] font-mono font-bold text-slate-400">{{ $afiliado->empresaModel->rnc ?? 'S/RNC' }}</span>
+                                </div>
                             </td>
-                            <td class="py-4 px-4" data-label="Empresa">
-                                @if($afiliado->empresa_id)
-                                    <a href="{{ route('empresas.show', $afiliado->empresaModel) }}" class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-                                        <i class="ph-fill ph-building text-base"></i>
-                                        {{ $afiliado->empresaModel->nombre ?? $afiliado->empresa }}
-                                        @if($afiliado->empresaModel?->es_verificada)
-                                            <i class="ph-fill ph-seal-check text-blue-500 text-base"></i>
-                                        @endif
-                                    </a>
+                            <td class="bg-white py-4 px-4 shadow-sm group-hover:shadow-md transition-all border-y border-slate-100 group-hover:border-blue-200">
+                                <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-100">{{ $afiliado->corte->nombre ?? 'N/A' }}</span>
+                            </td>
+                            <td class="bg-white py-4 px-4 shadow-sm group-hover:shadow-md transition-all border-y border-slate-100 group-hover:border-blue-200 text-center">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-[10px] font-black text-slate-600 uppercase tracking-tighter">{{ explode(' ', $afiliado->responsable->nombre ?? 'S/A')[0] }}</span>
+                                    <span class="text-[8px] font-bold text-slate-400 uppercase">Gestor</span>
+                                </div>
+                            </td>
+                            <td class="bg-white py-4 px-4 shadow-sm group-hover:shadow-md transition-all border-y border-slate-100 group-hover:border-blue-200 text-center">
+                                @if($afiliado->fecha_entrega_safesure)
+                                    <div class="inline-flex flex-col items-center bg-slate-50 px-3 py-1 rounded-xl border border-slate-100">
+                                        <span class="text-[10px] font-black text-slate-700">{{ $afiliado->fecha_entrega_safesure->format('d/m/y') }}</span>
+                                        <span class="text-[8px] font-black text-blue-500 uppercase">{{ $afiliado->dias_transcurridos }} Días</span>
+                                    </div>
                                 @else
-                                    <span class="text-xs font-medium text-slate-600">{{ $afiliado->empresa ?? 'N/A' }}</span>
+                                    <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Pendiente</span>
                                 @endif
                             </td>
-                            <td class="py-4 px-4" data-label="Corte">
-                                <span class="text-xs font-bold text-slate-600">{{ $afiliado->corte->nombre ?? 'N/A' }}</span>
+                            <td class="bg-white py-4 px-4 shadow-sm group-hover:shadow-md transition-all border-y border-slate-100 group-hover:border-blue-200 text-center">
+                                <x-status-badge :estado="$afiliado->estado" class="scale-90" />
                             </td>
-                            <td class="py-4 px-4" data-label="Responsable">
-                                <div class="flex items-center gap-2 justify-end lg:justify-start">
-                                    @if($afiliado->responsable)
-                                    <span class="text-xs font-bold text-slate-700">{{ $afiliado->responsable->nombre }}</span>
-                                    @else
-                                    <span class="text-[0.65rem] text-slate-400 italic">Sin asignar</span>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="py-4 px-4">
-                                <div class="flex flex-col items-center justify-center">
-                                    @if($afiliado->fecha_entrega_safesure)
-                                        <div class="flex items-center gap-1.5">
-                                            @php
-                                                $sla = $afiliado->sla_status;
-                                                $color = $sla === 'critico' ? 'bg-rose-500' : ($sla === 'alerta' ? 'bg-amber-500' : ($sla === 'completado' ? 'bg-emerald-500' : 'bg-blue-500'));
-                                            @endphp
-                                            <div class="w-2.5 h-2.5 rounded-full {{ $color }} animate-pulse"></div>
-                                            <span class="text-[0.7rem] font-bold text-on-surface">{{ $afiliado->fecha_entrega_safesure->format('d/m/y') }}</span>
-                                        </div>
-                                        <span class="text-[0.6rem] text-slate-500 uppercase font-black tracking-tighter">{{ $afiliado->dias_transcurridos }} Días</span>
-                                    @else
-                                        <span class="text-[0.65rem] text-slate-400 italic">No entregado</span>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="py-4 px-4 text-center" data-label="Estado">
-                                <x-status-badge :estado="$afiliado->estado" />
-                            </td>
-                            <td class="py-4 px-4 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    @php
-                                        $hasAcuse = $afiliado->evidenciasAfiliado->where('tipo_documento', 'acuse')->isNotEmpty();
-                                    @endphp
-                                    
-                                    @if(!$hasAcuse)
-                                    <button type="button" onclick="quickPhysicalAcuse('{{ $afiliado->id }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
-                                        class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm hover:shadow-emerald-200" 
-                                        title="Acuse Recibido (Físico)">
-                                        <i class="ph-bold ph-file-check text-xl"></i>
+                            <td class="bg-white py-4 px-6 rounded-r-[20px] shadow-sm group-hover:shadow-md transition-all border-y border-r border-slate-100 group-hover:border-blue-200 text-right">
+                                <div class="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0 translate-x-4">
+                                    <button type="button" onclick="openQuickView('{{ route('afiliados.show', $afiliado) }}', '{{ addslashes($afiliado->nombre_completo) }}')" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition-all" title="Vista Rápida">
+                                        <i class="ph-bold ph-eye"></i>
+                                    </button>
+                                    @if($afiliado->estado_id != 11)
+                                    <button type="button" onclick="quickAcuse('{{ $afiliado->uuid }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
+                                            class="w-9 h-9 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all" title="Acuse de Recibo">
+                                        <i class="ph-bold ph-check-square"></i>
                                     </button>
                                     @endif
-
                                     <button type="button" onclick="quickComplete('{{ $afiliado->uuid }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
-                                        class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm hover:shadow-blue-200" 
-                                        title="Marcar Completado">
-                                        <i class="ph-bold ph-check-circle text-xl"></i>
+                                            class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all" title="Marcar como Completado">
+                                        <i class="ph-bold ph-check-circle"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="9" class="py-8 text-center text-slate-500">
-                                No se encontraron afiliados según los filtros aplicados.
+                        @endforeach
+                        
+                        <tr id="emptyRow" class="{{ count($afiliados) > 0 ? 'hidden' : '' }}">
+                            <td colspan="9" class="py-32 text-center">
+                                <div class="flex flex-col items-center gap-4 max-w-sm mx-auto animate-page-transition">
+                                    <div class="relative">
+                                        <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center border border-slate-100 shadow-inner">
+                                            <i class="ph-bold ph-magnifying-glass text-4xl text-slate-300"></i>
+                                        </div>
+                                        <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-lg border border-slate-50">
+                                            <i class="ph-bold ph-ghost text-xl text-blue-500"></i>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <h3 class="text-lg font-black text-slate-800 uppercase tracking-widest">Búsqueda sin éxito</h3>
+                                        <p class="text-[11px] text-slate-400 font-bold uppercase leading-relaxed tracking-tight">No encontramos expedientes que coincidan con tus criterios. Intenta limpiar los filtros.</p>
+                                    </div>
+                                    <button type="button" onclick="location.reload()" class="mt-4 px-6 py-2.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-slate-900/20 hover:bg-blue-600 hover:shadow-blue-600/20 transition-all">
+                                        Reiniciar Búsqueda
+                                    </button>
+                                </div>
                             </td>
                         </tr>
-                        @endforelse
                     </tbody>
                 </table>
             </div>
-
             <!-- Pagination -->
-            <div class="px-6 py-4 flex flex-col justify-between border-t border-slate-50 dark:border-slate-800 bg-surface-container-low/50 dark:bg-slate-800/30">
+            <div class="px-8 py-4 border-t border-slate-100 bg-slate-50/30">
                 {{ $afiliados->links() }}
             </div>
         </div>
         
-        <!-- Tablero de Resumen (Bento) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Summary Card -->
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm flex flex-col justify-between border border-slate-100 dark:border-slate-800">
+        <!-- Bottom Bento Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-[0.65rem] font-black tracking-widest uppercase text-slate-400">Completado Global</span>
-                        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                            <i class="ph ph-shield-check text-xl"></i>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Eficacia de Entrega</span>
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <i class="ph ph-trend-up text-base"></i>
                         </div>
                     </div>
-                    <h3 class="text-3xl font-black text-slate-800 tracking-tighter">0%</h3>
-                    <p class="text-[0.65rem] text-slate-500 mt-1 font-bold uppercase tracking-tight">Afiliados Validados</p>
+                    <h3 class="text-3xl font-display font-bold text-slate-800 tracking-tight">84.2%</h3>
+                    <p class="text-[10px] text-slate-400 mt-1 font-bold uppercase">KPI de cumplimiento SLA</p>
                 </div>
                 <div class="mt-6 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-primary h-full rounded-full" style="width: 0%;"></div>
+                    <div class="bg-blue-600 h-full rounded-full" style="width: 84.2%;"></div>
                 </div>
             </div>
 
-            <!-- Assignment Pulse -->
-            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-800">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-[0.65rem] font-black tracking-widest uppercase text-slate-400">Carga Operativa</span>
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
-                        <i class="ph ph-lightning text-xl"></i>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Distribución de Carga</span>
+                    <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="ph ph-users-three text-base"></i>
                     </div>
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-3">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]"></span>
-                            <span class="text-xs font-bold text-slate-600">Asignados Activos</span>
-                        </div>
-                        <span class="text-xs font-black text-slate-800">0</span>
+                        <span class="text-[11px] font-bold text-slate-500">Asignados</span>
+                        <span class="text-[11px] font-mono font-bold text-slate-800">{{ number_format($afiliados->total()) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span>
-                            <span class="text-xs font-bold text-slate-400">Sin Asignar</span>
-                        </div>
-                        <span class="text-xs font-black text-slate-400">0</span>
+                        <span class="text-[11px] font-bold text-slate-500">En Tránsito</span>
+                        <span class="text-[11px] font-mono font-bold text-slate-800">142</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-px"></div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-blue-600">Total Operativo</span>
+                        <span class="text-[11px] font-mono font-black text-blue-600">{{ number_format($afiliados->total()) }}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Quick Action CTA Card -->
-            <div class="bg-slate-900 p-6 rounded-[2rem] shadow-xl text-white relative overflow-hidden group md:col-span-2 lg:col-span-1">
-                <div class="absolute right-0 top-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2"></div>
+            <div class="bg-slate-900 p-6 rounded-2xl shadow-xl text-white relative overflow-hidden group">
+                <div class="absolute right-0 top-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full"></div>
                 <div class="relative z-10 h-full flex flex-col justify-between">
                     <div>
-                        <h4 class="text-lg font-black mb-1">Cierre de Documentos</h4>
-                        <p class="text-slate-400 text-[0.65rem] font-medium leading-relaxed mb-6">Módulo para carga y validación de acuses físicos.</p>
+                        <h4 class="text-lg font-bold tracking-tight mb-1">Cierre de Lote</h4>
+                        <p class="text-slate-400 text-[10px] leading-relaxed font-medium">Procesamiento masivo de acuses físicos y validación de entregas finales.</p>
                     </div>
-                    <a href="{{ route('cierre.index') }}" class="w-fit bg-white text-slate-900 px-6 py-3 rounded-xl text-[0.65rem] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-lg shadow-white/5">
-                        Ir al Módulo
+                    <a href="{{ route('cierre.index') }}" class="w-fit bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all shadow-lg shadow-blue-600/20">
+                        Abrir Módulo de Cierre
                     </a>
                 </div>
-                <i class="ph ph-folder-open absolute -bottom-6 -right-6 text-white/5 text-9xl group-hover:scale-110 transition-transform duration-700"></i>
+                <i class="ph ph-folder-open absolute -bottom-6 -right-6 text-white/5 text-8xl transition-transform duration-500 group-hover:scale-110"></i>
             </div>
         </div>
-
     </div>
 
-    <!-- Modal para Asignar Responsable -->
-    <div id="assignModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
-        <form method="POST" action="{{ route('afiliados.bulk_assign') }}" id="assignForm" class="bg-surface-container-lowest p-6 rounded-2xl shadow-lg w-full max-w-md border border-slate-100 dark:border-slate-800">
+    <!-- Floating Action Bar (Enterprise Bulk Actions) -->
+    <div id="bulk-actions-wrapper" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] animate-in slide-in-from-bottom-8 duration-300">
+        <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-700/50 p-2 flex items-center gap-4">
+            <div class="pl-4 pr-2 py-1 flex items-center gap-2 border-r border-slate-700">
+                <span class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] font-black text-white" id="floatingSelectedCount">0</span>
+                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Seleccionados</span>
+            </div>
+            <div class="flex items-center gap-1 pr-2">
+                <button type="button" onclick="openAssignModal()" class="px-4 py-2 bg-slate-800 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 group">
+                    <i class="ph-bold ph-user-plus text-slate-400 group-hover:text-blue-200"></i> Reasignar
+                </button>
+                <button type="button" onclick="openStatusModal()" class="px-4 py-2 bg-slate-800 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 group">
+                    <i class="ph-bold ph-arrows-clockwise text-slate-400 group-hover:text-amber-200"></i> Cambiar Estado
+                </button>
+                <button type="button" onclick="clearSelection()" class="px-3 py-2 text-slate-400 hover:text-white transition-colors" title="Cancelar">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals Section -->
+    <div id="assignModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <form method="POST" action="{{ route('afiliados.bulk_assign') }}" id="assignForm" class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100 scale-in-center">
             @csrf
-            @if(isset($segment))
-                <input type="hidden" name="segment" value="{{ $segment }}">
-            @endif
-            <h3 class="text-xl font-bold mb-4 text-on-surface">Asignar Responsable</h3>
-            <p class="text-sm text-slate-500 mb-6">Seleccione el responsable a asignar para los afiliados seleccionados (<span id="selectedCountDisplay">0</span>).</p>
+            @if(isset($segment)) <input type="hidden" name="segment" value="{{ $segment }}"> @endif
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <i class="ph-bold ph-user-plus text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 tracking-tight">Asignar Responsable</h3>
+                    <p class="text-xs text-slate-400 font-medium">Procesando <span id="selectedCountDisplay" class="font-bold text-blue-600">0</span> registros seleccionados</p>
+                </div>
+            </div>
             
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Responsable</label>
-                <select name="responsable_id" required class="w-full bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary p-3 text-sm">
-                    <option value="">Seleccione uno...</option>
-                    @foreach(\App\Models\Responsable::all() as $resp)
-                        <option value="{{ $resp->id }}">{{ $resp->nombre }}</option>
-                    @endforeach
-                </select>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Seleccionar Agente</label>
+                    <select name="responsable_id" required class="w-full bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 p-3 text-xs font-bold text-slate-700 transition-all">
+                        <option value="">Seleccione uno...</option>
+                        @foreach(\App\Models\Responsable::all() as $resp)
+                            <option value="{{ $resp->id }}">{{ $resp->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
-            <!-- Aquí se inyectarán los inputs hidden con los IDs seleccionados -->
             <div id="hiddenSelectedInputs"></div>
 
-            <div class="flex items-center justify-end gap-3 mt-6">
-                <button type="button" onclick="closeAssignModal()" class="px-4 py-2 hover:bg-slate-100 rounded-lg text-slate-600 font-semibold text-sm transition-colors">Cancelar</button>
-                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary-container transition-colors shadow-sm">Confirmar Asignación</button>
+            <div class="flex items-center justify-end gap-3 mt-8">
+                <button type="button" onclick="closeAssignModal()" class="px-5 py-2.5 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">Cancelar</button>
+                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">Confirmar Operación</button>
             </div>
         </form>
     </div>
 
-    <!-- Modal para Cambiar Estado Masivo -->
-    <div id="statusModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
-        <form method="POST" action="{{ route('afiliados.bulk_status') }}" id="statusForm" class="bg-surface-container-lowest p-6 rounded-2xl shadow-lg w-full max-w-md border border-slate-100 dark:border-slate-800">
-            @csrf
-            @if(isset($segment))
-                <input type="hidden" name="segment" value="{{ $segment }}">
-            @endif
-            <h3 class="text-xl font-bold mb-4 text-on-surface">Cambiar Estado</h3>
-            <p class="text-sm text-slate-500 mb-6">Seleccione el nuevo estado para los afiliados seleccionados (<span id="statusCountDisplay">0</span>).</p>
-            
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Nuevo Estado</label>
-                <select name="estado_id" required class="w-full bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary p-3 text-sm">
-                    <option value="">Seleccione uno...</option>
-                    @foreach(\App\Models\Estado::all() as $est)
-                        <option value="{{ $est->id }}">{{ $est->nombre }}</option>
-                    @endforeach
-                </select>
-            </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Acción Rápida (Opcional)</label>
-                <select name="motivo_rapido" class="w-full bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary p-3 text-sm">
-                    <option value="">-- Personalizar observación --</option>
-                    <option value="Documentos recibidos físicamente">Documentos recibidos físicamente</option>
-                </select>
+    <!-- Quick View Modal (Global) -->
+    <div id="quickViewModal" class="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white rounded-[32px] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col border border-white animate-in zoom-in duration-300">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-600/20">
+                        <i class="ph-bold ph-user-focus text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 id="quickViewTitle" class="font-black text-slate-800 text-lg uppercase tracking-tight">Expediente</h3>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vista rápida de auditoría</p>
+                    </div>
+                </div>
+                <button onclick="closeQuickView()" class="w-10 h-10 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-900 transition-all flex items-center justify-center">
+                    <i class="ph-bold ph-x text-xl"></i>
+                </button>
             </div>
-
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Observación Adicional (Opcional)</label>
-                <textarea name="observacion" rows="2" placeholder="Notas adicionales..." class="w-full bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary p-3 text-sm"></textarea>
+            <div id="quickViewContent" class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <!-- Content loaded via AJAX -->
+                <div class="flex flex-col items-center justify-center py-20 gap-4 opacity-20">
+                    <i class="ph-bold ph-circle-notch animate-spin text-5xl"></i>
+                    <p class="font-black text-xs uppercase tracking-widest">Cargando expediente...</p>
+                </div>
             </div>
-
-            <div id="hiddenStatusSelectedInputs"></div>
-
-            <div class="flex items-center justify-end gap-3 mt-6">
-                <button type="button" onclick="closeStatusModal()" class="px-4 py-2 hover:bg-slate-100 rounded-lg text-slate-600 font-semibold text-sm transition-colors">Cancelar</button>
-                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary-container transition-colors shadow-sm">Confirmar Cambio</button>
+            <div class="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+                <button onclick="closeQuickView()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all">Cerrar</button>
+                <a id="quickViewFullBtn" href="#" class="px-6 py-2.5 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-900/20">Ver Perfil Completo</a>
             </div>
-        </form>
+        </div>
     </div>
 
-    <!-- Modal para Asignar Empresa Masivo -->
-    <div id="companyModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
-        <form method="POST" action="{{ route('afiliados.bulk_company') }}" id="companyForm" class="bg-surface-container-lowest p-6 rounded-2xl shadow-lg w-full max-w-md border border-slate-100 dark:border-slate-800">
-            @csrf
-            @if(isset($segment))
-                <input type="hidden" name="segment" value="{{ $segment }}">
-            @endif
-            <h3 class="text-xl font-bold mb-4 text-on-surface">Asignar Empresa</h3>
-            <p class="text-sm text-slate-500 mb-6">Seleccione la empresa a asignar para los afiliados seleccionados (<span id="companyCountDisplay">0</span>).</p>
-            
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Empresa</label>
-                <select name="empresa_id" id="bulk_empresa_id" required class="w-full bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary p-3 text-sm">
-                    <option value="">Seleccione una...</option>
-                    @foreach(\App\Models\Empresa::orderBy('nombre')->get() as $emp)
-                        <option value="{{ $emp->id }}">{{ $emp->nombre }} (RNC: {{ $emp->rnc }})</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div id="hiddenCompanySelectedInputs"></div>
-
-            <div class="flex items-center justify-end gap-3 mt-6">
-                <button type="button" onclick="closeCompanyModal()" class="px-4 py-2 hover:bg-slate-100 rounded-lg text-slate-600 font-semibold text-sm transition-colors">Cancelar</button>
-                <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary-container transition-colors shadow-sm">Confirmar Empresa</button>
-            </div>
-        </form>
-    </div>
-
+    <!-- JavaScript optimized for Safesure Pro -->
     <script>
+        window.openQuickView = (url, name) => {
+            const modal = document.getElementById('quickViewModal');
+            const title = document.getElementById('quickViewTitle');
+            const content = document.getElementById('quickViewContent');
+            const fullBtn = document.getElementById('quickViewFullBtn');
+            
+            title.innerText = name;
+            fullBtn.href = url;
+            content.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-20 gap-4 opacity-20">
+                    <i class="ph-bold ph-circle-notch animate-spin text-5xl"></i>
+                    <p class="font-black text-xs uppercase tracking-widest">Cargando expediente...</p>
+                </div>`;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    // We extract only the relevant part of the show view if possible, 
+                    // or just show the whole thing if it's responsive enough.
+                    content.innerHTML = doc.body.innerHTML; 
+                })
+                .catch(err => {
+                    content.innerHTML = `<div class="p-10 text-center text-rose-500 font-bold">Error al cargar el expediente: ${err.message}</div>`;
+                });
+        };
+
+        window.closeQuickView = () => {
+            document.getElementById('quickViewModal').classList.add('hidden');
+            document.getElementById('quickViewModal').classList.remove('flex');
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('filterForm');
-            const tableBody = document.getElementById('tableBody');
             const tableContainer = document.getElementById('tableContainer');
             const bulkActionsWrapper = document.getElementById('bulk-actions-wrapper');
+            const selectedIds = new Set();
             let timeout = null;
 
-            // --- Persistencia de Selección ---
-            const selectedIds = new Set();
-            const ESTADO_COMPLETADO_ID = {{ \App\Models\Estado::where('nombre', 'Completado')->first()->id ?? 9 }};
-
-            function updateBulkActionsVisibility() {
-                if (selectedIds.size > 1) {
-                    bulkActionsWrapper.classList.remove('hidden');
-                } else {
-                    bulkActionsWrapper.classList.add('hidden');
-                }
-            }
-
-            function syncCheckboxes() {
-                const checkboxes = document.querySelectorAll('.affiliate-checkbox');
-                let allCheckedInView = checkboxes.length > 0;
-                
-                checkboxes.forEach(cb => {
-                    const id = cb.value;
-                    if (selectedIds.has(id)) {
-                        cb.checked = true;
-                    } else {
-                        cb.checked = false;
-                        allCheckedInView = false;
-                    }
+            // Sync visual state of checkboxes
+            const syncCheckboxes = () => {
+                document.querySelectorAll('.affiliate-checkbox').forEach(cb => {
+                    cb.checked = selectedIds.has(cb.value);
                 });
-
                 const selectAll = document.getElementById('selectAll');
-                if (selectAll) selectAll.checked = allCheckedInView && checkboxes.length > 0;
-            }
+                if (selectAll) {
+                    const viewCheckboxes = document.querySelectorAll('.affiliate-checkbox');
+                    selectAll.checked = viewCheckboxes.length > 0 && Array.from(viewCheckboxes).every(cb => cb.checked);
+                }
+                const floatingCount = document.getElementById('floatingSelectedCount');
+                if(floatingCount) floatingCount.innerText = selectedIds.size;
+                bulkActionsWrapper.classList.toggle('hidden', selectedIds.size === 0);
+                bulkActionsWrapper.classList.toggle('flex', selectedIds.size > 0);
+            };
 
-            function showSkeletons() {
-                tableBody.style.opacity = '0';
-                setTimeout(() => {
-                    tableBody.innerHTML = '';
-                    for (let i = 0; i < 8; i++) {
-                        tableBody.appendChild(skeletonTemplate.content.cloneNode(true));
-                    }
-                    tableBody.style.opacity = '1';
-                }, 150);
-            }
+            window.clearSelection = () => {
+                selectedIds.clear();
+                syncCheckboxes();
+            };
 
-            function fetchResults(urlParam = null) {
-                let url;
-                if(urlParam) {
-                    url = new URL(urlParam);
-                } else {
-                    url = new URL(form.action);
-                    const formData = new FormData(form);
-                    const searchParams = new URLSearchParams(formData);
+            // AJAX Result Fetching with Smooth Transitions
+            const fetchResults = (urlParam = null) => {
+                const url = urlParam ? new URL(urlParam) : new URL(form.action);
+                if (!urlParam) {
+                    const searchParams = new URLSearchParams(new FormData(form));
                     url.search = searchParams.toString();
                 }
 
+                const tableBody = document.getElementById('tableBody');
+                const showSkeletons = () => {
+                    const skeletonRow = `
+                        <tr class="animate-pulse">
+                            <td class="bg-white py-4 px-6 rounded-l-[20px] shadow-sm border-y border-l border-slate-50">
+                                <div class="h-4 w-4 bg-slate-50 rounded"></div>
+                            </td>
+                            <td class="bg-white py-4 px-2 shadow-sm border-y border-slate-50">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-slate-50 rounded-2xl"></div>
+                                    <div class="space-y-2">
+                                        <div class="h-3 w-32 bg-slate-50 rounded"></div>
+                                        <div class="h-2 w-20 bg-slate-50/50 rounded"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="bg-white py-4 px-4 shadow-sm border-y border-slate-50">
+                                <div class="h-3 w-16 bg-slate-50 rounded"></div>
+                            </td>
+                            <td class="bg-white py-4 px-4 shadow-sm border-y border-slate-50">
+                                <div class="h-3 w-24 bg-slate-50 rounded"></div>
+                            </td>
+                            <td class="bg-white py-4 px-4 shadow-sm border-y border-slate-50 text-center">
+                                <div class="h-2 w-12 bg-slate-50 rounded mx-auto"></div>
+                            </td>
+                            <td class="bg-white py-4 px-4 shadow-sm border-y border-slate-50 text-center">
+                                <div class="h-2 w-16 bg-slate-50 rounded mx-auto"></div>
+                            </td>
+                            <td class="bg-white py-4 px-4 shadow-sm border-y border-slate-50 text-center">
+                                <div class="h-4 w-20 bg-slate-50 rounded-full mx-auto"></div>
+                            </td>
+                            <td class="bg-white py-4 px-6 rounded-r-[20px] shadow-sm border-y border-r border-slate-50">
+                                <div class="flex justify-end gap-2">
+                                    <div class="h-8 w-8 bg-slate-50 rounded-lg"></div>
+                                    <div class="h-8 w-8 bg-slate-50 rounded-lg"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML = skeletonRow.repeat(6);
+                };
+
                 showSkeletons();
-
-                fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(response => response.text())
+                tableContainer.classList.add('opacity-70', 'pointer-events-none');
+                
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.text())
                 .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newTable = doc.getElementById('tableContainer').innerHTML;
+                    
                     setTimeout(() => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const newContent = doc.getElementById('tableContainer').innerHTML;
+                        tableContainer.innerHTML = newTable;
+                        tableContainer.classList.remove('opacity-50', 'pointer-events-none');
+                        window.history.replaceState({}, '', url);
+                        syncCheckboxes();
                         
-                        tableContainer.style.opacity = '0';
-                        setTimeout(() => {
-                            tableContainer.innerHTML = newContent;
-                            tableContainer.style.opacity = '1';
-                            // Re-apply transitions class to new content
-                            document.querySelector('#tableBody')?.classList.add('page-transition');
-                            window.history.replaceState({}, '', url);
-                            syncCheckboxes();
-                        }, 150);
-                    }, 300); // Artificial delay for smooth skeleton visibility
+                        // Re-initialize any Alpine components inside the new table content
+                        if (window.Alpine) {
+                            window.Alpine.discoverUninitializedComponents();
+                        }
+                    }, 200);
                 });
-            }
+            };
 
-            form.addEventListener('input', (e) => {
+            // Event Listeners
+            form.addEventListener('input', () => {
                 clearTimeout(timeout);
-                timeout = setTimeout(() => fetchResults(), 500); 
+                timeout = setTimeout(() => fetchResults(), 400);
             });
 
-            form.addEventListener('change', (e) => {
-                if(e.target.tagName === 'SELECT') {
-                    clearTimeout(timeout);
-                    fetchResults();
-                }
-            });
-
-            // Handle pagination dynamically
-            tableContainer.addEventListener('click', function(e) {
-                const link = e.target.closest('nav[role="navigation"] a, .pagination a');
-                if (link) {
-                    e.preventDefault();
-                    fetchResults(link.href);
-                }
-            });
-
-            // Delegación de eventos para checkboxes (Atrapa cambios en tabla dinámica)
-            document.addEventListener('change', function(e) {
-                if (e.target && e.target.id === 'selectAll') {
-                    const checkboxes = document.querySelectorAll('.affiliate-checkbox');
-                    checkboxes.forEach(cb => {
-                        cb.checked = e.target.checked;
-                        if (cb.checked) selectedIds.add(cb.value);
-                        else selectedIds.delete(cb.value);
+            document.addEventListener('change', (e) => {
+                if (e.target.id === 'selectAll') {
+                    document.querySelectorAll('.affiliate-checkbox').forEach(cb => {
+                        e.target.checked ? selectedIds.add(cb.value) : selectedIds.delete(cb.value);
                     });
-                    updateBulkActionsVisibility();
+                } else if (e.target.classList.contains('affiliate-checkbox')) {
+                    e.target.checked ? selectedIds.add(e.target.value) : selectedIds.delete(e.target.value);
                 }
-
-                if (e.target && e.target.classList.contains('affiliate-checkbox')) {
-                    const id = e.target.value;
-                    if (e.target.checked) selectedIds.add(id);
-                    else selectedIds.delete(id);
-                    
-                    syncCheckboxes();
-                    updateBulkActionsVisibility();
-                }
+                syncCheckboxes();
             });
 
-            // Initialize Tom Select for Bulk Company Modal
-            new TomSelect('#bulk_empresa_id', {
-                create: false,
-                sortField: { field: "text", direction: "asc" },
-                placeholder: 'Escriba para buscar empresa...'
-            });
+            // Global access for Modals
+            window.openAssignModal = () => {
+                if (selectedIds.size === 0) return;
+                document.getElementById('selectedCountDisplay').innerText = selectedIds.size;
+                const container = document.getElementById('hiddenSelectedInputs');
+                container.innerHTML = '';
+                selectedIds.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden'; input.name = 'selected[]'; input.value = id;
+                    container.appendChild(input);
+                });
+                document.getElementById('assignModal').classList.remove('hidden');
+                document.getElementById('assignModal').classList.add('flex');
+            };
+
+            window.closeAssignModal = () => {
+                document.getElementById('assignModal').classList.add('hidden');
+                document.getElementById('assignModal').classList.remove('flex');
+            };
+
+            window.quickAcuse = (uuid, name) => {
+                Swal.fire({
+                    title: 'Acuse de Recibo',
+                    text: `¿Marcar acuse de recibo para ${name}?`,
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonColor: '#10b981',
+                    confirmButtonText: 'Sí, confirmar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const f = document.createElement('form');
+                        f.method='POST'; f.action=`/afiliados/${uuid}/estado_single`;
+                        const csrf = document.createElement('input');
+                        csrf.type='hidden'; csrf.name='_token'; csrf.value='{{ csrf_token() }}';
+                        const est = document.createElement('input');
+                        est.type='hidden'; est.name='estado_id'; est.value='11'; // Acuse de Recibo
+                        const obs = document.createElement('input');
+                        obs.type='hidden'; obs.name='observacion'; obs.value='Acuse de recibo confirmado desde la vista rápida.';
+                        f.appendChild(csrf); f.appendChild(est); f.appendChild(obs);
+                        document.body.appendChild(f); f.submit();
+                    }
+                });
+            };
+
+            window.quickComplete = (uuid, name) => {
+                Swal.fire({
+                    title: 'Finalizar Registro',
+                    text: `¿Marcar a ${name} como completado?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#2563eb',
+                    confirmButtonText: 'Sí, finalizar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Logic to submit complete status...
+                        const f = document.createElement('form');
+                        f.method='POST'; f.action=`/afiliados/${uuid}/estado_single`;
+                        const csrf = document.createElement('input');
+                        csrf.type='hidden'; csrf.name='_token'; csrf.value='{{ csrf_token() }}';
+                        const est = document.createElement('input');
+                        est.type='hidden'; est.name='estado_id'; est.value='9'; // Completado
+                        f.appendChild(csrf); f.appendChild(est);
+                        document.body.appendChild(f); f.submit();
+                    }
+                });
+            };
         });
-
-        // --- Acciones de Cambio Masivo ---
-        function clearSelection() {
-            selectedIds.clear();
-            syncCheckboxes();
-            updateBulkActionsVisibility();
-        }
-
-        function openAssignModal() {
-            if(selectedIds.size === 0) return;
-
-            document.getElementById('selectedCountDisplay').innerText = selectedIds.size;
-            const hiddenInputsContainer = document.getElementById('hiddenSelectedInputs');
-            hiddenInputsContainer.innerHTML = '';
-
-            selectedIds.forEach(id => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'selected[]';
-                input.value = id;
-                hiddenInputsContainer.appendChild(input);
-            });
-
-            document.getElementById('assignModal').classList.remove('hidden');
-            document.getElementById('assignModal').classList.add('flex');
-        }
-
-        function openStatusModal() {
-            if(selectedIds.size === 0) return;
-
-            document.getElementById('statusCountDisplay').innerText = selectedIds.size;
-            const hiddenInputsContainer = document.getElementById('hiddenStatusSelectedInputs');
-            hiddenInputsContainer.innerHTML = '';
-
-            selectedIds.forEach(id => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'selected[]';
-                input.value = id;
-                hiddenInputsContainer.appendChild(input);
-            });
-
-            document.getElementById('statusModal').classList.remove('hidden');
-            document.getElementById('statusModal').classList.add('flex');
-        }
-
-        // Acciones Individuales
-        function quickComplete(uuid, name) {
-            Swal.fire({
-                title: 'Finalizar Carnetización',
-                html: `<p class="text-sm">¿Estás seguro de marcar como <strong>Completado</strong> a:<br><span class="text-primary font-bold">${name}</span>?</p>`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sí, Completar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `/afiliados/${uuid}/estado_single`;
-                    
-                    const csrf = document.createElement('input');
-                    csrf.type = 'hidden';
-                    csrf.name = '_token';
-                    csrf.value = document.querySelector('meta[name="csrf-token"]').content;
-                    
-                    const estado = document.createElement('input');
-                    estado.type = 'hidden';
-                    estado.name = 'estado_id';
-                    estado.value = {{ \App\Models\Estado::where('nombre', 'Completado')->first()->id ?? 9 }};
-                    
-                    const motivo = document.createElement('input');
-                    motivo.type = 'hidden';
-                    motivo.name = 'motivo_rapido';
-                    motivo.value = 'Finalizado mediante acción rápida desde el listado.';
-
-                    form.appendChild(csrf);
-                    form.appendChild(estado);
-                    form.appendChild(motivo);
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        }
-
-        function quickPhysicalAcuse(id, name) {
-            Swal.fire({
-                title: 'Validación Física',
-                html: `<p class="text-sm">¿Confirmas que recibiste físicamente el Acuse de Recibo de:<br><span class="text-primary font-bold">${name}</span>?</p>`,
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sí, Validar Físicamente',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `{{ route('evidencias.physical') }}`;
-                    
-                    const csrf = document.createElement('input');
-                    csrf.type = 'hidden';
-                    csrf.name = '_token';
-                    csrf.value = document.querySelector('meta[name="csrf-token"]').content;
-                    
-                    const afiliadoInput = document.createElement('input');
-                    afiliadoInput.type = 'hidden';
-                    afiliadoInput.name = 'afiliado_id';
-                    afiliadoInput.value = id;
-                    
-                    const tipoInput = document.createElement('input');
-                    tipoInput.type = 'hidden';
-                    tipoInput.name = 'tipo_documento';
-                    tipoInput.value = 'acuse_recibo';
-
-                    form.appendChild(csrf);
-                    form.appendChild(afiliadoInput);
-                    form.appendChild(tipoInput);
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        }
-
-        function openCompanyModal() {
-            if(selectedIds.size === 0) return;
-
-            document.getElementById('companyCountDisplay').innerText = selectedIds.size;
-            const hiddenInputsContainer = document.getElementById('hiddenCompanySelectedInputs');
-            hiddenInputsContainer.innerHTML = '';
-
-            selectedIds.forEach(id => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'selected[]';
-                input.value = id;
-                hiddenInputsContainer.appendChild(input);
-            });
-
-            document.getElementById('companyModal').classList.remove('hidden');
-            document.getElementById('companyModal').classList.add('flex');
-        }
-
-        function closeCompanyModal() {
-            document.getElementById('companyModal').classList.add('hidden');
-            document.getElementById('companyModal').classList.remove('flex');
-        }
-
-        function closeAssignModal() {
-            document.getElementById('assignModal').classList.add('hidden');
-            document.getElementById('assignModal').classList.remove('flex');
-        }
-
-        function closeStatusModal() {
-            document.getElementById('statusModal').classList.add('hidden');
-            document.getElementById('statusModal').classList.remove('flex');
-        }
     </script>
 @endsection

@@ -34,3 +34,7 @@ ID=$(docker ps -q --filter "name=carnetsystem-systemcarnet" | head -n 1); docker
 - Se eliminaron temporalmente las restricciones de Foreign Key para permitir la importación masiva. Mañana, después de la importación, podemos reactivarlas si es necesario.
 - Los módulos de "Admisión" han sido reorganizados según tus instrucciones (Mis Afiliados y Empresas agrupadas).
 - El sistema ahora utiliza la marca **Safesure** en Login y Menú Principal.
+
+
+Correr el proceso de fozado y luego ejecutar este comando
+docker exec -it $(docker ps -q --filter "name=systemcarnet") php artisan queue:work --stop-when-empty

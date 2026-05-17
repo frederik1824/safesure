@@ -23,6 +23,10 @@ class FirebaseSyncPush extends Command
 
     protected $syncLog;
     protected $globalSynced = 0;
+    protected $added = 0;
+    protected $updated = 0;
+    protected $skipped = 0;
+    protected $failed = 0;
 
     /**
      * The console command description.
@@ -56,24 +60,34 @@ class FirebaseSyncPush extends Command
                 $this->syncLog = FirebaseSyncLog::find($logId);
             }
 
+            if ($this->syncLog) {
+                $firebase->setSyncLog($this->syncLog);
+            }
+
             $this->globalSynced = 0;
 
             // 1. SYNC ROLES & PERMISSIONS (Quick)
-            $this->syncAuthMetadata($firebase);
+            if ($this->option('all')) {
+                $this->syncAuthMetadata($firebase);
+            }
 
             // 2. SYNC USERS
-            $users = User::with('roles')->get();
-            $this->syncCollection($firebase, 'users', $users, function($user) {
-                return [
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'password' => $user->password, 
-                    'roles' => $user->getRoleNames()->toArray()
-                ];
-            }, 'id');
+            if ($this->option('all')) {
+                $users = User::with('roles')->get();
+                $this->syncCollection($firebase, 'users', $users, function($user) {
+                    return [
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        // NOTE: password hash is NEVER sent to Firebase for security reasons
+                        'roles' => $user->getRoleNames()->toArray()
+                    ];
+                }, 'id');
+            }
 
             // 3. SYNC COMPANIES
-            $companies = Empresa::all();
+            $this->info("📤 Sincronizando Empresas...");
+            $empresasQuery = $this->option('all') ? Empresa::withoutGlobalScopes() : Empresa::withoutGlobalScopes()->where('firebase_sync_status', 'pending');
+            $companies = $empresasQuery->get();
             $this->syncCollection($firebase, 'empresas', $companies, function($emp) {
                 return [
                     'uuid' => $emp->uuid,
@@ -96,19 +110,29 @@ class FirebaseSyncPush extends Command
                     'estado_contacto' => $emp->estado_contacto,
                     'latitude' => $emp->latitude,
                     'longitude' => $emp->longitude,
+                    'firebase_sync_version' => $emp->firebase_sync_version,
+                    'updated_from' => 'SAFE-SYSTEM'
                 ];
             }, 'uuid');
 
             // 4. SYNC AFILIADOS
-            $afiliados = Afiliado::all();
+            $this->info("📤 Sincronizando Afiliados...");
+            $afiliadosQuery = $this->option('all') ? Afiliado::withoutGlobalScopes() : Afiliado::withoutGlobalScopes()->where('firebase_sync_status', 'pending');
+            $afiliados = $afiliadosQuery->get();
             $this->syncCollection($firebase, 'afiliados', $afiliados, function($af) {
-                return array_filter($af->toArray());
-            }, 'uuid');
+                $data = array_filter($af->toArray());
+                $data['updated_from'] = 'SAFE-SYSTEM';
+                $data['last_updated_by_name'] = $af->lastUpdatedBy?->name ?? 'System';
+                return $data;
+            }, 'cedula');
 
             if ($this->syncLog) {
                 $this->syncLog->update([
                     'status' => 'completed',
                     'records_synced' => $this->globalSynced,
+                    'records_updated' => $this->updated,
+                    'records_skipped' => $this->skipped,
+                    'records_failed' => $this->failed,
                     'completed_at' => now(),
                     'last_heartbeat_at' => now()
                 ]);
@@ -167,8 +191,12 @@ class FirebaseSyncPush extends Command
                 continue;
             }
 
-            $firebase->push($collection, $docId, $transform($item));
+            $status = $firebase->push($collection, $docId, $transform($item), $item);
             
+            if ($status === 'skipped') $this->skipped++;
+            elseif ($status === 'synced') $this->updated++;
+            else $this->failed++;
+
             $bar->advance();
             $this->globalSynced++;
 
@@ -180,6 +208,9 @@ class FirebaseSyncPush extends Command
                 }
                 $this->syncLog->update([
                     'records_synced' => $this->globalSynced,
+                    'records_updated' => $this->updated,
+                    'records_skipped' => $this->skipped,
+                    'records_failed' => $this->failed,
                     'last_heartbeat_at' => now()
                 ]);
             }

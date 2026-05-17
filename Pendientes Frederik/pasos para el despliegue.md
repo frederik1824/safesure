@@ -59,3 +59,10 @@ Si algo no funciona después de un despliegue:
 1. Revisa la **Consola de Salida** en el Centro de Control.
 2. Ejecuta **Limpiar Caché** desde el panel.
 3. Si el problema persiste, revisa los logs en **Sistema > Auditoría**.
+
+
+contrasena= zfdCDiYER21TWHwH6SZSyle7ZHibQgoD
+
+docker exec -it ddcd32143a5a psql -U dokploy -d dokploy -c "ALTER USER dokploy WITH PASSWORD 'zfdCDiYER21TWHwH6SZSyle7ZHibQgoD';"
+
+docker exec -it d93b4fca3266 php artisan tinker --execute="\$u = \App\Models\User::create(['name' => 'Admin', 'email' => 'admin@safesure.com', 'password' => Hash::make('password')]); if(class_exists('\Spatie\Permission\Models\Role')) { \$u->assignRole('admin'); } echo 'Usuario creado con éxito';"

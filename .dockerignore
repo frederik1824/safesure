@@ -12,3 +12,23 @@
 /storage/framework/views/*
 /storage/app/public/*
 !**/ .gitkeep
+
+# Exclude local debug/test scripts and SQL backups
+*.sql
+*.bat
+*.docx
+migrate_err*.txt
+debug_*.php
+fix_*.php
+check_*.php
+list_*.php
+inspect_*.php
+audit_*.php
+reset_*.php
+test_*.php
+final_check.php
+read_docx.php
+audit_results.txt
+audit_permissions.php
+tmp/
+.tempmediaStorage/
