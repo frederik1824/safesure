@@ -39,6 +39,9 @@ return [
         'project_id' => env('FIREBASE_PROJECT_ID', 'syscarnet'),
         'key_file' => env('FIREBASE_CREDENTIALS') ? base_path(env('FIREBASE_CREDENTIALS')) : null,
         'webhook_secret' => env('FIREBASE_WEBHOOK_SECRET'),
+        'credentials_json' => env('FIREBASE_CREDENTIALS_JSON'),
+        'max_reads_per_sync' => env('FIREBASE_MAX_READS_PER_SYNC', 20000),
+        'daily_read_limit' => env('FIREBASE_DAILY_READ_LIMIT', 5000000),
     ],
 
 ];

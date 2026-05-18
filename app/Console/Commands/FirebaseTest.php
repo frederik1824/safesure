@@ -14,8 +14,8 @@ class FirebaseTest extends Command
     {
         $this->info('--- Probando Conexión con Firebase ---');
         
-        $projectId = env('FIREBASE_PROJECT_ID');
-        $credentials = env('FIREBASE_CREDENTIALS');
+        $projectId = config('services.firebase.project_id');
+        $credentials = config('services.firebase.key_file') ?: (config('services.firebase.credentials_json') ? 'Cargado desde variable JSON (Dokploy)' : 'No configurado');
         
         $this->line("Proyecto: <comment>{$projectId}</comment>");
         $this->line("Ruta Credenciales: <comment>{$credentials}</comment>");

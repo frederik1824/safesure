@@ -14,7 +14,7 @@ class VerifyFirebaseWebhookSecret
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $secret = env('FIREBASE_WEBHOOK_SECRET');
+        $secret = config('services.firebase.webhook_secret');
         $signature = $request->header('X-SafeSure-Signature');
 
         if (!$secret) {

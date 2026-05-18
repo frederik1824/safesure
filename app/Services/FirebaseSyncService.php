@@ -33,17 +33,17 @@ class FirebaseSyncService
 
     public function __construct()
     {
-        $this->projectId = env('FIREBASE_PROJECT_ID', 'syscarnet');
-        $this->maxReadsPerExecution = env('FIREBASE_MAX_READS_PER_SYNC', 20000);
+        $this->projectId = config('services.firebase.project_id', 'syscarnet');
+        $this->maxReadsPerExecution = config('services.firebase.max_reads_per_sync', 20000);
         
         // 1. Intentar cargar desde variable de entorno (JSON directo)
-        $rawJson = env('FIREBASE_CREDENTIALS_JSON');
+        $rawJson = config('services.firebase.credentials_json');
         
         if ($rawJson) {
             $this->credentials = json_decode($rawJson, true);
         } else {
             // 2. Fallback al archivo físico si no hay variable de entorno
-            $jsonPath = base_path(env('FIREBASE_CREDENTIALS', 'firebase-auth.json'));
+            $jsonPath = config('services.firebase.key_file') ?: base_path('firebase-auth.json');
             if (file_exists($jsonPath)) {
                 $this->credentials = json_decode(file_get_contents($jsonPath), true);
             }
@@ -93,7 +93,7 @@ class FirebaseSyncService
             throw new \Exception($msg);
         }
         
-        $dailyLimit = (int)env('FIREBASE_DAILY_READ_LIMIT', 5000000);
+        $dailyLimit = (int)config('services.firebase.daily_read_limit', 5000000);
         if ($dailyCount + $count > $dailyLimit) {
             Cache::put($this->circuitOpenKey, true, 3600); // Bloquear por 1 hora
             $msg = "SafeSync: Cuota diaria de Firebase cercana al límite de seguridad de {$dailyLimit} lecturas. Sistema protegido (Circuit Breaker Abierto).";
