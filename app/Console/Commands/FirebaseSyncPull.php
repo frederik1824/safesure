@@ -266,6 +266,9 @@ class FirebaseSyncPull extends Command
                                 if (is_null($model->conflict_status)) {
                                     $model->conflict_status = false;
                                 }
+                                if (is_null($model->costo_entrega)) {
+                                    $model->costo_entrega = 0;
+                                }
                             }
                             $model->firebase_sync_status = 'synced';
                             $model->firebase_synced_at = now();
@@ -290,18 +293,6 @@ class FirebaseSyncPull extends Command
                         $processedInThisSession++;
                         $checkpoint->increment('records_processed');
                         $this->globalSynced++;
-
-                        // Actualizar log de la UI periódicamente para rendimiento
-                        if ($this->syncLog && $processedInThisSession % 20 === 0) {
-                            $this->syncLog->update([
-                                'records_synced' => $this->globalSynced,
-                                'records_added' => $this->added,
-                                'records_updated' => $this->updated,
-                                'records_skipped' => $this->skipped,
-                                'records_failed' => $this->failed,
-                                'status' => 'in_progress'
-                             ]);
-                        }
                         
                         // Guardar último cursor para reanudar/paginar
                         if ($mapped && is_array($mapped)) {
@@ -316,6 +307,19 @@ class FirebaseSyncPull extends Command
                         $checkpoint->increment('records_failed');
                         $this->addToLiveFeed("Error: " . ($mapped[$uniqueKey] ?? 'Reg.') . " - " . substr($e->getMessage(), 0, 40));
                         Log::error("Error en registro {$collectionName}: " . $e->getMessage());
+                    }
+
+                    // Actualizar log de la UI periódicamente para rendimiento
+                    $totalProcessed = $this->globalSynced + $this->failed + $this->skipped;
+                    if ($this->syncLog && $totalProcessed % 20 === 0) {
+                        $this->syncLog->update([
+                            'records_synced' => $this->globalSynced,
+                            'records_added' => $this->added,
+                            'records_updated' => $this->updated,
+                            'records_skipped' => $this->skipped,
+                            'records_failed' => $this->failed,
+                            'status' => 'in_progress'
+                        ]);
                     }
                     $bar->advance();
                 }

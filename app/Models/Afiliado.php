@@ -96,6 +96,15 @@ class Afiliado extends Model
     }
 
     /**
+     * Mutador para asegurar que costo_entrega sea siempre un valor numérico válido
+     * y prevenir caídas por valores nulos en PostgreSQL.
+     */
+    public function setCostoEntregaAttribute($value)
+    {
+        $this->attributes['costo_entrega'] = is_null($value) ? 0 : $value;
+    }
+
+    /**
      * Retorna la cédula con formato 000-0000000-0
      */
     public function getCedulaFormattedAttribute()
