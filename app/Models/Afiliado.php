@@ -82,6 +82,20 @@ class Afiliado extends Model
     }
 
     /**
+     * Mutador para asegurar que conflict_status sea siempre un booleano válido
+     * y prevenir caídas por tipos inválidos en PostgreSQL (como "remote_is_older").
+     */
+    public function setConflictStatusAttribute($value)
+    {
+        if (is_string($value)) {
+            $lower = strtolower(trim($value));
+            $this->attributes['conflict_status'] = in_array($lower, ['true', '1', 'yes', 'on', 'conflict']);
+        } else {
+            $this->attributes['conflict_status'] = (bool)$value;
+        }
+    }
+
+    /**
      * Retorna la cédula con formato 000-0000000-0
      */
     public function getCedulaFormattedAttribute()
