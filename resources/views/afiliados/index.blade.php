@@ -205,7 +205,7 @@
                                     <button type="button" onclick="openQuickView('{{ route('afiliados.show', $afiliado) }}', '{{ addslashes($afiliado->nombre_completo) }}')" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-900 hover:text-white transition-all" title="Vista Rápida">
                                         <i class="ph-bold ph-eye"></i>
                                     </button>
-                                    @if($afiliado->estado_id != 11)
+                                    @if($afiliado->estado_id != 10)
                                     <button type="button" onclick="quickAcuse('{{ $afiliado->uuid }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
                                             class="w-9 h-9 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all" title="Acuse de Recibo">
                                         <i class="ph-bold ph-check-square"></i>
@@ -589,7 +589,7 @@
                         const csrf = document.createElement('input');
                         csrf.type='hidden'; csrf.name='_token'; csrf.value='{{ csrf_token() }}';
                         const est = document.createElement('input');
-                        est.type='hidden'; est.name='estado_id'; est.value='11'; // Acuse de Recibo
+                        est.type='hidden'; est.name='estado_id'; est.value='10'; // Acuse de Recibo
                         const obs = document.createElement('input');
                         obs.type='hidden'; obs.name='observacion'; obs.value='Acuse de recibo confirmado desde la vista rápida.';
                         f.appendChild(csrf); f.appendChild(est); f.appendChild(obs);

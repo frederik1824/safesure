@@ -304,5 +304,21 @@ Para el onboarding de **Nuevos Desarrolladores**:
 ---
 _Documento Aprobado por la Jefatura de Arquitectura de Software_
 _Framework Versión: Laravel 11.x_
-_Generado: Marzo 2026_
+_Generado: Marzo 2026 (Actualizado: Mayo 2026)_
+
+## 2.17 Historial de Parches y Mejoras de Producción (Mayo 2026)
+
+### 1. Parche de Resiliencia del Pipeline de Sincronización Firebase
+- **Problema de Producción:** El proceso de sincronización con Firebase se quedaba estancado al 0% en la cola de Dokploy debido a fallos de carga de credenciales. La configuración original leía la clave JSON directamente desde variables de entorno (`env('FIREBASE_CREDENTIALS_JSON')`), lo cual arrojaba `null` cuando la configuración estaba en caché (`config:cache`).
+- **Solución Implementada:**
+  - Migración de la lógica de carga al sistema de configuración de Laravel (`config/services.php` -> `services.firebase.credentials_json`).
+  - Implementación de un fallback seguro de lectura de archivo físico en `app/Services/FirebaseSyncService.php` para evitar caídas en producción si las variables no están disponibles.
+  - Mitigación de bloqueos de colas mediante reintentos con backoff y resiliencia total frente a credenciales vacías o corruptas.
+
+### 2. Corrección de Mismatch de Estados del "Acuse de Recibo"
+- **Problema de Producción:** La acción rápida "Acuse de Recibo" intentaba realizar una actualización de estado directo a ID `11`. Dicho ID no estaba sembrado en la base de datos `estados` en producción, provocando que la validación del controlador fallara silenciosamente y el registro de afiliados no sufriera ningún cambio. Adicionalmente, el dashboard contabilizaba las acuses bajo el ID `10`.
+- **Solución Implementada:**
+  - **Nueva Migración:** Se creó `2026_05_18_102000_insert_missing_estados.php` para sembrar con integridad estructural los estados `10` (Acuse recibido), `11` (Formulario recibido), y `12` (Incidencia).
+  - **Corrección de Indexación:** Se actualizó `quickAcuse` en `resources/views/afiliados/index.blade.php` para enviar el ID `10` correcto, coincidiendo con la métrica del Dashboard de total acuses.
+  - **Actualización de UI:** El componente de insignias premium (`resources/views/components/status-badge.blade.php`) fue actualizado para soportar y pintar en azul tanto el ID `10` como el `11`.
 

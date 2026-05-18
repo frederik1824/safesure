@@ -37,13 +37,22 @@ class FirebaseSyncService
         $this->maxReadsPerExecution = config('services.firebase.max_reads_per_sync', 20000);
         
         // 1. Intentar cargar desde variable de entorno (JSON directo)
-        $rawJson = config('services.firebase.credentials_json');
+        $rawJson = config('services.firebase.credentials_json') ?: getenv('FIREBASE_CREDENTIALS_JSON');
         
         if ($rawJson) {
             $this->credentials = json_decode($rawJson, true);
         } else {
             // 2. Fallback al archivo físico si no hay variable de entorno
             $jsonPath = config('services.firebase.key_file') ?: base_path('firebase-auth.json');
+            
+            // Si el archivo físico configurado o el de defecto no existen, buscamos en el base_path
+            if (!file_exists($jsonPath)) {
+                $files = glob(base_path('syscarnet-firebase-adminsdk-*.json'));
+                if (!empty($files)) {
+                    $jsonPath = $files[0];
+                }
+            }
+
             if (file_exists($jsonPath)) {
                 $this->credentials = json_decode(file_get_contents($jsonPath), true);
             }
