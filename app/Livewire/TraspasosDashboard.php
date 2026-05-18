@@ -219,8 +219,13 @@ class TraspasosDashboard extends Component
 
         // Analítica: Tendencia mensual (Últimos 6 meses)
         $monthsTrend = Cache::remember('traspasos_monthly_trend', 60, function() {
+            $isPgsql = config('database.default') === 'pgsql';
+            $periodSelect = $isPgsql 
+                ? "to_char(fecha_solicitud, 'YYYY-MM') as period"
+                : "DATE_FORMAT(fecha_solicitud, '%Y-%m') as period";
+
             return Traspaso::selectRaw("
-                DATE_FORMAT(fecha_solicitud, '%Y-%m') as period,
+                {$periodSelect},
                 COUNT(*) as total_transfers,
                 SUM(CASE WHEN estado = 'EFECTIVO' THEN 1 ELSE 0 END) as effective_transfers,
                 SUM(cantidad_dependientes) as total_dependents
