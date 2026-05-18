@@ -353,7 +353,7 @@ class FirebaseSyncPull extends Command
             $checkpoint->update([
                 'status' => 'completed',
                 'finished_at' => now(),
-                'duration_seconds' => now()->diffInSeconds($checkpoint->started_at)
+                'duration_seconds' => (int) max(0, round(now()->diffInSeconds($checkpoint->started_at)))
             ]);
 
         } catch (\Throwable $e) {

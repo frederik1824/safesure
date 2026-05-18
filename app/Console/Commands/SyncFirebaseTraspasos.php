@@ -260,7 +260,7 @@ class SyncFirebaseTraspasos extends Command
                 'records_synced' => $this->globalSynced,
                 'records_failed' => $this->failed,
                 'finished_at' => now(),
-                'duration_seconds' => now()->diffInSeconds($startedAt)
+                'duration_seconds' => (int) max(0, round(now()->diffInSeconds($startedAt)))
             ]);
 
             // Finalizar Log
