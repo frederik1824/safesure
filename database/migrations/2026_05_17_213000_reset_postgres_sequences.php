@@ -21,7 +21,7 @@ return new class extends Migration
                         T.relname AS table_name,
                         C.attname AS col_name
                     FROM pg_class AS S
-                    JOIN pg_depend AS D ON D.objid = S.oid AND D.classoid = 'pg_class'::regclass AND D.refclassoid = 'pg_class'::regclass
+                    JOIN pg_depend AS D ON D.objid = S.oid AND D.classid = 'pg_class'::regclass AND D.refclassid = 'pg_class'::regclass
                     JOIN pg_class AS T ON T.oid = D.refobjid
                     JOIN pg_attribute AS C ON C.attrelid = D.refobjid AND C.attnum = D.refobjsubid
                     WHERE S.relkind = 'S'
