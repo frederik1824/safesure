@@ -80,5 +80,19 @@ php artisan schedule:run
 ---
 
 > [!TIP]
-> **¿Problemas con la barra de progreso?**
-> Si iniciaste una sincronización y no ves movimiento, lo primero que debes revisar es que la terminal con `php artisan queue:work` esté abierta y sin errores de conexión.
+> **¿Problemas con la barra de progreso congelada en 0%?**
+>
+> 1. **El Gotcha de la Caché en Docker (Dokploy):**
+>    Cuando Dokploy compila la imagen de Docker, Laravel cachea la configuración (`php artisan optimize`) en frío, dejando las variables de Firebase como `null`.
+>    * **Solución (SSH):** Ejecuta este comando en la terminal SSH de tu VPS para limpiar la caché de compilación y recargar las credenciales en caliente:
+>      ```bash
+>      docker exec -it \$(docker ps -q -f name=systemcarnet) sh -c "php artisan config:clear && php artisan optimize && php artisan queue:restart"
+>      ```
+>
+> 2. **Corte-Circuitos y Bloqueos:**
+>    Si la web muestra "Sincronizando" pero no avanza:
+>    * Haz clic en **"DETENER PROCESO"** en el Centro de Control web para liberar el lock de sincronización (`firebase_sync_lock`).
+>    * Si el corta-circuitos se abrió por sobrepasar cuotas de Firebase, presiona **"Restablecer Corta-circuitos"**.
+>
+> 3. **Compatibilidad PostgreSQL (`costo_entrega`):**
+>    PostgreSQL tiene restricciones estrictas de `NOT NULL`. Ya hemos implementado un mutador automático en `Afiliado.php` para que cualquier campo `costo_entrega` nulo proveniente de Firestore se guarde por defecto como `0`, previniendo errores de base de datos silenciosos.

@@ -54,15 +54,36 @@ Hoy transformamos el sistema en una plataforma de grado ERP:
 
 ---
 
-## ⚠️ Checklist de Emergencia
-Si algo no funciona después de un despliegue:
-1. Revisa la **Consola de Salida** en el Centro de Control.
-2. Ejecuta **Limpiar Caché** desde el panel.
-3. Si el problema persiste, revisa los logs en **Sistema > Auditoría**.
+## ⚠️ Checklist de Emergencia y Gotchas Conocidos
 
+### 1. El Gran Gotcha de la Caché en Docker (Dokploy)
+> [!IMPORTANT]
+> Cuando Dokploy compila la imagen de Docker, ejecuta `php artisan optimize` en frío. En esta etapa de compilación, el constructor **no tiene acceso a tus variables de entorno reales de Dokploy** (como `FIREBASE_CREDENTIALS_JSON`). 
+> Esto hace que Laravel cachee las credenciales de Firebase como `null` en el contenedor recién creado.
+>
+> **Solución Directa (SSH):**
+> Si la sincronización web se queda colgada al 0% o te da alerta de credenciales inválidas en los logs tras un despliegue, ejecuta este comando único en tu terminal SSH del VPS para limpiar la caché fría y regenerarla con las variables de producción en caliente:
+> ```bash
+> docker exec -it $(docker ps -q -f name=systemcarnet) sh -c "php artisan config:clear && php artisan optimize && php artisan queue:restart"
+> ```
 
-contrasena= zfdCDiYER21TWHwH6SZSyle7ZHibQgoD
+### 2. Contadores Web Trabados al 0%
+Si la web figura como "Sincronizando" pero se queda en 0% indefinidamente sin registrar números:
+1. Revisa la **Consola de Salida** o los logs en **Sistema > Auditoría**.
+2. Presiona el botón rojo **"DETENER PROCESO"** en el Centro de Control para liberar cualquier bloqueo de caché o lock de base de datos huérfano (`firebase_sync_lock`).
+3. Si el indicador del corta-circuitos está activado, presiona **"Restablecer Corta-circuitos"** para reanudar la comunicación con Firebase.
+4. Ejecuta el comando SSH de limpieza de caché e inicio de workers detallado arriba.
 
-docker exec -it ddcd32143a5a psql -U dokploy -d dokploy -c "ALTER USER dokploy WITH PASSWORD 'zfdCDiYER21TWHwH6SZSyle7ZHibQgoD';"
+---
 
-docker exec -it d93b4fca3266 php artisan tinker --execute="\$u = \App\Models\User::create(['name' => 'Admin', 'email' => 'admin@safesure.com', 'password' => Hash::make('password')]); if(class_exists('\Spatie\Permission\Models\Role')) { \$u->assignRole('admin'); } echo 'Usuario creado con éxito';"
+### 🔑 Comandos Administrativos Adicionales (SSH):
+
+* **Cambiar contraseña de Dokploy en PostgreSQL:**
+  ```bash
+  docker exec -it ddcd32143a5a psql -U dokploy -d dokploy -c "ALTER USER dokploy WITH PASSWORD 'zfdCDiYER21TWHwH6SZSyle7ZHibQgoD';"
+  ```
+
+* **Crear Administrador Inicial en Laravel:**
+  ```bash
+  docker exec -it d93b4fca3266 php artisan tinker --execute="\$u = \App\Models\User::create(['name' => 'Admin', 'email' => 'admin@safesure.com', 'password' => Hash::make('password')]); if(class_exists('\Spatie\Permission\Models\Role')) { \$u->assignRole('admin'); } echo 'Usuario creado con éxito';"
+  ```
