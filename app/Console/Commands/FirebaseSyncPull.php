@@ -175,8 +175,9 @@ class FirebaseSyncPull extends Command
         try {
             $processedInThisSession = 0;
             $hasMore = true;
-            $cursor = [];
+            $pageCursor = null; // Token de página para getCollectionBatched o cursor de getIncremental
             $batchCursor = []; // Cursor de lote independiente para paginación por offset
+            $lastProcessedDoc = []; // Para persistencia de checkpoints y actualización incremental
 
             while ($hasMore) {
                 // Verificar Circuit Breaker antes de cada lote
@@ -195,15 +196,15 @@ class FirebaseSyncPull extends Command
                     $data = $response['data'] ?? [];
                     $batchCursor = $response['cursor'] ?? null;
                 } elseif ($since) {
-                    $data = $firebase->getIncremental($collectionName, $since, $this->batchSize, $cursor);
+                    $data = $firebase->getIncremental($collectionName, $since, $this->batchSize, $pageCursor);
                 } else {
-                    $response = $firebase->getCollectionBatched($collectionName, $this->batchSize, $cursor['nextPageToken'] ?? null);
+                    $response = $firebase->getCollectionBatched($collectionName, $this->batchSize, $pageCursor);
                     if (!$response || !isset($response['data'])) {
                         $hasMore = false;
                         continue;
                     }
                     $data = $response['data'] ?? [];
-                    $cursor['nextPageToken'] = $response['nextPageToken'] ?? null;
+                    $pageCursor = $response['nextPageToken'] ?? null;
                 }
 
                 if (empty($data)) {
@@ -213,7 +214,7 @@ class FirebaseSyncPull extends Command
 
                 // Ajuste dinámico del total si descubrimos que hay más de lo estimado
                 $isFilteredPage = !empty($filters);
-                $hasMorePageToken = !$isFilteredPage && isset($cursor['nextPageToken']) && $cursor['nextPageToken'];
+                $hasMorePageToken = !$isFilteredPage && !empty($pageCursor);
                 if ($this->syncLog && ($this->globalSynced + count($data)) > $this->syncLog->total_records) {
                     $this->syncLog->update(['total_records' => $this->globalSynced + count($data) + ($hasMorePageToken ? 500 : 0)]);
                 }
@@ -299,12 +300,12 @@ class FirebaseSyncPull extends Command
                                 'records_skipped' => $this->skipped,
                                 'records_failed' => $this->failed,
                                 'status' => 'in_progress'
-                            ]);
+                             ]);
                         }
                         
-                        // Guardar último cursor para reanudar
+                        // Guardar último cursor para reanudar/paginar
                         if ($mapped && is_array($mapped)) {
-                            $cursor = [
+                            $lastProcessedDoc = [
                                 'updated_at' => $mapped['firebase_updated_at_meta'] ?? $mapped['updated_at'] ?? null,
                                 'id' => $mapped['firebase_id'] ?? null
                             ];
@@ -322,17 +323,22 @@ class FirebaseSyncPull extends Command
                 $bar->finish();
                 $this->line("");
 
+                // Si es incremental, actualizamos el cursor de página con el último documento procesado
+                if ($since && !empty($lastProcessedDoc)) {
+                    $pageCursor = $lastProcessedDoc;
+                }
+
                 // Actualizar Checkpoint después de cada lote (Persistencia de progreso)
-                if ($cursor && isset($cursor['updated_at'])) {
+                if ($lastProcessedDoc && isset($lastProcessedDoc['updated_at'])) {
                     $checkpoint->update([
-                        'last_document_id' => $cursor['id'] ?? null,
-                        'last_firebase_updated_at' => $cursor['updated_at'] ? Carbon::parse($cursor['updated_at']) : null,
-                        'last_successful_sync_at' => $cursor['updated_at'] ? Carbon::parse($cursor['updated_at']) : $checkpoint->last_successful_sync_at
+                        'last_document_id' => $lastProcessedDoc['id'] ?? null,
+                        'last_firebase_updated_at' => $lastProcessedDoc['updated_at'] ? Carbon::parse($lastProcessedDoc['updated_at']) : null,
+                        'last_successful_sync_at' => $lastProcessedDoc['updated_at'] ? Carbon::parse($lastProcessedDoc['updated_at']) : $checkpoint->last_successful_sync_at
                     ]);
                 }
 
-                // Si recibimos menos del batch size, es que terminamos
-                if (count($data) < $this->batchSize) {
+                // Si recibimos menos del batch size o si no hay nextPageToken en carga completa
+                if (count($data) < $this->batchSize || (empty($filters) && !$since && empty($pageCursor))) {
                     $hasMore = false;
                 }
 
