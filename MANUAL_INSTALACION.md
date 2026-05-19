@@ -328,4 +328,8 @@ _Generado: Marzo 2026 (Actualizado: Mayo 2026)_
   - **Nueva Migración:** Se creó `2026_05_18_201500_add_rechazo_fields_to_traspasos_table.php` para incorporar los campos `motivo_rechazo` (text) y `fecha_rechazo` (date) a la tabla local `traspasos`.
   - **Autoreseteo de Datos:** La misma migración ejecuta un vaciado preventivo (`DB::table('traspasos')->truncate()`) y restablece el checkpoint de sincronización (`cloud_sync_checkpoints`) para forzar la descarga e ingesta completa desde cero de todos los traspasos con su nueva estructura de campos de rechazo.
   - **Mapeo de Datos:** Se actualizaron el modelo `Traspaso.php` y el comando de consola `SyncFirebaseTraspasos.php` para mapear de manera atómica ambos campos durante el consumo incremental.
+  - **Visualización de Rechazos en UI:**
+    - Se modificó la columna "Estado Remoto" en la tabla principal de traspasos (`resources/views/livewire/traspasos-dashboard.blade.php`) para pintar un badge en color rojo premium si el estado es `RECHAZADO` e incluir el motivo de rechazo en letra compacta y elegante directamente debajo.
+    - Se diseñó e integró un bloque de alerta estilizado dentro del modal de detalles (`Detalles de Traspaso Remoto`) para resaltar de forma clara el motivo y la fecha formal del rechazo usando un fondo premium de color rosa cristalino (`bg-rose-500/[0.03]`).
+
 

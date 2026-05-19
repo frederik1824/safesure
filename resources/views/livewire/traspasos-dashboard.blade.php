@@ -553,6 +553,11 @@
                                 <td class="px-6 py-4 text-center">
                                     @if(strtoupper($tr->estado) === 'EFECTIVO')
                                         <span class="px-2.5 py-1 rounded-full text-[9px] font-sans font-black bg-blue-500/10 text-blue-600 border border-blue-500/20 uppercase tracking-wider">EFECTIVO</span>
+                                    @elseif(strtoupper($tr->estado) === 'RECHAZADO' || strtoupper($tr->estado) === 'RECHAZADA')
+                                        <span class="px-2.5 py-1 rounded-full text-[9px] font-sans font-black bg-rose-500/10 text-rose-600 border border-rose-500/20 uppercase tracking-wider">RECHAZADO</span>
+                                        @if($tr->motivo_rechazo)
+                                            <span class="block text-[10px] text-slate-500 mt-1 font-medium font-sans truncate max-w-[150px] mx-auto" title="{{ $tr->motivo_rechazo }}">{{ $tr->motivo_rechazo }}</span>
+                                        @endif
                                     @else
                                         <span class="px-2.5 py-1 rounded-full text-[9px] font-sans font-black bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">{{ $tr->estado }}</span>
                                     @endif
@@ -643,6 +648,25 @@
                                 <span class="text-xs font-bold text-slate-800 block mt-1 uppercase">{{ $selectedTraspaso->status_unipago }}</span>
                             </div>
                         </div>
+
+                        @if(strtoupper($selectedTraspaso->estado) === 'RECHAZADO' || strtoupper($selectedTraspaso->estado) === 'RECHAZADA' || $selectedTraspaso->motivo_rechazo)
+                            <div class="bg-rose-500/[0.03] p-4 rounded-2xl border border-rose-500/10 space-y-2.5">
+                                <h5 class="text-[10px] font-mono font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="ph-bold ph-warning-circle text-sm"></i>
+                                    Detalle de Rechazo Remoto
+                                </h5>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <span class="text-[9px] font-mono font-bold text-slate-400 uppercase block">Motivo de Rechazo</span>
+                                        <span class="text-xs font-bold text-rose-700 block mt-0.5">{{ $selectedTraspaso->motivo_rechazo ?: 'No especificado' }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[9px] font-mono font-bold text-slate-400 uppercase block">Fecha de Rechazo</span>
+                                        <span class="text-xs font-bold text-slate-800 font-mono block mt-0.5">{{ $selectedTraspaso->fecha_rechazo ? $selectedTraspaso->fecha_rechazo->format('d/m/Y') : '─' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
 
                         <div class="pt-4 border-t border-slate-100">
                             <h4 class="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
