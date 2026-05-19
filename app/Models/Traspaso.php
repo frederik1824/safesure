@@ -23,6 +23,8 @@ class Traspaso extends Model
         'fecha_efectivo',
         'periodo',
         'status_unipago',
+        'motivo_rechazo',
+        'fecha_rechazo',
         'sync_status',
         'firebase_updated_at',
         'synced_at',
@@ -33,6 +35,7 @@ class Traspaso extends Model
     protected $casts = [
         'fecha_solicitud' => 'date',
         'fecha_efectivo' => 'date',
+        'fecha_rechazo' => 'date',
         'firebase_updated_at' => 'datetime',
         'synced_at' => 'datetime',
         'local_updated_at' => 'datetime',

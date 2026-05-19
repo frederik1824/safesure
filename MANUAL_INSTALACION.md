@@ -322,3 +322,10 @@ _Generado: Marzo 2026 (Actualizado: Mayo 2026)_
   - **Corrección de Indexación:** Se actualizó `quickAcuse` en `resources/views/afiliados/index.blade.php` para enviar el ID `10` correcto, coincidiendo con la métrica del Dashboard de total acuses.
   - **Actualización de UI:** El componente de insignias premium (`resources/views/components/status-badge.blade.php`) fue actualizado para soportar y pintar en azul tanto el ID `10` como el `11`.
 
+### 3. Adaptación del Módulo de Traspasos (Motivo y Fecha de Rechazo)
+- **Problema de Producción:** Se actualizó la estructura en Firestore (`guia_integracion_traspasos.md`) incorporando los campos `motivo_rechazo` y `fecha_rechazo` para los traspasos rechazados. Los registros existentes en base de datos local no contaban con esta información y se omitían al sincronizar debido a que sus marcas temporales coincidían con las de Firebase.
+- **Solución Implementada:**
+  - **Nueva Migración:** Se creó `2026_05_18_201500_add_rechazo_fields_to_traspasos_table.php` para incorporar los campos `motivo_rechazo` (text) y `fecha_rechazo` (date) a la tabla local `traspasos`.
+  - **Autoreseteo de Datos:** La misma migración ejecuta un vaciado preventivo (`DB::table('traspasos')->truncate()`) y restablece el checkpoint de sincronización (`cloud_sync_checkpoints`) para forzar la descarga e ingesta completa desde cero de todos los traspasos con su nueva estructura de campos de rechazo.
+  - **Mapeo de Datos:** Se actualizaron el modelo `Traspaso.php` y el comando de consola `SyncFirebaseTraspasos.php` para mapear de manera atómica ambos campos durante el consumo incremental.
+

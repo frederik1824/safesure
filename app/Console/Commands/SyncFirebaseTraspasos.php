@@ -191,6 +191,8 @@ class SyncFirebaseTraspasos extends Command
                                 'fecha_efectivo' => isset($mapped['fecha_efectivo']) ? Carbon::parse($mapped['fecha_efectivo'])->toDateString() : null,
                                 'periodo' => $mapped['periodo'] ?? null,
                                 'status_unipago' => $statusUnipago,
+                                'motivo_rechazo' => $mapped['motivo_rechazo'] ?? null,
+                                'fecha_rechazo' => isset($mapped['fecha_rechazo']) ? Carbon::parse($mapped['fecha_rechazo'])->toDateString() : null,
                                 'sync_status' => 'synced',
                                 'firebase_updated_at' => $firebaseUpdatedAt,
                                 'synced_at' => now(),
