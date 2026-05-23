@@ -770,7 +770,7 @@ class FirebaseSyncService
         $localUpdatedAt = $model->firebase_updated_at ?? $model->updated_at;
 
         // --- PRE-FLIGHT VALIDATION (Error-Proofing) ---
-        $required = ['nombre_completo', 'cedula'];
+        $required = $model instanceof \App\Models\Empresa ? ['nombre', 'rnc'] : ['nombre_completo', 'cedula'];
         foreach ($required as $field) {
             if (empty($remoteData[$field])) {
                 Log::warning("SafeSync Validation Failed: Missing {$field} for document {$model->id}");

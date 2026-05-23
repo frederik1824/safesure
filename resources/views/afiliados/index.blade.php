@@ -174,8 +174,14 @@
                             </td>
                             <td class="bg-white py-4 px-4 shadow-sm group-hover:shadow-md transition-all border-y border-slate-100 group-hover:border-blue-200">
                                 <div class="flex flex-col">
-                                    <span class="text-[10px] font-black text-slate-700 truncate max-w-[150px] uppercase">{{ $afiliado->empresaModel->nombre ?? $afiliado->empresa }}</span>
-                                    <span class="text-[9px] font-mono font-bold text-slate-400">{{ $afiliado->empresaModel->rnc ?? 'S/RNC' }}</span>
+                                    @if($afiliado->empresa_id && $afiliado->empresaModel)
+                                        <a href="{{ route('empresas.show', $afiliado->empresaModel) }}" class="text-[10px] font-black text-slate-700 hover:text-blue-600 hover:underline transition-all truncate max-w-[150px] uppercase">
+                                            {{ $afiliado->empresaModel->nombre }}
+                                        </a>
+                                    @else
+                                        <span class="text-[10px] font-black text-slate-400 truncate max-w-[150px] uppercase">{{ $afiliado->empresa ?? 'S/E' }}</span>
+                                    @endif
+                                    <span class="text-[9px] font-mono font-bold text-slate-400">{{ $afiliado->empresaModel?->rnc ?? ($afiliado->rnc_empresa ?? 'S/RNC') }}</span>
                                 </div>
                             </td>
                             <td class="bg-white py-4 px-4 shadow-sm group-hover:shadow-md transition-all border-y border-slate-100 group-hover:border-blue-200">

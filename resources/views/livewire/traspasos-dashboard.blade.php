@@ -356,7 +356,7 @@
                         <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> Dependientes</span>
                     </div>
                 </div>
-                <div class="relative h-64 w-full">
+                <div class="relative h-64 w-full" wire:ignore>
                     <div id="trendChart" class="w-full h-full"></div>
                 </div>
             </div>
@@ -405,10 +405,16 @@
                 </div>
                 
                 <div class="flex flex-wrap gap-2 w-full md:w-auto justify-end">
-                    <!-- Solicitud Date -->
+                    <!-- Solicitud Desde -->
                     <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                        <span class="text-[9px] font-mono text-slate-500 font-bold uppercase">Solicitud</span>
-                        <input type="date" wire:model.live="fechaSolicitud" class="bg-transparent border-0 p-0 text-xs font-mono focus:ring-0 text-slate-700">
+                        <span class="text-[9px] font-mono text-slate-500 font-bold uppercase">Desde</span>
+                        <input type="date" wire:model.live="fechaSolicitudDesde" class="bg-transparent border-0 p-0 text-xs font-mono focus:ring-0 text-slate-700">
+                    </div>
+
+                    <!-- Solicitud Hasta -->
+                    <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+                        <span class="text-[9px] font-mono text-slate-500 font-bold uppercase">Hasta</span>
+                        <input type="date" wire:model.live="fechaSolicitudHasta" class="bg-transparent border-0 p-0 text-xs font-mono focus:ring-0 text-slate-700">
                     </div>
                     
                     <!-- Efectivo Date -->
@@ -416,6 +422,12 @@
                         <span class="text-[9px] font-mono text-slate-500 font-bold uppercase">Efectivo</span>
                         <input type="date" wire:model.live="fechaEfectivo" class="bg-transparent border-0 p-0 text-xs font-mono focus:ring-0 text-slate-700">
                     </div>
+
+                    <!-- Exportar Button -->
+                    <button wire:click="export" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold tracking-wide transition-all shadow-sm flex items-center gap-1.5">
+                        <i class="ph-bold ph-download-simple text-sm"></i>
+                        <span>EXPORTAR</span>
+                    </button>
                 </div>
             </div>
 
@@ -536,7 +548,20 @@
                         @forelse($traspasos as $tr)
                             <tr class="hover:bg-slate-50/50 transition-colors group">
                                 <td class="px-6 py-4 font-mono font-bold text-slate-800">#{{ $tr->firebase_document_id }}</td>
-                                <td class="px-6 py-4 font-bold text-slate-900 capitalize">{{ strtolower($tr->nombre_afiliado) }}</td>
+                                <td class="px-6 py-4 font-bold text-slate-900 capitalize">
+                                    {{ strtolower($tr->nombre_afiliado) }}
+                                    @if($tr->fecha_nacimiento || $tr->sexo)
+                                        <span class="block text-[10px] text-slate-500 mt-0.5 font-medium normal-case">
+                                            @if($tr->sexo)
+                                                <span class="font-bold text-slate-600">{{ $tr->sexo === 'M' ? 'M' : 'F' }}</span>
+                                            @endif
+                                            @if($tr->fecha_nacimiento)
+                                                @if($tr->sexo) • @endif
+                                                {{ $tr->fecha_nacimiento->format('d/m/Y') }} ({{ \Carbon\Carbon::parse($tr->fecha_nacimiento)->age }} años)
+                                            @endif
+                                        </span>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 font-mono text-slate-600">{{ preg_replace('/(\d{3})(\d{7})(\d{1})/', '$1-$2-$3', $tr->cedula_afiliado) }}</td>
                                 <td class="px-6 py-4 font-medium text-slate-700 capitalize">{{ strtolower($tr->agente) }}</td>
                                 <td class="px-6 py-4 font-mono text-center text-slate-800">{{ $tr->cantidad_dependientes }}</td>
@@ -623,6 +648,16 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-slate-50/50 p-3.5 rounded-xl border border-slate-100">
+                                <span class="text-[9px] font-mono font-bold text-slate-400 uppercase block">Sexo</span>
+                                <span class="text-xs font-bold text-slate-800 block mt-1">{{ $selectedTraspaso->sexo === 'M' ? 'Masculino' : ($selectedTraspaso->sexo === 'F' ? 'Femenino' : '─') }}</span>
+                            </div>
+                            <div class="bg-slate-50/50 p-3.5 rounded-xl border border-slate-100">
+                                <span class="text-[9px] font-mono font-bold text-slate-400 uppercase block">Fecha Nacimiento / Edad</span>
+                                <span class="text-xs font-bold text-slate-800 font-mono block mt-1">
+                                    {{ $selectedTraspaso->fecha_nacimiento ? $selectedTraspaso->fecha_nacimiento->format('d/m/Y') . ' (' . \Carbon\Carbon::parse($selectedTraspaso->fecha_nacimiento)->age . ' años)' : '─' }}
+                                </span>
+                            </div>
                             <div class="bg-slate-50/50 p-3.5 rounded-xl border border-slate-100">
                                 <span class="text-[9px] font-mono font-bold text-slate-400 uppercase block">Agente Promotor</span>
                                 <span class="text-xs font-bold text-slate-800 capitalize block mt-1">{{ strtolower($selectedTraspaso->agente ?: 'SISTEMA') }}</span>
@@ -716,11 +751,11 @@
 
     // Support Livewire navigation and component lifecycle updates
     document.addEventListener("livewire:init", () => {
-        Livewire.hook('element.init', ({ el, component }) => {
-            // Auto reinitialize chart if trendChart element exists
-            if (document.querySelector("#trendChart")) {
+        // Hook into Livewire request lifecycle to reinitialize chart on updates
+        Livewire.hook('request', ({ fail, respond, succeed }) => {
+            succeed(({ status, html }) => {
                 setTimeout(initTrendChart, 50);
-            }
+            });
         });
     });
 
@@ -730,6 +765,9 @@
             initTrendChart();
         });
     }
+
+    // Safety fallback initialization for SPA navigations and tab changes
+    setTimeout(initTrendChart, 150);
 
     function initTrendChart() {
         const chartEl = document.querySelector("#trendChart");

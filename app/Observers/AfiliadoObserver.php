@@ -82,7 +82,7 @@ class AfiliadoObserver
             // Formato ISO para fechas
             foreach ($afiliado->getCasts() as $field => $cast) {
                 if (($cast === 'datetime' || $cast === 'date') && $afiliado->$field) {
-                    $data[$field] = $afiliado->$field->toIso8601String();
+                    $data[$field] = $afiliado->$field instanceof \Carbon\Carbon ? $afiliado->$field->toIso8601String() : \Carbon\Carbon::parse($afiliado->$field)->toIso8601String();
                 }
             }
 

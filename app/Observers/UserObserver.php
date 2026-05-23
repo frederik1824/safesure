@@ -33,7 +33,7 @@ class UserObserver
             'responsable_id' => $user->responsable_id,
             'is_cmd' => $user->isCmd(),
             'roles' => $user->getRoleNames()->toArray(),
-            'updated_at' => $user->updated_at?->toIso8601String() ?? now()->toIso8601String(),
+            'updated_at' => $user->updated_at ? ($user->updated_at instanceof \Carbon\Carbon ? $user->updated_at->toIso8601String() : \Carbon\Carbon::parse($user->updated_at)->toIso8601String()) : now()->toIso8601String(),
         ];
 
         // Sincronizar con la colección 'users'

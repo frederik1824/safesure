@@ -92,7 +92,7 @@
                             <div class="min-w-0">
                                 <p class="text-[0.6rem] font-black text-slate-400 uppercase tracking-widest mb-0.5">Ubicación</p>
                                 <p class="text-[0.7rem] font-bold text-slate-700 leading-tight">
-                                    {{ $empresa->provinciaRel->nombre ?? 'N/A' }}{{ $empresa->municipioRel ? ', ' . $empresa->municipioRel->nombre : '' }}
+                                    {{ $empresa->provinciaRel?->nombre ?? 'N/A' }}{{ $empresa->municipioRel?->nombre ? ', ' . $empresa->municipioRel->nombre : '' }}
                                 </p>
                                 <p class="text-[0.65rem] text-slate-500 truncate mt-1">{{ $empresa->direccion ?: 'Sin dirección detallada' }}</p>
                             </div>
@@ -163,7 +163,7 @@
                             </div>
                             <div>
                                 <p class="text-[0.55rem] font-black uppercase text-slate-500 tracking-widest mb-0.5">Asignado Interno</p>
-                                <p class="text-xs font-bold text-slate-300">{{ $empresa->promotor->name ?? 'Sistema' }}</p>
+                                <p class="text-xs font-bold text-slate-300">{{ $empresa->promotor?->name ?? 'Sistema' }}</p>
                             </div>
                         </div>
                     </div>
@@ -193,7 +193,7 @@
 
                 {{-- Performance Card --}}
                 @php
-                    $completados = collect($statusBreakdown)->where('label', 'Completado')->first()['value'] ?? 0;
+                    $completados = data_get(collect($statusBreakdown)->where('label', 'Completado')->first(), 'value', 0);
                     $totalAfiliados = $empresa->afiliados()->count();
                     $percent = $totalAfiliados > 0 ? round(($completados / $totalAfiliados) * 100) : 0;
                 @endphp
@@ -269,15 +269,25 @@
                             'type' => $item->tipo,
                             'title' => $item->tipo,
                             'description' => $item->descripcion,
-                            'user' => $item->user->name ?? 'Sistema',
+                            'user' => $item->user?->name ?? 'Sistema',
                             'date' => $item->fecha_contacto,
                             'is_audit' => false
                         ])->merge(
                             collect($auditorias)->map(fn($item) => (object)[
                                 'type' => 'AUDIT',
-                                'title' => 'Cambio de Sistema',
-                                'description' => $item->action . ': ' . $item->details,
-                                'user' => $item->user->name ?? 'Sistema',
+                                'title' => match($item->event) {
+                                    'created' => 'Creado',
+                                    'updated' => 'Editado',
+                                    'deleted' => 'Eliminado',
+                                    default => 'Auditoría'
+                                },
+                                'description' => match($item->event) {
+                                    'created' => 'Registro creado en el sistema.',
+                                    'deleted' => 'Registro eliminado del sistema.',
+                                    'updated' => 'Campos modificados: ' . implode(', ', array_keys($item->new_values ?? [])),
+                                    default => 'Evento de auditoría registrado.'
+                                },
+                                'user' => $item->user?->name ?? 'Sistema',
                                 'date' => $item->created_at,
                                 'is_audit' => true
                             ])
@@ -392,7 +402,7 @@
                                         @endphp
                                         <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[0.6rem] font-black uppercase tracking-widest border {{ $badgeInfo[0] }}">
                                             <span class="material-symbols-outlined text-[14px]">{{ $badgeInfo[1] }}</span>
-                                            {{ $afiliado->estado->nombre ?? 'Pendiente' }}
+                                            {{ $afiliado->estado?->nombre ?? 'Pendiente' }}
                                         </span>
                                     </td>
                                     <td class="px-8 py-6 text-right">
@@ -438,54 +448,57 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('statusChart').getContext('2d');
-        const data = @json($statusBreakdown);
-        
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: data.map(d => d.label),
-                datasets: [{
-                    label: 'Afiliados',
-                    data: data.map(d => d.value),
-                    backgroundColor: [
-                        '#3b82f6', // blue
-                        '#10b981', // emerald
-                        '#f59e0b', // amber
-                        '#ef4444', // red
-                        '#6366f1'  // indigo
-                    ],
-                    borderRadius: 8,
-                    maxBarThickness: 40
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#1e293b',
-                        padding: 12,
-                        cornerRadius: 8
-                    }
+        const canvas = document.getElementById('statusChart');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            const data = @json($statusBreakdown);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.label),
+                    datasets: [{
+                        label: 'Afiliados',
+                        data: data.map(d => d.value),
+                        backgroundColor: [
+                            '#3b82f6', // blue
+                            '#10b981', // emerald
+                            '#f59e0b', // amber
+                            '#ef4444', // red
+                            '#6366f1'  // indigo
+                        ],
+                        borderRadius: 8,
+                        maxBarThickness: 40
+                    }]
                 },
-                scales: {
-                    x: {
-                        display: false,
-                        grid: { display: false }
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 12,
+                            cornerRadius: 8
+                        }
                     },
-                    y: {
-                        grid: { display: false },
-                        ticks: {
-                            font: { size: 10, weight: 'bold', family: 'Inter' },
-                            color: '#94a3b8'
+                    scales: {
+                        x: {
+                            display: false,
+                            grid: { display: false }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 10, weight: 'bold', family: 'Inter' },
+                                color: '#94a3b8'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
     });
 </script>
 @endpush

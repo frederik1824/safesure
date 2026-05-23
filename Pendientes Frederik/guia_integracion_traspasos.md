@@ -16,6 +16,8 @@ Cada documento en la colección `traspasos` representa una solicitud de traspaso
 | :--- | :--- | :--- |
 | `nombre_afiliado` | String | Nombre completo del titular del traspaso. |
 | `cedula_afiliado` | String | Cédula del titular. |
+| `fecha_nacimiento` | Date String| **[NUEVO]** Fecha de nacimiento del afiliado (YYYY-MM-DD). |
+| `sexo` | String | **[NUEVO]** Sexo del afiliado ("M", "F", "Masculino", "Femenino"). |
 | `agente` | String | Nombre resuelto del agente responsable (ej: "PEDRO RAMIREZ"). |
 | `estado` | String | Estado actual del traspaso (ej: "EFECTIVO", "RECHAZADO"). |
 | `cantidad_dependientes`| Integer| Número de familiares incluidos en el traspaso. |
@@ -28,7 +30,7 @@ Cada documento en la colección `traspasos` representa una solicitud de traspaso
 | `updated_at` | Timestamp | Fecha y hora de la última actualización en la nube. |
 
 > [!IMPORTANT]
-> **Ajuste requerido para SAFESURE**: Se han incorporado los campos `motivo_rechazo` y `fecha_rechazo` en el payload de Firestore para automatizar la sincronización de expedientes inválidos o devueltos. Por favor, actualicen sus listeners y scripts de sincronización para mapear y procesar estos campos cuando el `estado` cambie a `RECHAZADO`.
+> **Ajuste requerido para SAFESURE**: Se han incorporado los campos `motivo_rechazo`, `fecha_rechazo`, `fecha_nacimiento` y `sexo` en el payload de Firestore para automatizar la sincronización de expedientes inválidos o devueltos, y la ingesta de metadatos del afiliado desde el sistema maestro CMD. Por favor, actualicen sus listeners y scripts de sincronización para mapear y procesar estos campos.
 
 ## 3. Ejemplos de Documentos (JSON)
 
@@ -37,6 +39,8 @@ Cada documento en la colección `traspasos` representa una solicitud de traspaso
 {
   "nombre_afiliado": "JUAN PEREZ",
   "cedula_afiliado": "40212345678",
+  "fecha_nacimiento": "1994-08-12",
+  "sexo": "MASCULINO",
   "agente": "MARIA GONZALEZ",
   "estado": "EFECTIVO",
   "cantidad_dependientes": 2,
@@ -55,6 +59,8 @@ Cada documento en la colección `traspasos` representa una solicitud de traspaso
 {
   "nombre_afiliado": "FRANCISCO ANTONIO DIAZ",
   "cedula_afiliado": "01000148001",
+  "fecha_nacimiento": "1988-03-24",
+  "sexo": "MASCULINO",
   "agente": "PERLA MASSIEL DUVAL",
   "estado": "RECHAZADO",
   "cantidad_dependientes": 0,

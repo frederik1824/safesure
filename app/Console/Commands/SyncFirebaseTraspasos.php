@@ -181,9 +181,11 @@ class SyncFirebaseTraspasos extends Command
                                 }
                             }
 
-                            $dataArray = [
+                             $dataArray = [
                                 'nombre_afiliado' => strtoupper($mapped['nombre_afiliado'] ?? 'JUAN PEREZ'),
                                 'cedula_afiliado' => preg_replace('/[^0-9]/', '', $mapped['cedula_afiliado'] ?? ''),
+                                'fecha_nacimiento' => isset($mapped['fecha_nacimiento']) ? Carbon::parse($mapped['fecha_nacimiento'])->toDateString() : null,
+                                'sexo' => isset($mapped['sexo']) ? strtoupper(substr(trim($mapped['sexo']), 0, 1)) : null,
                                 'agente' => strtoupper($mapped['agente'] ?? 'SISTEMA'),
                                 'estado' => $estado,
                                 'cantidad_dependientes' => isset($mapped['cantidad_dependientes']) ? (int)$mapped['cantidad_dependientes'] : 0,

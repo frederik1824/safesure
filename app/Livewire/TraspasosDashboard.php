@@ -25,7 +25,8 @@ class TraspasosDashboard extends Component
     public $filterAgente = 'all';
     public $filterPeriodo = 'all';
     public $filterStatusUnipago = 'all';
-    public $fechaSolicitud = '';
+    public $fechaSolicitudDesde = '';
+    public $fechaSolicitudHasta = '';
     public $fechaEfectivo = '';
     
     // Ordenamiento
@@ -54,7 +55,19 @@ class TraspasosDashboard extends Component
         'filterAgente' => ['except' => 'all'],
         'filterPeriodo' => ['except' => 'all'],
         'filterStatusUnipago' => ['except' => 'all'],
+        'fechaSolicitudDesde' => ['except' => ''],
+        'fechaSolicitudHasta' => ['except' => ''],
+        'view' => ['except' => 'list'],
     ];
+
+    public function updatedSearch() { $this->resetPage(); }
+    public function updatedFilterEstado() { $this->resetPage(); }
+    public function updatedFilterAgente() { $this->resetPage(); }
+    public function updatedFilterPeriodo() { $this->resetPage(); }
+    public function updatedFilterStatusUnipago() { $this->resetPage(); }
+    public function updatedFechaSolicitudDesde() { $this->resetPage(); }
+    public function updatedFechaSolicitudHasta() { $this->resetPage(); }
+    public function updatedFechaEfectivo() { $this->resetPage(); }
 
     public function mount($view = 'list')
     {
@@ -189,6 +202,111 @@ class TraspasosDashboard extends Component
             $this->orderBy = $field;
             $this->orderDir = 'desc';
         }
+    }
+
+    public function export()
+    {
+        $query = Traspaso::query();
+
+        if (!empty($this->search)) {
+            $query->where(function($q) {
+                $q->where('nombre_afiliado', 'like', '%' . $this->search . '%')
+                  ->orWhere('cedula_afiliado', 'like', '%' . $this->search . '%')
+                  ->orWhere('agente', 'like', '%' . $this->search . '%')
+                  ->orWhere('firebase_document_id', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        if ($this->filterEstado !== 'all') {
+            $query->where('estado', $this->filterEstado);
+        }
+
+        if ($this->filterAgente !== 'all') {
+            $query->where('agente', $this->filterAgente);
+        }
+
+        if ($this->filterPeriodo !== 'all') {
+            $query->where('periodo', $this->filterPeriodo);
+        }
+
+        if ($this->filterStatusUnipago !== 'all') {
+            $query->where('status_unipago', $this->filterStatusUnipago);
+        }
+
+        if (!empty($this->fechaSolicitudDesde)) {
+            $query->whereDate('fecha_solicitud', '>=', $this->fechaSolicitudDesde);
+        }
+
+        if (!empty($this->fechaSolicitudHasta)) {
+            $query->whereDate('fecha_solicitud', '<=', $this->fechaSolicitudHasta);
+        }
+
+        if (!empty($this->fechaEfectivo)) {
+            $query->whereDate('fecha_efectivo', $this->fechaEfectivo);
+        }
+
+        $traspasos = $query->orderBy($this->orderBy, $this->orderDir)->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="traspasos_' . now()->format('Ymd_His') . '.csv"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
+        ];
+
+        $callback = function() use ($traspasos) {
+            $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM for Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // CSV Headers
+            fputcsv($file, [
+                'ID CMD',
+                'Nombre Afiliado',
+                'Cédula',
+                'Sexo',
+                'Fecha Nacimiento',
+                'Edad',
+                'Agente',
+                'Estado',
+                'Dependientes',
+                'Fecha Solicitud',
+                'Fecha Efectivo',
+                'Periodo',
+                'Estado Unipago',
+                'Motivo Rechazo',
+                'Fecha Rechazo'
+            ], ';');
+
+            foreach ($traspasos as $tr) {
+                $edad = $tr->fecha_nacimiento ? Carbon::parse($tr->fecha_nacimiento)->age : 'N/D';
+                $sexoLargo = $tr->sexo === 'M' ? 'Masculino' : ($tr->sexo === 'F' ? 'Femenino' : $tr->sexo);
+
+                fputcsv($file, [
+                    $tr->firebase_document_id,
+                    $tr->nombre_afiliado,
+                    $tr->cedula_afiliado,
+                    $sexoLargo,
+                    $tr->fecha_nacimiento ? $tr->fecha_nacimiento->format('d/m/Y') : '',
+                    $edad,
+                    $tr->agente,
+                    $tr->estado,
+                    $tr->cantidad_dependientes,
+                    $tr->fecha_solicitud ? $tr->fecha_solicitud->format('d/m/Y') : '',
+                    $tr->fecha_efectivo ? $tr->fecha_efectivo->format('d/m/Y') : '',
+                    $tr->periodo,
+                    $tr->status_unipago,
+                    $tr->motivo_rechazo,
+                    $tr->fecha_rechazo ? $tr->fecha_rechazo->format('d/m/Y') : ''
+                ], ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function render()
@@ -331,8 +449,12 @@ class TraspasosDashboard extends Component
             $query->where('status_unipago', $this->filterStatusUnipago);
         }
 
-        if (!empty($this->fechaSolicitud)) {
-            $query->whereDate('fecha_solicitud', $this->fechaSolicitud);
+        if (!empty($this->fechaSolicitudDesde)) {
+            $query->whereDate('fecha_solicitud', '>=', $this->fechaSolicitudDesde);
+        }
+
+        if (!empty($this->fechaSolicitudHasta)) {
+            $query->whereDate('fecha_solicitud', '<=', $this->fechaSolicitudHasta);
         }
 
         if (!empty($this->fechaEfectivo)) {

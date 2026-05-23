@@ -47,8 +47,14 @@
                 <td class="py-4 px-4">
                     <div class="flex flex-col">
                         <span class="text-xs font-bold text-primary flex items-center gap-1">
-                            {{ $afiliado->empresaModel->nombre ?? $afiliado->empresa }}
-                            <span class="material-symbols-outlined text-blue-500 text-[14px]">verified_user</span>
+                            @if($afiliado->empresa_id && $afiliado->empresaModel)
+                                <a href="{{ route('empresas.show', $afiliado->empresaModel) }}" class="hover:text-blue-600 hover:underline flex items-center gap-1">
+                                    {{ $afiliado->empresaModel->nombre }}
+                                    <span class="material-symbols-outlined text-blue-500 text-[14px]">verified_user</span>
+                                </a>
+                            @else
+                                {{ $afiliado->empresa ?? 'Sin Empresa' }}
+                            @endif
                         </span>
                         <span class="text-[0.65rem] text-slate-400">{{ $afiliado->empresaModel?->rnc ?? ($afiliado->rnc_empresa ?? '----------') }}</span>
                     </div>

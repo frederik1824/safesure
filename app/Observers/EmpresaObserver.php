@@ -35,7 +35,7 @@ class EmpresaObserver
             // Forzamos formato ISO 8601 para todas las fechas detectadas
             foreach ($empresa->getCasts() as $field => $cast) {
                 if (($cast === 'datetime' || $cast === 'date') && $empresa->$field) {
-                    $data[$field] = $empresa->$field->toIso8601String();
+                    $data[$field] = $empresa->$field instanceof \Carbon\Carbon ? $empresa->$field->toIso8601String() : \Carbon\Carbon::parse($empresa->$field)->toIso8601String();
                 }
             }
 

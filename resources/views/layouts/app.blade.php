@@ -201,7 +201,9 @@
             $activeApp = 'gestion';
         } elseif(request()->routeIs('reportes.*')) {
             $activeApp = 'reportes';
-        } elseif(request()->routeIs('proveedores.*', 'catalogo.*', 'admin.audit.index', 'usuarios.*', 'admin.sync.*', 'traspasos.*')) {
+        } elseif(request()->routeIs('traspasos.*')) {
+            $activeApp = 'traspasos';
+        } elseif(request()->routeIs('proveedores.*', 'catalogo.*', 'admin.audit.index', 'usuarios.*', 'admin.sync.*')) {
             $activeApp = 'sistema';
         }
         $isHome = request()->routeIs('dashboard');
@@ -428,6 +430,8 @@
                 @include('layouts.sidebars.logistica')
             @elseif($activeApp == 'sistema')
                 @include('layouts.sidebars.sistema')
+            @elseif($activeApp == 'traspasos')
+                @include('layouts.sidebars.traspasos')
             @endif
         </aside>
         @endif

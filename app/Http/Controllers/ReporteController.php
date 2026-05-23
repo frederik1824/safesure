@@ -77,9 +77,23 @@ class ReporteController extends Controller
 
         $salidas_count = $salidas_query->count();
 
+        // Dynamic logistics metrics
+        $avgCycleTime = (clone $query)->finished()
+            ->whereNotNull('fecha_entrega_safesure')
+            ->selectRaw('AVG(DATEDIFF(fecha_entrega_safesure, created_at)) as avg_days')
+            ->first()->avg_days ?? 0;
+
+        $completedCount = (clone $query)->finished()->whereNotNull('fecha_entrega_safesure')->count();
+        $onTimeCount = (clone $query)->finished()->whereNotNull('fecha_entrega_safesure')
+            ->whereRaw('DATEDIFF(fecha_entrega_safesure, created_at) < 20')
+            ->count();
+        $otdRate = $completedCount > 0 ? ($onTimeCount / $completedCount) * 100 : 100;
+
         $stats = [
             'ingresos' => $ingresos_count,
             'salidas' => $salidas_count,
+            'avg_cycle_time' => round($avgCycleTime, 1),
+            'otd_rate' => round($otdRate, 1),
             'critico_sla' => (clone $query)->with('estado')->get()
                             ->filter(fn($a) => $a->sla_status === 'critico')
                             ->count(),
@@ -89,6 +103,24 @@ class ReporteController extends Controller
         ];
         
         $stats['tasa_entrega'] = $stats['ingresos'] > 0 ? ($stats['salidas'] / $stats['ingresos']) * 100 : 0;
+
+        // Funnel analysis pipeline stats
+        $funnel_stats = [
+            'ingreso' => (clone $query)->where('estado_id', 1)->count(), // Pendiente
+            'proceso' => (clone $query)->whereIn('estado_id', [2, 3, 4, 5])->count(), // Impresión/Proceso
+            'transito' => (clone $query)->where('estado_id', 6)->count(), // Entregado (En transito para acuse/cierre)
+            'completado' => (clone $query)->where('estado_id', 9)->count(), // Completado
+        ];
+
+        // Geographic density for widget
+        $densidad_provincias = (clone $query)->select('provincia_id')
+            ->selectRaw('count(*) as total')
+            ->whereNotNull('provincia_id')
+            ->groupBy('provincia_id')
+            ->with('provinciaRel')
+            ->orderBy('total', 'desc')
+            ->take(5)
+            ->get();
 
         // 2. Datos para Gráfico de Tendencia
         $tendencia = Afiliado::select(
@@ -137,7 +169,8 @@ class ReporteController extends Controller
         return view('reportes.supervision', compact(
             'stats', 'estados', 'cortes_data', 'responsables_data', 
             'tendencia', 'cortes', 'responsables', 'empresas',
-            'fecha_desde', 'fecha_hasta', 'corte_id', 'responsable_id', 'empresa_id'
+            'fecha_desde', 'fecha_hasta', 'corte_id', 'responsable_id', 'empresa_id',
+            'funnel_stats', 'densidad_provincias'
         ));
     }
 
