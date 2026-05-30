@@ -101,6 +101,21 @@
                     <input type="text" name="telefono" value="{{ old('telefono') }}" class="w-full bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary p-3">
                     @error('telefono') <span class="text-error text-xs">{{ $message }}</span> @enderror
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Fecha de Nacimiento</label>
+                    <input type="date" name="fecha_nacimiento" value="{{ old('fecha_nacimiento') }}" class="w-full bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary p-3">
+                    @error('fecha_nacimiento') <span class="text-error text-xs">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Número de Solicitud</label>
+                    <input type="text" name="numero_solicitud" value="{{ old('numero_solicitud') }}" class="w-full bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary p-3">
+                    @error('numero_solicitud') <span class="text-error text-xs">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Cantidad de Dependientes</label>
+                    <input type="number" min="0" name="cantidad_dependientes" value="{{ old('cantidad_dependientes') }}" class="w-full bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary p-3">
+                    @error('cantidad_dependientes') <span class="text-error text-xs">{{ $message }}</span> @enderror
+                </div>
                 <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-200">
                     <div class="md:col-span-2 mb-2 flex items-center gap-2">
                         <span class="material-symbols-outlined text-slate-400">corporate_fare</span>

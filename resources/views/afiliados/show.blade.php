@@ -78,6 +78,34 @@
                 </div>
 
                 <div class="w-full mt-8 pt-6 border-t border-slate-100 space-y-4 z-10">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Sexo</p>
+                            <p class="text-sm font-semibold text-slate-700 mt-0.5">
+                                {{ $afiliado->sexo === 'M' ? 'Masculino' : ($afiliado->sexo === 'F' ? 'Femenino' : 'No registrado') }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">F. Nacimiento</p>
+                            <p class="text-sm font-semibold text-slate-700 mt-0.5">
+                                {{ $afiliado->fecha_nacimiento ? $afiliado->fecha_nacimiento->format('d/m/Y') . ' (' . \Carbon\Carbon::parse($afiliado->fecha_nacimiento)->age . ' años)' : 'N/D' }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Nº Solicitud</p>
+                            <p class="text-xs font-mono font-bold text-blue-600 mt-0.5">{{ $afiliado->numero_solicitud ?? 'N/A' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[0.65rem] font-bold text-slate-400 uppercase tracking-widest">Dependientes</p>
+                            <p class="text-sm font-semibold text-slate-700 mt-0.5">{{ $afiliado->cantidad_dependientes ?? 0 }}</p>
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-slate-100 my-2"></div>
+
                     <div class="flex items-start gap-4">
                         <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
                             <span class="material-symbols-outlined text-sm">phone</span>

@@ -40,7 +40,7 @@ class Afiliado extends Model
 
     protected $fillable = [
         'uuid', 'corte_id', 'responsable_id', 'estado_id', 'empresa_id', 'nombre_completo', 'cedula',
-        'sexo', 'telefono', 'direccion', 'provincia', 'municipio', 'empresa', 'rnc_empresa',
+        'sexo', 'fecha_nacimiento', 'numero_solicitud', 'cantidad_dependientes', 'telefono', 'direccion', 'provincia', 'municipio', 'empresa', 'rnc_empresa',
         'codigo', 'lote_id', 'proveedor_id', 'costo_entrega', 'poliza', 'contrato',
         'fecha_entrega_proveedor', 'liquidado', 'fecha_liquidacion', 'recibo_liquidacion',
         'fecha_entrega_safesure', 'lote_liquidacion_id',
@@ -57,7 +57,9 @@ class Afiliado extends Model
         'liquidado' => 'boolean',
         'reasignado' => 'boolean',
         'firebase_synced_at' => 'datetime',
-        'conflict_status' => 'boolean'
+        'conflict_status' => 'boolean',
+        'fecha_nacimiento' => 'date',
+        'cantidad_dependientes' => 'integer'
     ];
     
 

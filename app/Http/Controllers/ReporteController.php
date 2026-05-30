@@ -195,7 +195,8 @@ class ReporteController extends Controller
             fputcsv($file, [
                 'ID', 'Nombre Completo', 'Cedula', 'Contrato', 'Empresa', 'RNC Empresa', 
                 'Corte', 'Estado', 'Responsable', 'Fecha Ingreso', 'Fecha Entrega Prov', 
-                'SLA Status', 'Costo Entrega', 'Liquidado'
+                'SLA Status', 'Costo Entrega', 'Liquidado',
+                'Número de Solicitud', 'Cantidad de Dependientes', 'Sexo', 'Fecha de Nacimiento'
             ]);
 
             foreach ($afiliados as $a) {
@@ -213,7 +214,11 @@ class ReporteController extends Controller
                     $a->fecha_entrega_proveedor?->format('Y-m-d') ?? '',
                     $a->sla_status,
                     $a->costo_entrega,
-                    $a->liquidado ? 'SI' : 'NO'
+                    $a->liquidado ? 'SI' : 'NO',
+                    $a->numero_solicitud,
+                    $a->cantidad_dependientes,
+                    $a->sexo === 'M' ? 'Masculino' : ($a->sexo === 'F' ? 'Femenino' : ($a->sexo ?: 'N/D')),
+                    $a->fecha_nacimiento ? $a->fecha_nacimiento->format('Y-m-d') : ''
                 ]);
             }
             fclose($file);

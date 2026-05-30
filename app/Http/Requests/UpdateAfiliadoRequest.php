@@ -22,6 +22,10 @@ class UpdateAfiliadoRequest extends FormRequest
         return [
             'nombre_completo' => 'required|string|max:255',
             'cedula' => ['required', 'string', 'max:20', new \App\Rules\CedulaDominicana],
+            'sexo' => 'nullable|string|in:M,F',
+            'fecha_nacimiento' => 'nullable|date',
+            'numero_solicitud' => 'nullable|string|max:100',
+            'cantidad_dependientes' => 'nullable|integer|min:0',
             'telefono' => 'nullable|string|max:20',
             'direccion' => 'nullable|string',
             'provincia_id' => 'nullable|exists:provincias,id',

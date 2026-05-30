@@ -28,6 +28,10 @@ class StoreAfiliadoRequest extends FormRequest
                 new \App\Rules\CedulaDominicana,
                 \Illuminate\Validation\Rule::unique('afiliados')->where(fn ($q) => $q->where('corte_id', $this->corte_id))
             ],
+            'sexo' => 'nullable|string|in:M,F',
+            'fecha_nacimiento' => 'nullable|date',
+            'numero_solicitud' => 'nullable|string|max:100',
+            'cantidad_dependientes' => 'nullable|integer|min:0',
             'telefono' => 'nullable|string|max:20',
             'direccion' => 'nullable|string',
             'provincia_id' => 'nullable|exists:provincias,id',

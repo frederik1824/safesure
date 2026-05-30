@@ -884,6 +884,17 @@ class FirebaseSyncService
             $mapped[$key] = $val;
         }
 
+        // --- NORMALIZACIÓN Y ALIAS ROBUSTOS PARA AFILIADOS/TRASPASOS ---
+        if (isset($mapped['solicitud']) && !isset($mapped['numero_solicitud'])) {
+            $mapped['numero_solicitud'] = $mapped['solicitud'];
+        }
+        if (isset($mapped['dependientes']) && !isset($mapped['cantidad_dependientes'])) {
+            $mapped['cantidad_dependientes'] = (int)$mapped['dependientes'];
+        }
+        if (isset($mapped['sexo']) && is_string($mapped['sexo'])) {
+            $mapped['sexo'] = strtoupper(substr(trim($mapped['sexo']), 0, 1));
+        }
+
         return $mapped;
     }
 
