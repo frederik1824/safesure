@@ -87,6 +87,11 @@ class FirebaseSyncPull extends Command
                     $filters['responsable_id'] = (int)$this->option('responsable-id');
                 }
                 $this->safeSyncProcess($firebase, 'afiliados', Afiliado::class, 'cedula', $filters);
+                
+                // Cruce de datos masivo automático
+                $this->info("🔄 Ejecutando cruce automático de fecha de nacimiento y sexo desde Traspasos...");
+                \App\Models\Afiliado::crossUpdateFromTraspasos();
+                $this->info("✅ Cruce de datos finalizado.");
             }
 
             $this->info("✅ SafeSync completado exitosamente.");

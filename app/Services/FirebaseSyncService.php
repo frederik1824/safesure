@@ -849,6 +849,59 @@ class FirebaseSyncService
     }
 
     /**
+     * Parses a Firestore REST API typed value recursively.
+     */
+    protected function parseFirestoreValue(array $value)
+    {
+        $type = key($value);
+        $val = reset($value);
+
+        if ($type === 'nullValue') {
+            return null;
+        }
+        if ($type === 'booleanValue') {
+            return (bool)$val;
+        }
+        if ($type === 'integerValue') {
+            return (int)$val;
+        }
+        if ($type === 'doubleValue') {
+            return (float)$val;
+        }
+        if ($type === 'stringValue') {
+            return (string)$val;
+        }
+        if ($type === 'timestampValue') {
+            return (string)$val;
+        }
+        if ($type === 'mapValue') {
+            $mappedMap = [];
+            $nestedFields = $val['fields'] ?? [];
+            foreach ($nestedFields as $nestedKey => $nestedValue) {
+                if (is_array($nestedValue)) {
+                    $mappedMap[$nestedKey] = $this->parseFirestoreValue($nestedValue);
+                } else {
+                    $mappedMap[$nestedKey] = $nestedValue;
+                }
+            }
+            return $mappedMap;
+        }
+        if ($type === 'arrayValue') {
+            $mappedArray = [];
+            $nestedValues = $val['values'] ?? [];
+            foreach ($nestedValues as $nestedValue) {
+                if (is_array($nestedValue)) {
+                    $mappedArray[] = $this->parseFirestoreValue($nestedValue);
+                } else {
+                    $mappedArray[] = $nestedValue;
+                }
+            }
+            return $mappedArray;
+        }
+        return $val;
+    }
+
+    /**
      * Maps a Firestore REST API document to a flat array, including system metadata.
      */
     protected function mapFirestoreRestDoc(array $doc): array
@@ -864,12 +917,7 @@ class FirebaseSyncService
         $mapped['firebase_created_at_meta'] = $doc['createTime'] ?? null;
 
         foreach ($fields as $key => $values) {
-            $val = reset($values);
-            $type = key($values);
-
-            if ($type === 'integerValue') $val = (int)$val;
-            if ($type === 'doubleValue') $val = (float)$val;
-            if ($type === 'booleanValue') $val = (bool)$val;
+            $val = $this->parseFirestoreValue($values);
             
             // Especial: Aplanado de objetos anidados (como estado => {id: 9})
             if (is_array($val)) {

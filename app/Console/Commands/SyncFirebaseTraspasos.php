@@ -267,6 +267,11 @@ class SyncFirebaseTraspasos extends Command
                 'duration_seconds' => (int) max(0, round(now()->diffInSeconds($startedAt)))
             ]);
 
+            // Ejecutar el cruce de datos masivo optimizado para propagar a afiliados
+            $this->info("🔄 Propagando automáticamente Fecha de Nacimiento y Sexo a la tabla de Afiliados...");
+            \App\Models\Afiliado::crossUpdateFromTraspasos();
+            $this->info("✅ Propagación masiva finalizada.");
+
             // Finalizar Log
             if ($this->syncLog) {
                 $this->syncLog->update([

@@ -81,6 +81,24 @@ class Afiliado extends Model
                 }
             }
         });
+
+        // Cruzar datos de Traspasos (si fecha_nacimiento o sexo están vacíos)
+        static::saving(function ($model) {
+            if (empty($model->fecha_nacimiento) || empty($model->sexo)) {
+                $cleanCedula = preg_replace('/[^0-9]/', '', $model->cedula);
+                if ($cleanCedula) {
+                    $traspaso = \App\Models\Traspaso::where('cedula_afiliado', $cleanCedula)->first();
+                    if ($traspaso) {
+                        if (empty($model->fecha_nacimiento) && $traspaso->fecha_nacimiento) {
+                            $model->fecha_nacimiento = $traspaso->fecha_nacimiento;
+                        }
+                        if (empty($model->sexo) && $traspaso->sexo) {
+                            $model->sexo = $traspaso->sexo;
+                        }
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -394,6 +412,74 @@ class Afiliado extends Model
             return "(julianday({$date1}) - julianday({$date2}))";
         } else { // mysql / mariadb
             return "DATEDIFF({$date1}, {$date2})";
+        }
+    }
+
+    /**
+     * Executa un cruce masivo optimizado a nivel de base de datos para poblar fecha_nacimiento y sexo de Afiliados desde Traspasos
+     */
+    public static function crossUpdateFromTraspasos()
+    {
+        $driver = \Illuminate\Support\Facades\DB::connection()->getDriverName();
+        
+        if ($driver === 'pgsql') {
+            // PostgreSQL optimizado
+            return \Illuminate\Support\Facades\DB::statement("
+                UPDATE afiliados
+                SET fecha_nacimiento = COALESCE(afiliados.fecha_nacimiento, traspasos.fecha_nacimiento),
+                    sexo = COALESCE(NULLIF(afiliados.sexo, ''), traspasos.sexo)
+                FROM traspasos
+                WHERE REPLACE(afiliados.cedula, '-', '') = traspasos.cedula_afiliado
+                  AND afiliados.deleted_at IS NULL
+                  AND traspasos.deleted_at IS NULL
+                  AND (afiliados.fecha_nacimiento IS NULL OR afiliados.sexo IS NULL OR afiliados.sexo = '')
+                  AND (traspasos.fecha_nacimiento IS NOT NULL OR traspasos.sexo IS NOT NULL)
+            ");
+        } elseif ($driver === 'mysql') {
+            // MySQL optimizado
+            return \Illuminate\Support\Facades\DB::statement("
+                UPDATE afiliados
+                JOIN traspasos ON REPLACE(afiliados.cedula, '-', '') = traspasos.cedula_afiliado
+                SET afiliados.fecha_nacimiento = COALESCE(afiliados.fecha_nacimiento, traspasos.fecha_nacimiento),
+                    afiliados.sexo = COALESCE(NULLIF(afiliados.sexo, ''), traspasos.sexo)
+                WHERE afiliados.deleted_at IS NULL
+                  AND traspasos.deleted_at IS NULL
+                  AND (afiliados.fecha_nacimiento IS NULL OR afiliados.sexo IS NULL OR afiliados.sexo = '')
+                  AND (traspasos.fecha_nacimiento IS NOT NULL OR traspasos.sexo IS NOT NULL)
+            ");
+        } else {
+            // SQLite u otros (Fallback seguro mediante bucle paginado de Eloquent)
+            $count = 0;
+            self::withoutGlobalScopes()
+                ->where(function($q) {
+                    $q->whereNull('fecha_nacimiento')
+                      ->orWhereNull('sexo')
+                      ->orWhere('sexo', '');
+                })
+                ->chunkById(500, function($afiliados) use (&$count) {
+                    foreach ($afiliados as $a) {
+                        $cleanCedula = preg_replace('/[^0-9]/', '', $a->cedula);
+                        if (!$cleanCedula) continue;
+                        
+                        $traspaso = \App\Models\Traspaso::where('cedula_afiliado', $cleanCedula)->first();
+                        if ($traspaso) {
+                            $changed = false;
+                            if (empty($a->fecha_nacimiento) && $traspaso->fecha_nacimiento) {
+                                $a->fecha_nacimiento = $traspaso->fecha_nacimiento;
+                                $changed = true;
+                            }
+                            if ((empty($a->sexo) || trim($a->sexo) === '') && $traspaso->sexo) {
+                                $a->sexo = $traspaso->sexo;
+                                $changed = true;
+                            }
+                            if ($changed) {
+                                $a->saveQuietly();
+                                $count++;
+                            }
+                        }
+                    }
+                });
+            return $count;
         }
     }
 }

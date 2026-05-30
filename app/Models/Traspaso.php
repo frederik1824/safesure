@@ -44,4 +44,34 @@ class Traspaso extends Model
         'local_updated_at' => 'datetime',
         'cantidad_dependientes' => 'integer'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Cuando se guarda un traspaso, buscar si existe el afiliado con la misma cédula
+        // y actualizarle la fecha de nacimiento y el sexo si están vacíos!
+        static::saved(function ($model) {
+            $cleanCedula = preg_replace('/[^0-9]/', '', $model->cedula_afiliado);
+            if ($cleanCedula) {
+                $afiliado = \App\Models\Afiliado::withoutGlobalScopes()
+                    ->whereRaw("REPLACE(cedula, '-', '') = ?", [$cleanCedula])
+                    ->first();
+                if ($afiliado) {
+                    $changed = false;
+                    if (empty($afiliado->fecha_nacimiento) && $model->fecha_nacimiento) {
+                        $afiliado->fecha_nacimiento = $model->fecha_nacimiento;
+                        $changed = true;
+                    }
+                    if (empty($afiliado->sexo) && $model->sexo) {
+                        $afiliado->sexo = $model->sexo;
+                        $changed = true;
+                    }
+                    if ($changed) {
+                        $afiliado->saveQuietly();
+                    }
+                }
+            }
+        });
+    }
 }
