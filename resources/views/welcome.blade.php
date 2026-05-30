@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <!-- SEO Meta Tags -->
-    <title>DISCAN | Correduría de Seguros Médicos y Servicios de Salud Premium</title>
-    <meta name="description" content="DISCAN es su firma de corretaje y asesoría de seguros médicos de confianza. Diseñamos planes colectivos corporativos, seguros familiares e internacionales con las principales ARS del país, respaldados por la tecnología exclusiva SysSAFE.">
-    <meta name="keywords" content="seguros medicos, broker de seguros, corredores de seguros, planes de salud, ars humano, ars universal, safesure, discan, seguros colectivos, seguro internacional">
+    <title>DISCAN | Asesoría, Correduría de Seguros y Servicios de Salud Premium en RD</title>
+    <meta name="description" content="DISCAN es su firma experta de corretaje de seguros y servicios de salud en República Dominicana. Protegemos su empresa y familia con las mejores coberturas de salud, vida, vehículos y propiedades.">
+    <meta name="keywords" content="seguros medicos, broker de seguros, corredores de seguros, planes de salud, max corredores, safesure, discan, seguros colectivos, seguro internacional, seguro de vida dominicana">
     <meta name="author" content="DISCAN Enterprise">
 
     <!-- Fonts -->
@@ -24,459 +24,495 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #fafbfc;
+            background-color: #f8fafc;
             color: #0f172a;
         }
         h1, h2, h3, h4, h5, h6, .font-display {
             font-family: 'Outfit', sans-serif;
         }
-        .brand-gradient {
-            background: linear-gradient(135deg, #0f172a 0%, #1e40af 50%, #0284c7 100%);
+        
+        /* Navy & Gold Brand Colors */
+        .bg-brand-navy {
+            background-color: #0a1d37;
         }
-        .text-brand-gradient {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #0ea5e9 100%);
+        .text-brand-navy {
+            color: #0a1d37;
+        }
+        .border-brand-navy {
+            border-color: #0a1d37;
+        }
+        .bg-brand-gold {
+            background-color: #d97706;
+        }
+        .text-brand-gold {
+            color: #d97706;
+        }
+        .border-brand-gold {
+            border-color: #d97706;
+        }
+        
+        .brand-gradient-navy {
+            background: linear-gradient(135deg, #071424 0%, #0a1d37 50%, #0f2e54 100%);
+        }
+        .brand-gradient-gold-text {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .nav-glass {
-            background: rgba(250, 251, 252, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        
+        /* Glassmorphism navigation */
+        .nav-glass-corporate {
+            background: rgba(10, 29, 55, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 2px solid #d97706;
         }
-        .premium-card {
+        
+        /* Premium Card Interactions mimicking max.com.do */
+        .max-style-card {
             background: #ffffff;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.02);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .premium-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.08);
-            border-color: rgba(37, 99, 235, 0.15);
+        .max-style-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(10, 29, 55, 0.1);
+            border-color: #d97706;
         }
-        .ars-logo-card {
-            filter: grayscale(100%);
-            opacity: 0.65;
+        .max-style-card:hover .card-icon-container {
+            background-color: #d97706;
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+        
+        .service-panel-card {
+            background: #ffffff;
+            border-bottom: 4px solid #e2e8f0;
             transition: all 0.3s ease;
         }
-        .ars-logo-card:hover {
+        .service-panel-card:hover {
+            border-bottom-color: #d97706;
+            box-shadow: 0 10px 15px -3px rgba(10, 29, 55, 0.05);
+        }
+
+        .ars-logo-gray {
+            filter: grayscale(100%);
+            opacity: 0.55;
+            transition: all 0.3s ease;
+        }
+        .ars-logo-gray:hover {
             filter: grayscale(0%);
             opacity: 1;
-            transform: scale(1.03);
+            transform: scale(1.05);
         }
-        /* Custom smooth scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        
+        /* Quick access tab borders */
+        .tab-button-active {
+            border-bottom: 3px solid #d97706;
+            color: #d97706;
         }
     </style>
 </head>
-<body class="antialiased selection:bg-blue-500/10 selection:text-blue-600 overflow-x-hidden min-h-screen flex flex-col justify-between" x-data="{ activePlan: 'corporate' }">
+<body class="antialiased selection:bg-amber-500/10 selection:text-amber-600 overflow-x-hidden min-h-screen flex flex-col justify-between" x-data="{ activeServiceTab: 'empresas', showDropdown: false }">
 
-    <!-- Global Commercial Navbar -->
-    <header class="fixed top-0 left-0 right-0 z-50 nav-glass transition-all duration-300">
+    <!-- Global Commercial Navbar (Inspirada en MAX) -->
+    <header class="fixed top-0 left-0 right-0 z-50 nav-glass-corporate shadow-md transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <a href="#" class="flex items-center gap-3 group">
-                <div class="w-11 h-11 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/20 transform group-hover:rotate-6 transition-transform duration-300">
-                    <i class="ph-bold ph-shield-plus text-2xl"></i>
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 shadow-lg shadow-amber-500/20 transform group-hover:rotate-6 transition-transform duration-300">
+                    <i class="ph-bold ph-shield-check text-2xl text-white"></i>
                 </div>
                 <div class="flex flex-col">
-                    <span class="text-xl font-black tracking-tight text-slate-800 leading-none">DISCAN</span>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-blue-600 mt-1 leading-none">Corredores de Seguros</span>
+                    <span class="text-xl font-black tracking-tight text-white leading-none">DISCAN</span>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-amber-400 mt-1 leading-none">Corredores de Seguros</span>
                 </div>
             </a>
 
-            <!-- Commercial Menu Links -->
+            <!-- Menu Navigation Dropdowns & Links -->
             <nav class="hidden lg:flex items-center gap-8">
-                <a href="#inicio" class="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-blue-600 transition-colors">Inicio</a>
-                <a href="#asesor" class="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-blue-600 transition-colors">Asesor de Salud</a>
-                <a href="#servicios" class="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-blue-600 transition-colors">Planes y Servicios</a>
-                <a href="#nosotros" class="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-blue-600 transition-colors">Quiénes Somos</a>
-                <a href="#ventaja" class="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-blue-600 transition-colors">Ventaja SysSAFE</a>
-                <a href="#faq" class="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-blue-600 transition-colors">Preguntas Frecuentes</a>
+                <a href="#inicio" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors">Inicio</a>
+                
+                <!-- Interactive Hover Dropdown for Seguros -->
+                <div class="relative" x-data="{ openMenu: false }" @mouseenter="openMenu = true" @mouseleave="openMenu = false">
+                    <button class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors flex items-center gap-1">
+                        <span>Nuestros Seguros</span>
+                        <i class="ph-bold ph-caret-down text-[10px]"></i>
+                    </button>
+                    <div x-show="openMenu" x-transition class="absolute top-full left-0 w-64 bg-slate-900 border-t-2 border-amber-500 rounded-b-xl shadow-2xl py-3 px-4 space-y-2 mt-1">
+                        <div class="text-[9px] font-black uppercase tracking-widest text-amber-500 pb-1 border-b border-slate-800">Líneas de Cobertura</div>
+                        <a href="#seguros" class="block text-xs font-bold text-slate-300 hover:text-white py-1">Seguros para Empresas</a>
+                        <a href="#seguros" class="block text-xs font-bold text-slate-300 hover:text-white py-1">Seguros de Salud Familiar</a>
+                        <a href="#seguros" class="block text-xs font-bold text-slate-300 hover:text-white py-1">Seguros Internacionales</a>
+                        <a href="#seguros" class="block text-xs font-bold text-slate-300 hover:text-white py-1">Seguros de Vehículos y Flotas</a>
+                        <a href="#seguros" class="block text-xs font-bold text-slate-300 hover:text-white py-1">Riesgos Generales y Hogar</a>
+                    </div>
+                </div>
+
+                <a href="#servicios" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors">Servicios</a>
+                <a href="#nosotros" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors">Quiénes Somos</a>
+                <a href="#ventaja" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors">Ventaja Logística</a>
+                <a href="#blog" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors">DISCAN te Informa</a>
             </nav>
 
-            <!-- Corporate & Quote CTA -->
+            <!-- Corporate Operations Portal & Quote CTA -->
             <div class="flex items-center gap-4">
                 @if (Route::has('login'))
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-md shadow-blue-600/10 transition-all flex items-center gap-2">
+                        <a href="{{ url('/dashboard') }}" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg text-xs font-black uppercase tracking-wider shadow-md shadow-amber-500/10 transition-all flex items-center gap-2">
                             <i class="ph-bold ph-layout text-sm"></i>
                             <span>Portal de Control</span>
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="hidden sm:inline-flex text-xs font-extrabold uppercase tracking-wider text-slate-600 hover:text-blue-600 transition-colors px-3 py-2">
+                        <a href="{{ route('login') }}" class="hidden sm:inline-flex text-xs font-black uppercase tracking-wider text-slate-300 hover:text-amber-400 transition-colors px-3 py-2">
                             Acceso Personal
                         </a>
-                        <a href="{{ route('login') }}" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all flex items-center gap-1.5">
+                        <a href="{{ route('login') }}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-black uppercase tracking-wider border border-slate-700 shadow-sm transition-all flex items-center gap-1.5">
                             <i class="ph-bold ph-sign-in text-sm"></i>
                             <span>Ingresar</span>
                         </a>
                     @endauth
                 @endif
-                <a href="#contacto" class="hidden md:inline-flex px-5 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all border border-blue-100">
-                    Cotizar Ahora
+                <a href="#contacto" class="hidden md:inline-flex px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-amber-500/10">
+                    Cotizar Póliza
                 </a>
             </div>
         </div>
     </header>
 
-    <!-- Hero Section: Commercial Value Proposition -->
-    <section id="inicio" class="pt-36 pb-20 px-6 bg-gradient-to-b from-blue-50/50 via-white to-slate-50/50 relative overflow-hidden">
-        <!-- Floating shapes -->
-        <div class="absolute top-1/4 left-0 w-80 h-80 bg-blue-300/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute top-1/3 right-0 w-96 h-96 bg-cyan-200/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Hero Section: Presidencial / Institutional Focus (Inspirada en MAX) -->
+    <section id="inicio" class="pt-36 pb-28 px-6 brand-gradient-navy text-white relative overflow-hidden">
+        
+        <!-- Background graphics -->
+        <div class="absolute -top-40 -right-40 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
 
         <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
-            <!-- Left Info Block -->
-            <div class="lg:col-span-7 space-y-8 text-left">
-                <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100/80 text-[10px] font-black uppercase tracking-widest text-blue-600">
-                    <i class="ph-bold ph-shield-check text-xs"></i> Firma Registrada de Corretaje de Salud
+            <!-- Left Copwriting Column -->
+            <div class="lg:col-span-8 space-y-6 text-left">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-black uppercase tracking-widest text-amber-400">
+                    <i class="ph-bold ph-award"></i> Asesoría de Seguros Oficial y Certificada en RD
                 </div>
                 
-                <h1 class="text-4xl md:text-6xl font-black tracking-tight text-slate-900 leading-tight">
-                    Optimizamos su Seguro Médico Corporativo <span class="text-brand-gradient">A Costo Cero.</span>
+                <h1 class="text-4xl md:text-6xl font-black tracking-tight text-white leading-tight">
+                    Evitamos Costos Operativos Innecesarios en su Empresa y Familia.
                 </h1>
                 
-                <p class="text-sm md:text-base text-slate-500 font-medium leading-relaxed max-w-2xl">
-                    En **DISCAN** no vendemos seguros; somos sus asesores y defensores ante las ARS. Comparamos, diseñamos y negociamos pólizas médicas de salud colectiva, familiares y de lujo internacional para garantizarle la máxima cobertura al menor costo del mercado. **Nuestra asesoría técnica es 100% gratuita para usted.**
+                <p class="text-sm md:text-base text-slate-300 font-medium leading-relaxed max-w-3xl">
+                    En **DISCAN** nos apoyamos en la más alta administración técnica para intermediar y administrar sus seguros de salud y riesgos generales. Diseñamos planes colectivos corporativos, familiares e internacionales con las aseguradoras líderes de la República Dominicana. **Le acompañamos en todo momento: desde la cotización hasta el momento clave del siniestro.**
                 </p>
 
-                <!-- Dynamic Features Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
-                    <div class="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                            <i class="ph-bold ph-money-wavy text-base"></i>
-                        </div>
-                        <span class="text-xs font-bold text-slate-700">Asesoría e Intermediación Gratuitas</span>
+                <!-- Value Indicators -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-4 max-w-3xl border-t border-slate-800">
+                    <div>
+                        <span class="text-3xl font-black font-mono tracking-tighter text-amber-400 block">+15,000</span>
+                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mt-0.5">Afiliados Protegidos</span>
                     </div>
-                    <div class="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm">
-                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                            <i class="ph-bold ph-handshake text-base"></i>
-                        </div>
-                        <span class="text-xs font-bold text-slate-700">Principales ARS del País Aliadas</span>
+                    <div>
+                        <span class="text-3xl font-black font-mono tracking-tighter text-amber-400 block">+350</span>
+                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mt-0.5">Empresas Clientes</span>
                     </div>
-                    <div class="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm">
-                        <div class="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0">
-                            <i class="ph-bold ph-rocket text-base"></i>
-                        </div>
-                        <span class="text-xs font-bold text-slate-700">Envío de Carnets con SysSAFE</span>
+                    <div>
+                        <span class="text-3xl font-black font-mono tracking-tighter text-amber-400 block">100%</span>
+                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mt-0.5">Asesoría Gratuita</span>
                     </div>
-                    <div class="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                            <i class="ph-bold ph-headset text-base"></i>
-                        </div>
-                        <span class="text-xs font-bold text-slate-700">Soporte Médico & Reclamaciones 24/7</span>
+                    <div>
+                        <span class="text-3xl font-black font-mono tracking-tighter text-amber-400 block">24/7</span>
+                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mt-0.5">Gestión de Siniestros</span>
                     </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-4 pt-2">
-                    <a href="#contacto" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 transition-all flex items-center gap-2">
-                        <span>SOLICITAR COTIZACIÓN SIN COSTO</span>
-                        <i class="ph-bold ph-arrow-right text-sm"></i>
+                <div class="flex flex-wrap items-center gap-4 pt-4">
+                    <a href="#contacto" class="px-8 py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-xs font-black uppercase tracking-wider shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2">
+                        <span>SOLICITAR COTIZACIÓN PERSONALIZADA</span>
+                        <i class="ph-bold ph-calculator text-sm"></i>
                     </a>
-                    <a href="#asesor" class="px-8 py-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-2xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2">
-                        <span>PROBAR ASESOR DIGITAL</span>
-                        <i class="ph-bold ph-sparkle text-sm"></i>
+                    <a href="#seguros" class="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-black uppercase tracking-wider border border-slate-700 transition-all">
+                        EXPLORAR SEGUROS
                     </a>
                 </div>
             </div>
 
-            <!-- Right Visual Interactive Advisor Card -->
-            <div class="lg:col-span-5" id="asesor">
-                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none"></div>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <span class="text-[9px] font-black uppercase tracking-widest text-blue-600 block">ASISTENTE VIRTUAL</span>
-                            <h3 class="text-xl font-black text-slate-800 uppercase tracking-tight">Recomendador de Planes</h3>
-                            <p class="text-xs text-slate-400 font-medium">Seleccione su perfil para analizar su cobertura ideal.</p>
-                        </div>
-
-                        <!-- Alpine Tabs selector -->
-                        <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1.5 rounded-xl">
-                            <button @click="activePlan = 'corporate'" :class="activePlan === 'corporate' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'" class="py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all">
-                                🏢 Empresa
-                            </button>
-                            <button @click="activePlan = 'family'" :class="activePlan === 'family' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'" class="py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all">
-                                👨‍👩‍👧 Familiar
-                            </button>
-                            <button @click="activePlan = 'global'" :class="activePlan === 'global' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'" class="py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all">
-                                ✈️ Global
-                            </button>
-                        </div>
-
-                        <!-- Dynamic Content Panel -->
-                        <div class="space-y-4 min-h-[180px] flex flex-col justify-between py-2">
-                            
-                            <!-- Corporate Info -->
-                            <div x-show="activePlan === 'corporate'" class="space-y-3">
-                                <h4 class="text-sm font-extrabold text-slate-800">Seguros Colectivos (Nóminas de 5+ Empleados)</h4>
-                                <p class="text-xs text-slate-500 leading-relaxed">
-                                    Diseño a la medida de planes médicos corporativos. Deducción de impuestos de nómina, tarifas grupales preferenciales, y ampliación de límites en tratamientos catastróficos.
-                                </p>
-                                <div class="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-600">
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Beneficios Fiscales</div>
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Cobertura Dental Amplia</div>
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Gestor Ejecutivo Dedicado</div>
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Logística SysSAFE Gratis</div>
-                                </div>
-                            </div>
-
-                            <!-- Family Info -->
-                            <div x-show="activePlan === 'family'" class="space-y-3" style="display: none;">
-                                <h4 class="text-sm font-extrabold text-slate-800">Planes Médicos Familiares e Individuales</h4>
-                                <p class="text-xs text-slate-500 leading-relaxed">
-                                    Cobertura integral para el bienestar de su hogar. Consultas de especialidades, internamiento clínico en las redes más importantes del país y seguro dental incluido.
-                                </p>
-                                <div class="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-600">
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Libre Elección Clínica</div>
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Cobertura en Vacunas</div>
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Farmacia de Alta Gama</div>
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Reembolsos Ágiles</div>
-                                </div>
-                            </div>
-
-                            <!-- Global Info -->
-                            <div x-show="activePlan === 'global'" class="space-y-3" style="display: none;">
-                                <h4 class="text-sm font-extrabold text-slate-800">Seguros Internacionales de Lujo</h4>
-                                <p class="text-xs text-slate-500 leading-relaxed">
-                                    Acceso exclusivo a los mejores hospitales del mundo (como el Baptist Health de Miami o la Clínica Universidad de Navarra). Cobertura catastrófica de millones de dólares.
-                                </p>
-                                <div class="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-600">
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Cobertura Global USD</div>
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Ambulancia Aérea</div>
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Segunda Opinión Global</div>
-                                    <div class="flex items-center gap-1.5"><i class="ph-bold ph-check text-emerald-500"></i> Red Premium en USA</div>
-                                </div>
-                            </div>
-
-                            <div class="pt-4 border-t border-slate-100">
-                                <a href="#contacto" 
-                                   @click="
-                                     let select = document.getElementById('tipo_plan');
-                                     if(activePlan === 'corporate') select.value = 'colectivo';
-                                     if(activePlan === 'family') select.value = 'familiar';
-                                     if(activePlan === 'global') select.value = 'internacional';
-                                   "
-                                   class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider text-center transition-all block">
-                                    Cotizar este perfil de salud
-                                </a>
-                            </div>
-
-                        </div>
+            <!-- Right Column Image Mockup -->
+            <div class="lg:col-span-4 relative hidden lg:block">
+                <div class="w-full aspect-[4/5] rounded-[2rem] border-4 border-slate-800 bg-slate-900/50 shadow-2xl relative overflow-hidden flex flex-col justify-end p-8">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
+                    <div class="w-16 h-16 rounded-2xl bg-amber-500 flex items-center justify-center text-slate-950 shadow-xl mb-4 relative z-20">
+                        <i class="ph-bold ph-handshake text-3xl"></i>
                     </div>
+                    <h3 class="text-lg font-black text-white relative z-20 uppercase tracking-tight">Tranquilidad Total</h3>
+                    <p class="text-xs text-slate-400 mt-1 relative z-20 leading-relaxed font-medium">Asesoramos y administramos técnicamente su cartera para mitigar cualquier riesgo.</p>
                 </div>
             </div>
 
         </div>
     </section>
 
-    <!-- Credibility Banner: Acredited ARS Allies -->
-    <section class="py-12 bg-white border-t border-b border-slate-200/50">
-        <div class="max-w-7xl mx-auto px-6">
-            <p class="text-center text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">
-                Intermediarios oficiales y autorizados con todas las ARS líderes
-            </p>
-            <div class="grid grid-cols-2 md:grid-cols-6 gap-8 items-center text-center">
-                <div class="ars-logo-card flex flex-col items-center">
-                    <span class="text-lg font-black text-slate-700 tracking-tight">ARS Humano</span>
-                    <span class="text-[8px] font-black uppercase text-blue-500 tracking-widest">Red Platino</span>
-                </div>
-                <div class="ars-logo-card flex flex-col items-center">
-                    <span class="text-lg font-black text-slate-700 tracking-tight">ARS Universal</span>
-                    <span class="text-[8px] font-black uppercase text-blue-500 tracking-widest">Cobertura Total</span>
-                </div>
-                <div class="ars-logo-card flex flex-col items-center">
-                    <span class="text-lg font-black text-slate-700 tracking-tight">MAPFRE Salud</span>
-                    <span class="text-[8px] font-black uppercase text-blue-500 tracking-widest">Alianza Global</span>
-                </div>
-                <div class="ars-logo-card flex flex-col items-center">
-                    <span class="text-lg font-black text-slate-700 tracking-tight">ARS Reservas</span>
-                    <span class="text-[8px] font-black uppercase text-blue-500 tracking-widest">Red Preferencial</span>
-                </div>
-                <div class="ars-logo-card flex flex-col items-center">
-                    <span class="text-lg font-black text-slate-700 tracking-tight">ARS Monumental</span>
-                    <span class="text-[8px] font-black uppercase text-blue-500 tracking-widest">Seguridad Médica</span>
-                </div>
-                <div class="ars-logo-card flex flex-col items-center">
-                    <span class="text-lg font-black text-slate-700 tracking-tight">ARS CMD</span>
-                    <span class="text-[8px] font-black uppercase text-blue-500 tracking-widest">Gremio Exclusivo</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- About Us Section (Quiénes Somos, Misión, Visión, Valores) -->
-    <section id="nosotros" class="py-24 px-6 bg-slate-50 relative">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+    <!-- Top Quick Service Panel (Accesos Rápidos de Servicio - Estilo max.com.do) -->
+    <section class="relative -mt-10 z-30 px-6">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
-            <!-- Left Copwriting: Quiénes Somos -->
-            <div class="lg:col-span-7 space-y-6">
-                <span class="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">QUIÉNES SOMOS</span>
-                <h2 class="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tight leading-tight">
-                    Una Firma de Corretaje Médica Construida sobre el Servicio de Excelencia
+            <!-- Service 1: Reembolsos -->
+            <div class="service-panel-card p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="ph-bold ph-receipt text-xl"></i>
+                    </div>
+                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Solicitud de Reembolso</h4>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Consulte la documentación y requisitos necesarios para radicar su reembolso médico ante la ARS.</p>
+                </div>
+                <a href="#contacto" class="inline-flex px-4 py-2 mt-4 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-black uppercase tracking-wider text-center transition-colors">
+                    Solicitar
+                </a>
+            </div>
+
+            <!-- Service 2: Siniestros -->
+            <div class="service-panel-card p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="ph-bold ph-bell-ringing text-xl"></i>
+                    </div>
+                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Notificación de Siniestro</h4>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Reporte de forma ágil y digital un siniestro médico, vehicular o laboral para soporte inmediato.</p>
+                </div>
+                <a href="#contacto" class="inline-flex px-4 py-2 mt-4 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-black uppercase tracking-wider text-center transition-colors">
+                    Notificar
+                </a>
+            </div>
+
+            <!-- Service 3: Salud 24/7 -->
+            <div class="service-panel-card p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="ph-bold ph-first-aid text-xl"></i>
+                    </div>
+                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Línea Salud 24/7</h4>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Teléfono directo de intermediación y soporte para autorizaciones médicas y urgencias clínicas.</p>
+                </div>
+                <a href="tel:8095550199" class="inline-flex px-4 py-2 mt-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[10px] font-black uppercase tracking-wider text-center transition-colors">
+                    (809) 555-0199
+                </a>
+            </div>
+
+            <!-- Service 4: Riesgos Generales -->
+            <div class="service-panel-card p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="ph-bold ph-headset text-xl"></i>
+                    </div>
+                    <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Riesgos Generales</h4>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Línea especializada de corretaje corporativo para pólizas de flotas, incendios y de construcción.</p>
+                </div>
+                <a href="tel:8095550299" class="inline-flex px-4 py-2 mt-4 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-black uppercase tracking-wider text-center transition-colors">
+                    (809) 555-0299
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Section: Why trust DISCAN? (Pillares de Confianza - Estilo MAX) -->
+    <section class="py-24 px-6 bg-slate-50 relative">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            <!-- Left Info Column -->
+            <div class="lg:col-span-5 space-y-6">
+                <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">RESPALDO TOTAL</span>
+                <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight leading-tight">
+                    ¿Por qué confiar en DISCAN para administrar sus seguros?
                 </h2>
                 <p class="text-sm text-slate-500 leading-relaxed font-medium">
-                    **DISCAN** nació con la firme convicción de que los seguros de salud no deben ser complejos ni burocráticos. Nos posicionamos como una empresa de servicios de intermediación integral que funciona como un puente de confianza entre el afiliado y las principales Administradoras de Riesgos de Salud (ARS).
+                    Como corredores de seguros, nos sentamos de su lado de la mesa. Analizamos objetivamente la oferta de todas las aseguradoras (ARS) para proponerle la opción ideal para su empresa o su familia, encargándonos de toda la burocracia logística.
                 </p>
-                <p class="text-sm text-slate-500 leading-relaxed font-medium">
-                    Asesoramos de forma imparcial y transparente: analizamos los planes médicos, gestionamos reclamos médicos complejos, negociamos tarifas colectivas óptimas y proveemos soporte en momentos de emergencia médica. Todo ello con un equipo dedicado que garantiza respuestas inmediatas y empatía real.
-                </p>
-
-                <!-- Mission and Vision Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4">
-                    <div class="p-5 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-2">
-                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                            <i class="ph-bold ph-compass text-lg"></i>
-                        </div>
-                        <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Nuestra Misión</h4>
-                        <p class="text-[11px] text-slate-400 leading-relaxed">
-                            Proteger la salud y estabilidad financiera de empresas y familias dominicanas, entregando intermediación de seguros médica transparente, ágil y a costo cero.
-                        </p>
-                    </div>
-
-                    <div class="p-5 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-2">
-                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                            <i class="ph-bold ph-eye text-lg"></i>
-                        </div>
-                        <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Nuestra Visión</h4>
-                        <p class="text-[11px] text-slate-400 leading-relaxed">
-                            Ser la corredora de seguros de salud preferida del país, reconocida por nuestra innovación tecnológica logística y un estándar de servicio al cliente inigualable.
-                        </p>
-                    </div>
+                <div class="pt-2">
+                    <a href="#contacto" class="inline-flex px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-all">
+                        Cotizar sin compromiso
+                    </a>
                 </div>
             </div>
 
-            <!-- Right Column: Corporate Values -->
-            <div class="lg:col-span-5 space-y-6">
-                <div class="bg-gradient-to-br from-slate-900 to-blue-950 text-white p-8 rounded-[2.5rem] shadow-xl space-y-6 relative overflow-hidden">
-                    <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-600/10 rounded-full blur-2xl pointer-events-none"></div>
-                    
-                    <h3 class="text-lg font-black uppercase tracking-wider">Nuestros Valores</h3>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-start gap-4">
-                            <div class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/10">
-                                <i class="ph-bold ph-hand-eye text-base"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-extrabold uppercase tracking-wide text-blue-300">Transparencia Radical</h4>
-                                <p class="text-[11px] text-slate-300 mt-0.5">Mostramos siempre las coberturas reales, exclusiones y costos sin letra chica.</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-4">
-                            <div class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/10">
-                                <i class="ph-bold ph-lightning text-base"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-extrabold uppercase tracking-wide text-blue-300">Agilidad e Innovación</h4>
-                                <p class="text-[11px] text-slate-300 mt-0.5">Optimizamos los tiempos de respuesta y procesos mediante tecnología integrada.</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-4">
-                            <div class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/10">
-                                <i class="ph-bold ph-heart-beat text-base"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-extrabold uppercase tracking-wide text-blue-300">Empatía y Servicio</h4>
-                                <p class="text-[11px] text-slate-300 mt-0.5">Comprendemos que la salud es un tema sensible. Brindamos soporte humano de verdad.</p>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Right Column 4-Pillar Grid -->
+            <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                
+                <!-- Pillar 1 -->
+                <div class="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">Acompañamiento Constante</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed font-medium">No le dejamos solo ante la ARS. Administramos sus reclamaciones, exclusiones y agilizamos sus autorizaciones.</p>
                 </div>
+
+                <!-- Pillar 2 -->
+                <div class="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">Soluciones a la Medida</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed font-medium">Adecuamos la póliza colectiva al presupuesto exacto y las necesidades específicas de salud de su nómina.</p>
+                </div>
+
+                <!-- Pillar 3 -->
+                <div class="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">Respaldo de ARS Líderes</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed font-medium">Intermediamos con solidez ante todas las ARS acreditadas en la República Dominicana.</p>
+                </div>
+
+                <!-- Pillar 4 -->
+                <div class="p-6 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-3">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">Diferenciador SysSAFE</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed font-medium">Entregamos contratos y carnets físicos a sus colaboradores en menos de 20 días con auditoría digital.</p>
+                </div>
+
             </div>
 
         </div>
     </section>
 
-    <!-- Services Section -->
-    <section id="servicios" class="py-24 px-6 bg-white border-t border-b border-slate-100">
+    <!-- Our Insurance Catalog Section (Interactive 8-Segment Grid - Estilo MAX) -->
+    <section id="seguros" class="py-24 px-6 bg-white border-t border-b border-slate-200/50">
         <div class="max-w-7xl mx-auto space-y-16">
             
             <div class="text-center max-w-xl mx-auto space-y-3">
-                <span class="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">PLANES & COBERTURAS</span>
-                <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Soluciones de Salud para Cada Necesidad</h2>
-                <p class="text-sm text-slate-400 font-medium">Analizamos y adaptamos carteras de seguros médicos con cobertura local e internacional adaptados a sus requerimientos específicos.</p>
+                <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">NUESTROS SEGUROS</span>
+                <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Líneas de Cobertura y Servicios</h2>
+                <p class="text-sm text-slate-400 font-medium">Conozca la amplia cartera de seguros que intermediamos y administramos para empresas y particulares.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Tab Toggles (Corporate / Personal) -->
+            <div class="flex justify-center gap-6 max-w-xs mx-auto border-b border-slate-200 pb-2">
+                <button @click="activeServiceTab = 'empresas'" :class="activeServiceTab === 'empresas' ? 'tab-button-active' : 'text-slate-400'" class="text-xs font-black uppercase tracking-wider pb-1.5 transition-all">
+                    Empresas
+                </button>
+                <button @click="activeServiceTab = 'personas'" :class="activeServiceTab === 'personas' ? 'tab-button-active' : 'text-slate-400'" class="text-xs font-black uppercase tracking-wider pb-1.5 transition-all">
+                    Personas
+                </button>
+            </div>
+
+            <!-- Grid Container: 8 Seguros -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 
-                <!-- Service 1: Corporativo -->
-                <div class="premium-card p-8 rounded-3xl space-y-6 flex flex-col justify-between">
+                <!-- 1. Seguros para Empresas (Visible under both) -->
+                <div class="max-style-card p-8 rounded-2xl flex flex-col justify-between" x-show="activeServiceTab === 'empresas'">
                     <div class="space-y-4">
-                        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100/50">
+                        <div class="card-icon-container w-12 h-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-100 transition-all shrink-0">
                             <i class="ph-bold ph-buildings text-2xl"></i>
                         </div>
-                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Planes Médicos Colectivos</h3>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">
-                            Diseñamos planes de salud corporativos premium para sus colaboradores. Reducimos la siniestralidad, negociamos coberturas de maternidad extendida, subsidio por incapacidad y redes dentales ampliadas.
+                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Salud Corporativa</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                            Planes médicos colectivos premium para sus colaboradores. Reducimos la siniestralidad y negociamos beneficios en maternidad y odontología.
                         </p>
                     </div>
-                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'colectivo';" class="text-xs font-black uppercase tracking-wider text-blue-600 flex items-center gap-1.5 hover:underline pt-2">
-                        <span>Ver propuesta corporativa</span> <i class="ph ph-arrow-right"></i>
+                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'colectivo';" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                        <span>Cotizar Colectivo</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
 
-                <!-- Service 2: Familiar -->
-                <div class="premium-card p-8 rounded-3xl space-y-6 flex flex-col justify-between">
+                <!-- 2. Seguros de Salud Familiar -->
+                <div class="max-style-card p-8 rounded-2xl flex flex-col justify-between" x-show="activeServiceTab === 'personas'">
                     <div class="space-y-4">
-                        <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100/50">
-                            <i class="ph-bold ph-users text-2xl"></i>
+                        <div class="card-icon-container w-12 h-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-100 transition-all shrink-0">
+                            <i class="ph-bold ph-heart-beat text-2xl"></i>
                         </div>
-                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Planes Familiares & Locales</h3>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">
-                            Aseguramos la salud de su familia ante imprevistos o emergencias médicas. Acceso preferencial a consultas pediátricas, red nacional de clínicas, laboratorios clínicos prestigiosos y farmacias.
+                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Salud Familiar</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                            Aseguramos la tranquilidad de su hogar con coberturas de consulta médica, emergencias 24/7 y hospitalización en las clínicas más prestigiosas del país.
                         </p>
                     </div>
-                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'familiar';" class="text-xs font-black uppercase tracking-wider text-indigo-600 flex items-center gap-1.5 hover:underline pt-2">
-                        <span>Explorar planes familiares</span> <i class="ph ph-arrow-right"></i>
+                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'familiar';" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                        <span>Ver planes familiares</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
 
-                <!-- Service 3: Internacional -->
-                <div class="premium-card p-8 rounded-3xl space-y-6 flex flex-col justify-between">
+                <!-- 3. Seguros Internacionales -->
+                <div class="max-style-card p-8 rounded-2xl flex flex-col justify-between">
                     <div class="space-y-4">
-                        <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center border border-cyan-100/50">
-                            <i class="ph-bold ph-globe text-2xl"></i>
+                        <div class="card-icon-container w-12 h-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-100 transition-all shrink-0">
+                            <i class="ph-bold ph-globe-hemisphere-west text-2xl"></i>
                         </div>
-                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Planes Globales de Lujo</h3>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">
-                            Acceso médico de élite sin fronteras. Tratamientos oncológicos y cardiovasculares complejos en los principales centros médicos de Estados Unidos y Europa. Cobertura en dólares de hasta USD $5M.
+                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Salud Internacional</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                            Acceso médico catastrófico de lujo global. Coberturas millonarias en los mejores centros oncológicos de EE.UU. y Europa.
                         </p>
                     </div>
-                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'internacional';" class="text-xs font-black uppercase tracking-wider text-cyan-600 flex items-center gap-1.5 hover:underline pt-2">
+                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'internacional';" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
                         <span>Ver cobertura global</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
 
-                <!-- Service 4: Vida & Salud Preventiva -->
-                <div class="premium-card p-8 rounded-3xl space-y-6 flex flex-col justify-between">
+                <!-- 4. Vehículos y Flotas -->
+                <div class="max-style-card p-8 rounded-2xl flex flex-col justify-between">
                     <div class="space-y-4">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/50">
-                            <i class="ph-bold ph-heartbeat text-2xl"></i>
+                        <div class="card-icon-container w-12 h-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-100 transition-all shrink-0">
+                            <i class="ph-bold ph-car text-2xl"></i>
                         </div>
-                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Vida & Salud Preventiva</h3>
-                        <p class="text-[11px] text-slate-500 leading-relaxed">
-                            Protegemos la estabilidad financiera de su familia en momentos difíciles. Seguros de vida colectivos e individuales, programas de bienestar preventivo y cobertura complementaria de accidentes.
+                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Vehículos & Flotas</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                            Protegemos la movilidad corporativa e individual. Pólizas para vehículos ejecutivos, flotas comerciales y camiones con auxilio vial express.
                         </p>
                     </div>
-                    <a href="#contacto" class="text-xs font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1.5 hover:underline pt-2">
-                        <span>Saber más de vida</span> <i class="ph ph-arrow-right"></i>
+                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                        <span>Cotizar Vehículo</span> <i class="ph ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- 5. Hogar y Propiedades -->
+                <div class="max-style-card p-8 rounded-2xl flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="card-icon-container w-12 h-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-100 transition-all shrink-0">
+                            <i class="ph-bold ph-house text-2xl"></i>
+                        </div>
+                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Hogar & Propiedades</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                            Resguardo físico ante incendios, terremotos, robo y huracanes para su infraestructura corporativa o de residencia familiar.
+                        </p>
+                    </div>
+                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                        <span>Saber más</span> <i class="ph ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- 6. Fianzas e Inversión -->
+                <div class="max-style-card p-8 rounded-2xl flex flex-col justify-between" x-show="activeServiceTab === 'empresas'">
+                    <div class="space-y-4">
+                        <div class="card-icon-container w-12 h-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-100 transition-all shrink-0">
+                            <i class="ph-bold ph-coins text-2xl"></i>
+                        </div>
+                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Fianzas e Inversión</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                            Garantías para licitaciones públicas y privadas. Fianzas de fiel cumplimiento de contrato, de vicios ocultos y anticipo.
+                        </p>
+                    </div>
+                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                        <span>Solicitar Fianza</span> <i class="ph ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- 7. Construcción y Montaje -->
+                <div class="max-style-card p-8 rounded-2xl flex flex-col justify-between" x-show="activeServiceTab === 'empresas'">
+                    <div class="space-y-4">
+                        <div class="card-icon-container w-12 h-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-100 transition-all shrink-0">
+                            <i class="ph-bold ph-crane text-2xl"></i>
+                        </div>
+                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Construcción & Obras</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                            Pólizas Todo Riesgo de Construcción (CAR). Coberturas para maquinaria contratista y daños a terceros en obras civiles.
+                        </p>
+                    </div>
+                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                        <span>Ver cobertura de obra</span> <i class="ph ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- 8. Maquinarias y Equipos -->
+                <div class="max-style-card p-8 rounded-2xl flex flex-col justify-between" x-show="activeServiceTab === 'empresas'">
+                    <div class="space-y-4">
+                        <div class="card-icon-container w-12 h-12 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center border border-slate-100 transition-all shrink-0">
+                            <i class="ph-bold ph-cpu text-2xl"></i>
+                        </div>
+                        <h3 class="text-base font-extrabold uppercase text-slate-900 tracking-tight">Maquinarias & Equipos</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                            Aseguramiento de servidores, equipos médicos e informáticos y avería de maquinaria pesada industrial.
+                        </p>
+                    </div>
+                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                        <span>Ver detalles</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
 
@@ -485,114 +521,104 @@
         </div>
     </section>
 
-    <!-- Dynamic Differentiator: The SysSAFE Logistics Advantage -->
+    <!-- Technological Edge: The SysSAFE Logistics Advantage Section -->
     <section id="ventaja" class="py-24 px-6 bg-slate-900 text-white relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-        
+        <div class="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
         <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
             
-            <!-- Left description -->
+            <!-- Left Copwriting -->
             <div class="lg:col-span-6 space-y-6">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-black uppercase tracking-widest text-blue-400">
-                    <i class="ph-bold ph-sparkle text-xs"></i> Ventaja Tecnológica Exclusiva
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950 border border-slate-800 text-[10px] font-black uppercase tracking-widest text-amber-400">
+                    <i class="ph-bold ph-lightning text-xs"></i> Tecnología Logística Exclusiva
                 </div>
                 
                 <h2 class="text-3xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight">
-                    Nuestra Logística Exclusiva: Pólizas y Carnets en sus Manos
+                    Nuestra Ventaja SysSAFE: Contratos y Carnets en sus Manos
                 </h2>
                 
                 <p class="text-sm text-slate-400 leading-relaxed">
-                    Uno de los mayores dolores de cabeza con los corredores de seguros tradicionales es la larga espera y el descontrol en la entrega física de sus carnets y contratos. 
+                    Un error común de los corredores de seguros de salud tradicionales es el descontrol en la distribución física de los contratos y carnets de los nuevos afiliados. Recursos Humanos suele pasar semanas gestionando y coordinando las entregas individuales.
                 </p>
                 <p class="text-sm text-slate-400 leading-relaxed">
-                    En **DISCAN** solucionamos este desafío integrando de forma exclusiva **SysSAFE**, nuestro avanzado motor de logística y despacho digital de afiliados. Gracias a este módulo logístico, garantizamos auditoría e inmutabilidad en cada entrega.
+                    En **DISCAN** resolvemos esto integrando **SysSAFE**, nuestro exclusivo sistema de distribución física express. Todos los carnets físicos y contratos se procesan de forma inmediata en nuestro motor logístico con un semáforo predictivo de SLA de 20 días.
                 </p>
 
-                <!-- Key logistic features -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                    <div class="flex items-start gap-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/10">
-                            <i class="ph-bold ph-truck text-base"></i>
+                <!-- 3 Pillars of Logistics -->
+                <div class="space-y-4 pt-2">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-950 text-amber-500 flex items-center justify-center shrink-0 border border-slate-800">
+                            <i class="ph-bold ph-truck text-lg"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Distribución Express</h4>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Rutas logísticas automatizadas y mensajeros dedicados para entrega en oficinas o residencias.</p>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-200">Envío Express Directo</h4>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Rutas de mensajería optimizadas para realizar entregas físicas en la oficina corporativa u hogar.</p>
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/10">
-                            <i class="ph-bold ph-signature text-base"></i>
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-950 text-amber-500 flex items-center justify-center shrink-0 border border-slate-800">
+                            <i class="ph-bold ph-signature text-lg"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Acuse Físico Auditado</h4>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Cierre del ciclo con firma digitalizada, garantizando que el expediente llegó a manos de su colaborador.</p>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-200">Acuse de Recibo Físico Auditado</h4>
+                            <p class="text-[10px] text-slate-400 mt-0.5">El ciclo finaliza obligatoriamente con la firma digitalizada del receptor, garantizando que el carnet llegó de forma conforme.</p>
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/10">
-                            <i class="ph-bold ph-arrow-counter-clockwise text-base"></i>
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-950 text-amber-500 flex items-center justify-center shrink-0 border border-slate-800">
+                            <i class="ph-bold ph-arrow-counter-clockwise text-lg"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Sincronización en Tiempo Real</h4>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Recursos Humanos y Directores Administrativos pueden monitorear el estatus logístico desde el portal.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/10">
-                            <i class="ph-bold ph-warning-octagon text-base"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Control de SLA Riguroso</h4>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Semáforo digital integrado de 20 días que alerta de forma predictiva cualquier retraso.</p>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-200">Monitoreo en Tiempo Real</h4>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Los departamentos de Recursos Humanos de las empresas afiliadas tienen acceso completo al portal para ver el estatus exacto del despacho.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Right Graphic card / Mockup representation of SysSAFE -->
-            <div class="lg:col-span-6 relative">
+            <div class="lg:col-span-6">
                 <div class="bg-slate-950 p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl space-y-6">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping"></span>
-                            <span class="text-xs font-black uppercase text-slate-200 tracking-wider">SysSAFE Logistics System</span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+                            <span class="text-xs font-black uppercase text-slate-200 tracking-wider">SysSAFE Control Engine</span>
                         </div>
-                        <span class="text-[9px] font-mono text-slate-500 font-bold uppercase">Tecnología de Intermediación</span>
+                        <span class="text-[9px] font-mono text-slate-500 font-bold uppercase">Módulos de Auditoría</span>
                     </div>
 
-                    <!-- Interactive visualization list -->
-                    <div class="space-y-5 relative before:absolute before:top-4 before:bottom-4 before:left-5 before:border-l before:border-slate-800 before:border-dashed">
+                    <!-- Steps Timeline -->
+                    <div class="space-y-6 relative before:absolute before:top-4 before:bottom-4 before:left-5 before:border-l before:border-slate-800 before:border-dashed">
                         
                         <div class="flex items-center gap-4 relative">
-                            <div class="w-10 h-10 rounded-full bg-blue-950 border border-blue-800 text-blue-400 flex items-center justify-center z-10 shrink-0">
-                                <i class="ph-bold ph-database text-sm"></i>
+                            <div class="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-amber-500 flex items-center justify-center z-10 shrink-0">
+                                <i class="ph-bold ph-arrows-clockwise text-sm"></i>
                             </div>
                             <div>
-                                <h5 class="text-xs font-bold text-slate-200">1. Sincronización e Ingesta Remota</h5>
-                                <p class="text-[10px] text-slate-400">Traspasos autorizados por la ARS se ingresan al sistema al instante.</p>
+                                <h5 class="text-xs font-bold text-slate-200">1. Sincronización Remota</h5>
+                                <p class="text-[10px] text-slate-400">Ingesta al instante de traspasos autorizados por la ARS.</p>
                             </div>
                         </div>
 
                         <div class="flex items-center gap-4 relative">
-                            <div class="w-10 h-10 rounded-full bg-blue-950 border border-blue-800 text-blue-400 flex items-center justify-center z-10 shrink-0">
-                                <i class="ph-bold ph-package text-sm"></i>
+                            <div class="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-amber-500 flex items-center justify-center z-10 shrink-0">
+                                <i class="ph-bold ph-printer text-sm"></i>
                             </div>
                             <div>
-                                <h5 class="text-xs font-bold text-slate-200">2. Impresión y Empaque de Expedientes</h5>
-                                <p class="text-[10px] text-slate-400">Emisión física de carnets con semáforo SLA de 20 días activos.</p>
+                                <h5 class="text-xs font-bold text-slate-200">2. Emisión y Embalaje</h5>
+                                <p class="text-[10px] text-slate-400">Impresión física de carnets con semáforo SLA de 20 días.</p>
                             </div>
                         </div>
 
                         <div class="flex items-center gap-4 relative">
-                            <div class="w-10 h-10 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center z-10 shrink-0">
-                                <i class="ph-bold ph-check-square text-sm"></i>
+                            <div class="w-10 h-10 rounded-full bg-amber-950 border border-amber-800 text-amber-400 flex items-center justify-center z-10 shrink-0">
+                                <i class="ph-bold ph-check-square-offset text-sm"></i>
                             </div>
                             <div>
-                                <h5 class="text-xs font-bold text-slate-200">3. Acuse de Recibo Físico Auditado</h5>
-                                <p class="text-[10px] text-slate-400">Firma física de entrega y cierre inmutable en base de datos.</p>
+                                <h5 class="text-xs font-bold text-slate-200">3. Acuse de Recibo Físico</h5>
+                                <p class="text-[10px] text-slate-400">Firma digital de entrega y cierre inmutable en el sistema.</p>
                             </div>
                         </div>
 
@@ -603,8 +629,124 @@
         </div>
     </section>
 
-    <!-- Multi-Step Interactive Quote Form Section -->
-    <section id="contacto" class="py-24 px-6 bg-slate-50 relative overflow-hidden" x-data="{ 
+    <!-- Acredited ARS Allies Slide Banner -->
+    <section class="py-12 bg-white border-t border-b border-slate-200/50">
+        <div class="max-w-7xl mx-auto px-6">
+            <p class="text-center text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">
+                Asesores autorizados oficiales ante los principales proveedores de salud
+            </p>
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-8 items-center text-center">
+                <div class="ars-logo-gray flex flex-col items-center">
+                    <span class="text-lg font-black text-slate-700 tracking-tight">ARS Humano</span>
+                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Socio Platino</span>
+                </div>
+                <div class="ars-logo-gray flex flex-col items-center">
+                    <span class="text-lg font-black text-slate-700 tracking-tight">ARS Universal</span>
+                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Cobertura Total</span>
+                </div>
+                <div class="ars-logo-gray flex flex-col items-center">
+                    <span class="text-lg font-black text-slate-700 tracking-tight">MAPFRE Salud</span>
+                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Seguro Global</span>
+                </div>
+                <div class="ars-logo-gray flex flex-col items-center">
+                    <span class="text-lg font-black text-slate-700 tracking-tight">ARS Reservas</span>
+                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Red Preferida</span>
+                </div>
+                <div class="ars-logo-gray flex flex-col items-center">
+                    <span class="text-lg font-black text-slate-700 tracking-tight">ARS Monumental</span>
+                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Red Norte</span>
+                </div>
+                <div class="ars-logo-gray flex flex-col items-center">
+                    <span class="text-lg font-black text-slate-700 tracking-tight">ARS CMD</span>
+                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Gremio Oficial</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Section: "DISCAN te Informa" (Inspirada en MAX te informa) -->
+    <section id="blog" class="py-24 px-6 bg-slate-50 border-b border-slate-200/50">
+        <div class="max-w-7xl mx-auto space-y-16">
+            
+            <div class="text-center max-w-xl mx-auto space-y-3">
+                <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">DISCAN TE INFORMA</span>
+                <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Noticias y Consejos de Seguros</h2>
+                <p class="text-sm text-slate-400 font-medium">Manténgase al día con las últimas regulaciones de salud y consejos de corretaje de seguros en República Dominicana.</p>
+            </div>
+
+            <!-- Blog Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <!-- Post 1 -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm flex flex-col justify-between max-style-card">
+                    <div>
+                        <div class="h-44 bg-slate-900 relative flex items-center justify-center p-6 text-center text-white">
+                            <span class="text-xs font-black uppercase tracking-widest text-amber-400 block border border-amber-500/20 px-4 py-2 rounded-xl">SALUD & COPAGO</span>
+                        </div>
+                        <div class="p-6 space-y-3">
+                            <h3 class="text-base font-extrabold text-slate-800 hover:text-amber-600 transition-colors">
+                                Te aclaramos algunas dudas sobre el copago y las pólizas médicas
+                            </h3>
+                            <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                                ¿Sabe exactamente qué es el copago y qué límites tiene por ley en la República Dominicana? Analizamos los puntos clave para evitar cobros sorpresa.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-400">Mayo, 2026</span>
+                        <a href="#contacto" class="text-[10px] font-black uppercase text-amber-600 hover:underline">Leer artículo</a>
+                    </div>
+                </div>
+
+                <!-- Post 2 -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm flex flex-col justify-between max-style-card">
+                    <div>
+                        <div class="h-44 bg-slate-900 relative flex items-center justify-center p-6 text-center text-white">
+                            <span class="text-xs font-black uppercase tracking-widest text-amber-400 block border border-amber-500/20 px-4 py-2 rounded-xl">CORRETAJE DE SEGUROS</span>
+                        </div>
+                        <div class="p-6 space-y-3">
+                            <h3 class="text-base font-extrabold text-slate-800 hover:text-amber-600 transition-colors">
+                                Beneficios de contratar a un Corredor de Seguros para su Empresa
+                            </h3>
+                            <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                                Descubra cómo un corredor de seguros oficial le ayuda a ahorrar costes operativos innecesarios y optimizar el soporte a sus empleados, sin gastar un centavo más.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-400">Mayo, 2026</span>
+                        <a href="#contacto" class="text-[10px] font-black uppercase text-amber-600 hover:underline">Leer artículo</a>
+                    </div>
+                </div>
+
+                <!-- Post 3 -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm flex flex-col justify-between max-style-card">
+                    <div>
+                        <div class="h-44 bg-slate-900 relative flex items-center justify-center p-6 text-center text-white">
+                            <span class="text-xs font-black uppercase tracking-widest text-amber-400 block border border-amber-500/20 px-4 py-2 rounded-xl">RIESGOS GENERALES</span>
+                        </div>
+                        <div class="p-6 space-y-3">
+                            <h3 class="text-base font-extrabold text-slate-800 hover:text-amber-600 transition-colors">
+                                Cómo proteger los activos de su negocio ante incendios y catástrofes
+                            </h3>
+                            <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                                Las líneas aliadas y el seguro de infraestructura física son vitales para garantizar la continuidad del negocio ante terremotos, robos o huracanes en el Caribe.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-400">Mayo, 2026</span>
+                        <a href="#contacto" class="text-[10px] font-black uppercase text-amber-600 hover:underline">Leer artículo</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Multi-Step Interactive Quote Form (Estilo MAX) -->
+    <section id="contacto" class="py-24 px-6 bg-white relative overflow-hidden" x-data="{ 
         step: 1, 
         profile: 'empresa', 
         name: '', 
@@ -612,13 +754,13 @@
         email: '', 
         company: '', 
         arsInterest: 'cualquiera',
-        timePreference: 'inmediato',
+        timePreference: 'whatsapp',
         submitForm() {
             Swal.fire({
-                title: '¡Solicitud Recibida!',
-                text: 'Su solicitud de cotización comercial ha sido procesada con éxito. Un corredor de seguros de DISCAN se pondrá en contacto con usted por ' + (this.timePreference === 'whatsapp' ? 'WhatsApp' : 'teléfono') + ' a la brevedad.',
+                title: '¡Solicitud Procesada!',
+                text: 'Su solicitud de cotización comparativa ha sido recibida con éxito. Un ejecutivo experto de DISCAN se pondrá en contacto con usted por ' + (this.timePreference === 'whatsapp' ? 'WhatsApp' : 'teléfono') + ' a la brevedad.',
                 icon: 'success',
-                confirmButtonColor: '#2563eb'
+                confirmButtonColor: '#d97706'
             });
             this.step = 1;
             this.name = '';
@@ -626,84 +768,84 @@
             this.email = '';
             this.company = '';
             this.arsInterest = 'cualquiera';
-            this.timePreference = 'inmediato';
+            this.timePreference = 'whatsapp';
         }
     }">
         <div class="max-w-4xl mx-auto space-y-12">
             
             <div class="text-center max-w-xl mx-auto space-y-3">
-                <span class="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">COTIZACIÓN EXPRESS</span>
-                <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Diseñe su Propuesta de Salud</h2>
-                <p class="text-sm text-slate-400 font-medium">Complete este rápido asistente comercial interactivo y obtenga una comparativa de las mejores ARS sin costo.</p>
+                <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">COTIZACIÓN DE SEGUROS</span>
+                <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Solicite una Cotización Sin Compromiso</h2>
+                <p class="text-sm text-slate-400 font-medium">Utilice nuestro asistente interactivo para indicarnos qué seguro requiere y analizaremos las mejores propuestas de las ARS dominicanas.</p>
             </div>
 
-            <!-- Steps Progress Bar -->
+            <!-- Form Progress Steps -->
             <div class="flex items-center justify-center gap-3 max-w-md mx-auto">
                 <div class="flex items-center gap-1.5">
-                    <span :class="step >= 1 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'" class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all">1</span>
-                    <span class="text-[10px] font-bold text-slate-700">Perfil</span>
+                    <span :class="step >= 1 ? 'bg-slate-900 text-white border-amber-500' : 'bg-slate-100 text-slate-400 border-slate-200'" class="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all">1</span>
+                    <span class="text-[10px] font-bold text-slate-700">Riesgo</span>
                 </div>
-                <div class="w-12 h-0.5 bg-slate-200 relative"><div :class="step >= 2 ? 'w-full' : 'w-0'" class="absolute inset-0 bg-blue-600 transition-all duration-300"></div></div>
+                <div class="w-12 h-0.5 bg-slate-200 relative"><div :class="step >= 2 ? 'w-full' : 'w-0'" class="absolute inset-0 bg-amber-500 transition-all duration-300"></div></div>
                 <div class="flex items-center gap-1.5">
-                    <span :class="step >= 2 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'" class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all">2</span>
+                    <span :class="step >= 2 ? 'bg-slate-900 text-white border-amber-500' : 'bg-slate-100 text-slate-400 border-slate-200'" class="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all">2</span>
                     <span class="text-[10px] font-bold text-slate-700">Contacto</span>
                 </div>
-                <div class="w-12 h-0.5 bg-slate-200 relative"><div :class="step >= 3 ? 'w-full' : 'w-0'" class="absolute inset-0 bg-blue-600 transition-all duration-300"></div></div>
+                <div class="w-12 h-0.5 bg-slate-200 relative"><div :class="step >= 3 ? 'w-full' : 'w-0'" class="absolute inset-0 bg-amber-500 transition-all duration-300"></div></div>
                 <div class="flex items-center gap-1.5">
-                    <span :class="step >= 3 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'" class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all">3</span>
-                    <span class="text-[10px] font-bold text-slate-700">Preferencias</span>
+                    <span :class="step >= 3 ? 'bg-slate-900 text-white border-amber-500' : 'bg-slate-100 text-slate-400 border-slate-200'" class="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all">3</span>
+                    <span class="text-[10px] font-bold text-slate-700">Asesoría</span>
                 </div>
             </div>
 
-            <!-- Form Container -->
-            <div class="bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200/80 shadow-xl max-w-2xl mx-auto">
+            <!-- Interactive Form Panel (Navy Accent) -->
+            <div class="bg-white p-8 md:p-12 rounded-3xl border border-slate-200/80 shadow-2xl max-w-2xl mx-auto">
                 <form @submit.preventDefault="submitForm()">
                     
                     <!-- STEP 1: Plan Profile Selection -->
                     <div x-show="step === 1" class="space-y-6">
                         <div class="text-center space-y-1">
-                            <h3 class="text-base font-black text-slate-800 uppercase tracking-tight">¿Qué tipo de cobertura de salud necesita?</h3>
-                            <p class="text-xs text-slate-400">Seleccione el perfil comercial que mejor se adapte a su caso.</p>
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">¿Qué tipo de cobertura de seguro necesita cotizar?</h3>
+                            <p class="text-xs text-slate-400">Seleccione el perfil que mejor se adapte a sus requerimientos actuales.</p>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <!-- Option Corporate -->
-                            <div @click="profile = 'empresa'" :class="profile === 'empresa' ? 'border-blue-600 bg-blue-50/20 ring-2 ring-blue-600/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-blue-400 transition-all space-y-3">
-                                <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <div @click="profile = 'empresa'" :class="profile === 'empresa' ? 'border-amber-500 bg-amber-50/10 ring-2 ring-amber-500/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-amber-400 transition-all space-y-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center">
                                     <i class="ph-bold ph-buildings text-lg"></i>
                                 </div>
                                 <div>
                                     <h4 class="text-xs font-bold text-slate-800">Mi Empresa</h4>
-                                    <p class="text-[10px] text-slate-400 mt-1">Seguro médico colectivo para nóminas y empleados.</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Seguros colectivos, de riesgos generales, de obras o flotas.</p>
                                 </div>
                             </div>
 
                             <!-- Option Family -->
-                            <div @click="profile = 'familiar'" :class="profile === 'familiar' ? 'border-blue-600 bg-blue-50/20 ring-2 ring-blue-600/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-blue-400 transition-all space-y-3">
-                                <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                            <div @click="profile = 'familiar'" :class="profile === 'familiar' ? 'border-amber-500 bg-amber-50/10 ring-2 ring-amber-500/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-amber-400 transition-all space-y-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center">
                                     <i class="ph-bold ph-users text-lg"></i>
                                 </div>
                                 <div>
                                     <h4 class="text-xs font-bold text-slate-800">Mi Familia</h4>
-                                    <p class="text-[10px] text-slate-400 mt-1">Planes médicos nacionales familiares.</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Seguros de salud familiar locales o de hogar.</p>
                                 </div>
                             </div>
 
                             <!-- Option International -->
-                            <div @click="profile = 'internacional'" :class="profile === 'internacional' ? 'border-blue-600 bg-blue-50/20 ring-2 ring-blue-600/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-blue-400 transition-all space-y-3">
-                                <div class="w-9 h-9 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
+                            <div @click="profile = 'internacional'" :class="profile === 'internacional' ? 'border-amber-500 bg-amber-50/10 ring-2 ring-amber-500/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-amber-400 transition-all space-y-3">
+                                <div class="w-9 h-9 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center">
                                     <i class="ph-bold ph-globe text-lg"></i>
                                 </div>
                                 <div>
                                     <h4 class="text-xs font-bold text-slate-800">Internacional</h4>
-                                    <p class="text-[10px] text-slate-400 mt-1">Planes globales catastróficos y de lujo.</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">Planes catastróficos y médicos globales en USD.</p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex justify-end pt-4 border-t border-slate-100">
-                            <button type="button" @click="step = 2" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5">
-                                <span>Continuar</span>
+                            <button type="button" @click="step = 2" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5">
+                                <span>Siguiente</span>
                                 <i class="ph-bold ph-arrow-right"></i>
                             </button>
                         </div>
@@ -712,40 +854,40 @@
                     <!-- STEP 2: Contact Information -->
                     <div x-show="step === 2" class="space-y-6" style="display: none;">
                         <div class="text-center space-y-1">
-                            <h3 class="text-base font-black text-slate-800 uppercase tracking-tight">Déjenos sus Datos de Contacto</h3>
-                            <p class="text-xs text-slate-400">Esta información se utilizará únicamente para enviarle su propuesta.</p>
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Datos de Identificación y Contacto</h3>
+                            <p class="text-xs text-slate-400">Esta información es estrictamente confidencial para el análisis de sus cotizaciones.</p>
                         </div>
 
                         <div class="space-y-4">
                             <div class="space-y-1">
                                 <label for="form_nombre" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Nombre Completo</label>
-                                <input type="text" id="form_nombre" x-model="name" placeholder="Ej. Juan Pérez" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-0 rounded-xl text-xs font-medium transition-all">
+                                <input type="text" id="form_nombre" x-model="name" placeholder="Ej. Juan Pérez" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="space-y-1">
-                                    <label for="form_telefono" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Teléfono de Contacto (con WhatsApp)</label>
-                                    <input type="tel" id="form_telefono" x-model="phone" placeholder="Ej. 809-555-0199" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-0 rounded-xl text-xs font-medium transition-all">
+                                    <label for="form_telefono" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Teléfono (WhatsApp)</label>
+                                    <input type="tel" id="form_telefono" x-model="phone" placeholder="Ej. 809-555-0199" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
                                 </div>
                                 <div class="space-y-1">
                                     <label for="form_email" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Correo Electrónico</label>
-                                    <input type="email" id="form_email" x-model="email" placeholder="Ej. juan@ejemplo.com" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-0 rounded-xl text-xs font-medium transition-all">
+                                    <input type="email" id="form_email" x-model="email" placeholder="Ej. juan@ejemplo.com" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
                                 </div>
                             </div>
 
                             <!-- Conditionally show company field if profile is Empresa -->
                             <div class="space-y-1" x-show="profile === 'empresa'">
-                                <label for="form_empresa" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Nombre de su Empresa</label>
-                                <input type="text" id="form_empresa" x-model="company" placeholder="Ej. DISCAN SRL" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-0 rounded-xl text-xs font-medium transition-all">
+                                <label for="form_empresa" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Nombre de la Empresa</label>
+                                <input type="text" id="form_empresa" x-model="company" placeholder="Ej. DISCAN SRL" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
                             </div>
                         </div>
 
                         <div class="flex justify-between pt-4 border-t border-slate-100">
-                            <button type="button" @click="step = 1" class="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
+                            <button type="button" @click="step = 1" class="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-black uppercase tracking-wider transition-all">
                                 Atrás
                             </button>
-                            <button type="button" @click="if(name && phone && email) { step = 3; } else { Swal.fire('Error', 'Por favor complete todos los campos.', 'error'); }" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5">
-                                <span>Continuar</span>
+                            <button type="button" @click="if(name && phone && email) { step = 3; } else { Swal.fire('Faltan Datos', 'Por favor complete todos los campos.', 'error'); }" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5">
+                                <span>Siguiente</span>
                                 <i class="ph-bold ph-arrow-right"></i>
                             </button>
                         </div>
@@ -754,14 +896,14 @@
                     <!-- STEP 3: Broker Preferences & ARS -->
                     <div x-show="step === 3" class="space-y-6" style="display: none;">
                         <div class="text-center space-y-1">
-                            <h3 class="text-base font-black text-slate-800 uppercase tracking-tight">Preferencias de Asesoría</h3>
-                            <p class="text-xs text-slate-400">Personalice las aseguradoras y formas de contacto de su interés.</p>
+                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Preferencias de Asesoría y ARS</h3>
+                            <p class="text-xs text-slate-400">Personalice el enfoque de análisis comercial de su seguro.</p>
                         </div>
 
                         <div class="space-y-4">
                             <div class="space-y-1">
-                                <label for="tipo_plan" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Tipo de Seguro Requerido (Confirmar)</label>
-                                <select id="tipo_plan" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-0 rounded-xl text-xs text-slate-700 font-medium transition-all">
+                                <label for="tipo_plan" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Tipo de Seguro Requerido</label>
+                                <select id="tipo_plan" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs text-slate-700 font-medium transition-all">
                                     <option value="colectivo" :selected="profile === 'empresa'">Plan Médico Colectivo (Para mi Empresa)</option>
                                     <option value="familiar" :selected="profile === 'familiar'">Plan Médico Familiar / Individual</option>
                                     <option value="internacional" :selected="profile === 'internacional'">Plan de Salud Internacional Premium</option>
@@ -769,8 +911,8 @@
                             </div>
 
                             <div class="space-y-1">
-                                <label for="form_ars" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">¿Tiene alguna ARS de interés preferente?</label>
-                                <select id="form_ars" x-model="arsInterest" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-blue-600 focus:ring-0 rounded-xl text-xs text-slate-700 font-medium transition-all">
+                                <label for="form_ars" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">¿Tiene alguna ARS o Aseguradora de Interés Preferente?</label>
+                                <select id="form_ars" x-model="arsInterest" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs text-slate-700 font-medium transition-all">
                                     <option value="cualquiera">No tengo preferencia (Quiero comparar todas)</option>
                                     <option value="humano">ARS Humano</option>
                                     <option value="universal">ARS Universal</option>
@@ -781,13 +923,13 @@
                             </div>
 
                             <div class="space-y-1">
-                                <label for="form_metodo" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Preferencia de Contacto</label>
+                                <label for="form_metodo" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Método de Contacto Preferido</label>
                                 <div class="grid grid-cols-2 gap-4 pt-1">
-                                    <div @click="timePreference = 'whatsapp'" :class="timePreference === 'whatsapp' ? 'border-blue-600 bg-blue-50/20' : 'border-slate-200'" class="p-3.5 border rounded-xl flex items-center gap-2 cursor-pointer transition-all">
+                                    <div @click="timePreference = 'whatsapp'" :class="timePreference === 'whatsapp' ? 'border-amber-500 bg-amber-50/10' : 'border-slate-200'" class="p-3.5 border rounded-xl flex items-center gap-2 cursor-pointer transition-all">
                                         <i class="ph-bold ph-whatsapp-logo text-xl text-emerald-500"></i>
                                         <span class="text-xs font-bold text-slate-700">WhatsApp</span>
                                     </div>
-                                    <div @click="timePreference = 'llamada'" :class="timePreference === 'llamada' ? 'border-blue-600 bg-blue-50/20' : 'border-slate-200'" class="p-3.5 border rounded-xl flex items-center gap-2 cursor-pointer transition-all">
+                                    <div @click="timePreference = 'llamada'" :class="timePreference === 'llamada' ? 'border-amber-500 bg-amber-50/10' : 'border-slate-200'" class="p-3.5 border rounded-xl flex items-center gap-2 cursor-pointer transition-all">
                                         <i class="ph-bold ph-phone text-xl text-blue-500"></i>
                                         <span class="text-xs font-bold text-slate-700">Llamada</span>
                                     </div>
@@ -796,10 +938,10 @@
                         </div>
 
                         <div class="flex justify-between pt-4 border-t border-slate-100">
-                            <button type="button" @click="step = 2" class="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
+                            <button type="button" @click="step = 2" class="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-black uppercase tracking-wider transition-all">
                                 Atrás
                             </button>
-                            <button type="submit" class="px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md shadow-blue-600/10 transition-all flex items-center gap-1.5">
+                            <button type="submit" class="px-7 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-xs font-black uppercase tracking-wider shadow-md shadow-amber-500/10 transition-all flex items-center gap-1.5">
                                 <span>ENVIAR SOLICITUD</span>
                                 <i class="ph-bold ph-paper-plane-right"></i>
                             </button>
@@ -813,57 +955,57 @@
     </section>
 
     <!-- FAQ Accordion Section -->
-    <section id="faq" class="py-24 px-6 bg-white border-t border-b border-slate-100" x-data="{ activeFaq: null }">
+    <section class="py-24 px-6 bg-slate-50 border-t border-slate-200/50" x-data="{ activeFaq: null }">
         <div class="max-w-4xl mx-auto space-y-12">
             
             <div class="text-center max-w-xl mx-auto space-y-3">
-                <span class="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full">PREGUNTAS FRECUENTES</span>
-                <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Preguntas Frecuentes de Corretaje</h2>
-                <p class="text-sm text-slate-400 font-medium">Respuestas rápidas para aclarar cómo funciona la asesoría de seguros a través de un corredor oficial.</p>
+                <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">PREGUNTAS FRECUENTES</span>
+                <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Preguntas Frecuentes</h2>
+                <p class="text-sm text-slate-400 font-medium">Aclare de forma transparente cómo funciona la intermediación a través de un corredor oficial de seguros médicos.</p>
             </div>
 
             <div class="space-y-4 max-w-3xl mx-auto">
                 <!-- FAQ Item 1 -->
-                <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
-                    <button @click="activeFaq === 1 ? activeFaq = null : activeFaq = 1" class="w-full p-6 text-left flex items-center justify-between gap-4 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                        <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿La intermediación y asesoría de DISCAN tiene algún costo adicional para mí?</span>
-                        <i :class="activeFaq === 1 ? 'ph-bold ph-caret-up' : 'ph-bold ph-caret-down'" class="text-slate-500 text-base transition-transform duration-300"></i>
+                <div class="border border-slate-200 rounded-xl overflow-hidden transition-all shadow-sm">
+                    <button @click="activeFaq === 1 ? activeFaq = null : activeFaq = 1" class="w-full p-5 text-left flex items-center justify-between gap-4 bg-white hover:bg-slate-50 transition-colors">
+                        <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿La intermediación y consultoría técnica de DISCAN tiene algún costo para el cliente?</span>
+                        <i :class="activeFaq === 1 ? 'ph-bold ph-caret-up text-amber-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
                     </button>
-                    <div x-show="activeFaq === 1" x-transition.duration.300ms class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
-                        **No, en absoluto.** Por ley, las Administradoras de Riesgos de Salud (ARS) pagan las comisiones de corretaje directo a las firmas autorizadas. El costo de su póliza médica será exactamente el mismo (o menor debido a nuestras negociaciones colectivas) que si contratara directamente con la aseguradora. La ventaja es que con DISCAN obtiene un equipo de expertos que defiende sus derechos y realiza toda la gestión logística sin costo.
+                    <div x-show="activeFaq === 1" x-transition class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
+                        **No tiene absolutamente ningún costo para usted.** En la República Dominicana, la Ley de Seguros establece que las Administradoras de Riesgos de Salud (ARS) y aseguradoras pagan las comisiones directamente a los corredores y asesores autorizados. El costo de su póliza médica será el mismo (o menor por negociación grupal) que si contratara directamente, pero con la ventaja de tener un equipo experto que defiende sus derechos sin costo.
                     </div>
                 </div>
 
                 <!-- FAQ Item 2 -->
-                <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
-                    <button @click="activeFaq === 2 ? activeFaq = null : activeFaq = 2" class="w-full p-6 text-left flex items-center justify-between gap-4 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                        <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">Si mi empresa ya cuenta con un seguro de salud directo, ¿puedo nombrar a DISCAN como mi broker?</span>
-                        <i :class="activeFaq === 2 ? 'ph-bold ph-caret-up' : 'ph-bold ph-caret-down'" class="text-slate-500 text-base transition-transform duration-300"></i>
+                <div class="border border-slate-200 rounded-xl overflow-hidden transition-all shadow-sm">
+                    <button @click="activeFaq === 2 ? activeFaq = null : activeFaq = 2" class="w-full p-5 text-left flex items-center justify-between gap-4 bg-white hover:bg-slate-50 transition-colors">
+                        <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿Puedo cambiar mi corredor actual por DISCAN manteniendo mi ARS actual?</span>
+                        <i :class="activeFaq === 2 ? 'ph-bold ph-caret-up text-amber-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
                     </button>
-                    <div x-show="activeFaq === 2" x-transition.duration.300ms class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
-                        **Sí, por supuesto.** Nombrar a DISCAN como su corredor es un trámite sumamente sencillo que solo requiere la firma de una carta de designación oficial. Sus coberturas, tarifas y red médica con la ARS actual permanecerán exactamente iguales, pero su departamento de Recursos Humanos ganará un aliado estratégico para manejar reclamos, exclusiones y todo el despacho express automatizado con **SysSAFE**.
+                    <div x-show="activeFaq === 2" x-transition class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
+                        **Sí, de forma sumamente sencilla.** Solo requiere la firma de una carta de nombramiento oficial de corretaje. Su póliza médica, red de clínicas, coberturas y tarifas con su ARS actual permanecerán exactamente iguales, pero ganará el soporte técnico experto de DISCAN para sus reclamaciones y la ventaja del control logístico express **SysSAFE** para sus empleados.
                     </div>
                 </div>
 
                 <!-- FAQ Item 3 -->
-                <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
-                    <button @click="activeFaq === 3 ? activeFaq = null : activeFaq = 3" class="w-full p-6 text-left flex items-center justify-between gap-4 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                        <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿Con qué Administradoras de Riesgos de Salud (ARS) trabaja DISCAN?</span>
-                        <i :class="activeFaq === 3 ? 'ph-bold ph-caret-up' : 'ph-bold ph-caret-down'" class="text-slate-500 text-base transition-transform duration-300"></i>
+                <div class="border border-slate-200 rounded-xl overflow-hidden transition-all shadow-sm">
+                    <button @click="activeFaq === 3 ? activeFaq = null : activeFaq = 3" class="w-full p-5 text-left flex items-center justify-between gap-4 bg-white hover:bg-slate-50 transition-colors">
+                        <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿Cuál es la red de cobertura nacional que ofrecen sus seguros de salud?</span>
+                        <i :class="activeFaq === 3 ? 'ph-bold ph-caret-up text-amber-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
                     </button>
-                    <div x-show="activeFaq === 3" x-transition.duration.300ms class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
-                        Trabajamos en estrecha colaboración con todas las ARS autorizadas en la República Dominicana, incluyendo **ARS Humano, ARS Universal, MAPFRE Salud, ARS Reservas, ARS Monumental, ARS Futuro y ARS CMD (Colegio Médico Dominicano)**. Esto nos permite comparar de forma objetiva todo el mercado y armar propuestas comparativas transparentes.
+                    <div x-show="activeFaq === 3" x-transition class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
+                        Al intermediar con todas las ARS acreditadas (Humano, Universal, Mapfre, Reservas, Monumental), podemos ofrecer planes con acceso a la red médica premium del país, que incluye prestigiosos centros de salud como la **Clínica Abreu, Centro de Diagnóstico Medicina Avanzada y Telemedicina (CEDIMAT), Hospital General Plaza de la Salud, y Clínica Corazones Unidos**, entre otros.
                     </div>
                 </div>
 
                 <!-- FAQ Item 4 -->
-                <div class="border border-slate-200 rounded-2xl overflow-hidden transition-all">
-                    <button @click="activeFaq === 4 ? activeFaq = null : activeFaq = 4" class="w-full p-6 text-left flex items-center justify-between gap-4 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                        <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿Cómo funciona exactamente el sistema SysSAFE para la entrega de mis carnets?</span>
-                        <i :class="activeFaq === 4 ? 'ph-bold ph-caret-up' : 'ph-bold ph-caret-down'" class="text-slate-500 text-base transition-transform duration-300"></i>
+                <div class="border border-slate-200 rounded-xl overflow-hidden transition-all shadow-sm">
+                    <button @click="activeFaq === 4 ? activeFaq = null : activeFaq = 4" class="w-full p-5 text-left flex items-center justify-between gap-4 bg-white hover:bg-slate-50 transition-colors">
+                        <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿Cómo ayuda SysSAFE a agilizar los procesos de Recursos Humanos?</span>
+                        <i :class="activeFaq === 4 ? 'ph-bold ph-caret-up text-amber-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
                     </button>
-                    <div x-show="activeFaq === 4" x-transition.duration.300ms class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
-                        **SysSAFE** es nuestra plataforma patentada de control logístico. Cuando la ARS emite sus carnets físicos o contratos, el sistema genera de forma automática un código de barra de rastreo único, asignando el expediente a una ruta óptima de mensajería. Usted podrá ver en vivo si sus carnets están "Impresos", "En Ruta" o "Completados", y cada entrega finaliza obligatoriamente con una firma digital en dispositivo móvil que constituye el **acuse de recibo conforme e inmutable**.
+                    <div x-show="activeFaq === 4" x-transition class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
+                        **SysSAFE** elimina todo el descontrol y fricción. Cuando la ARS emite los carnets físicos o contratos, nuestro sistema los clasifica por ruta inteligente, asigna un mensajero exclusivo y notifica a Recursos Humanos en tiempo real. Al momento de la entrega, se realiza una firma digital en dispositivo móvil que constituye el **acuse de recibo conforme e inmutable**, garantizando un control de entrega física al 100%.
                     </div>
                 </div>
             </div>
@@ -871,34 +1013,34 @@
         </div>
     </section>
 
-    <!-- Footer: Commercial & Contact -->
+    <!-- Footer: Commercial & Contact (Navy Theme - Estilo MAX) -->
     <footer class="py-16 px-6 bg-slate-950 text-slate-400 border-t border-slate-900 relative">
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 text-sm pb-12 border-b border-slate-900">
             
             <!-- Logo area -->
             <div class="space-y-4">
                 <a href="#" class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white">
-                        <i class="ph-bold ph-shield-plus text-xl"></i>
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black">
+                        <i class="ph-bold ph-shield-check text-xl text-white"></i>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-lg font-black tracking-tight text-white leading-none">DISCAN</span>
-                        <span class="text-[8px] font-black uppercase tracking-widest text-blue-500 mt-1 leading-none">Corredores de Seguros</span>
+                        <span class="text-[8px] font-black uppercase tracking-widest text-amber-400 mt-1 leading-none">Corredores de Seguros</span>
                     </div>
                 </a>
                 <p class="text-xs text-slate-500 leading-relaxed font-medium">
-                    Firma registrada y autorizada de corretaje de seguros médicos colectivos, familiares e internacionales. Brindamos servicios de intermediación médica de excelencia.
+                    Firma autorizada e intermediaria oficial de seguros de salud, vida, vehículos y riesgos generales para empresas y personas en la República Dominicana.
                 </p>
             </div>
 
             <!-- Quick Links -->
             <div class="space-y-4">
-                <h4 class="text-xs font-black uppercase tracking-widest text-white">Planes de Salud</h4>
+                <h4 class="text-xs font-black uppercase tracking-widest text-white">Nuestros Seguros</h4>
                 <ul class="space-y-2.5 text-xs text-slate-400 font-medium">
-                    <li><a href="#servicios" class="hover:text-white transition-colors">Seguros Médicos Corporativos</a></li>
-                    <li><a href="#servicios" class="hover:text-white transition-colors">Seguros Médicos Familiares</a></li>
-                    <li><a href="#servicios" class="hover:text-white transition-colors">Seguros Internacionales de Lujo</a></li>
-                    <li><a href="#ventaja" class="hover:text-white transition-colors">Logística SysSAFE Carnets</a></li>
+                    <li><a href="#seguros" class="hover:text-white transition-colors">Seguros Colectivos para Empresas</a></li>
+                    <li><a href="#seguros" class="hover:text-white transition-colors">Seguro de Salud Familiar</a></li>
+                    <li><a href="#seguros" class="hover:text-white transition-colors">Seguro Médico Internacional</a></li>
+                    <li><a href="#seguros" class="hover:text-white transition-colors">Seguro de Flotas de Motores</a></li>
                 </ul>
             </div>
 
@@ -907,15 +1049,15 @@
                 <h4 class="text-xs font-black uppercase tracking-widest text-white">Contacto y Soporte</h4>
                 <ul class="space-y-2.5 text-xs text-slate-400 font-medium">
                     <li class="flex items-center gap-2">
-                        <i class="ph-bold ph-phone text-blue-500"></i>
+                        <i class="ph-bold ph-phone text-amber-500"></i>
                         <span>(809) 555-0199</span>
                     </li>
                     <li class="flex items-center gap-2">
-                        <i class="ph-bold ph-envelope text-blue-500"></i>
+                        <i class="ph-bold ph-envelope text-amber-500"></i>
                         <span>info@discan.cloud</span>
                     </li>
                     <li class="flex items-center gap-2">
-                        <i class="ph-bold ph-map-pin text-blue-500"></i>
+                        <i class="ph-bold ph-map-pin text-amber-500"></i>
                         <span>Av. Winston Churchill, Santo Domingo, R.D.</span>
                     </li>
                 </ul>
@@ -925,14 +1067,14 @@
             <div class="space-y-4">
                 <h4 class="text-xs font-black uppercase tracking-widest text-white">Portal Autorizado</h4>
                 <p class="text-xs text-slate-500 leading-relaxed font-medium">
-                    Acceso exclusivo para promotores, mensajeros, personal logístico de SAFESURE y auditores de ARS CMD.
+                    Acceso logístico exclusivo para promotores, mensajeros, personal logístico de SAFESURE y auditores de ARS CMD.
                 </p>
                 @auth
-                    <a href="{{ url('/dashboard') }}" class="inline-flex px-4 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                    <a href="{{ url('/dashboard') }}" class="inline-flex px-4 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all">
                         Ingresar al Portal
                     </a>
                 @else
-                    <a href="{{ route('login') }}" class="inline-flex px-4 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                    <a href="{{ route('login') }}" class="inline-flex px-4 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all">
                         Ingresar al Portal
                     </a>
                 @endauth
@@ -947,7 +1089,7 @@
             <div class="flex items-center gap-6">
                 <a href="#" class="hover:text-white transition-colors">Términos de Servicio</a>
                 <a href="#" class="hover:text-white transition-colors">Privacidad de Datos</a>
-                <span class="font-mono text-slate-700">v3.6.0</span>
+                <span class="font-mono text-slate-700">v3.7.0</span>
             </div>
         </div>
     </footer>
