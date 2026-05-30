@@ -381,4 +381,19 @@ class Afiliado extends Model
         
         $this->direccion = $clean;
     }
+
+    /**
+     * Generates a database-agnostic SQL expression to calculate the difference in days between two dates.
+     */
+    public static function getDaysDifferenceSql(string $date1, string $date2): string
+    {
+        $driver = \Illuminate\Support\Facades\DB::connection()->getDriverName();
+        if ($driver === 'pgsql') {
+            return "EXTRACT(DAY FROM ({$date1} - {$date2}))";
+        } elseif ($driver === 'sqlite') {
+            return "(julianday({$date1}) - julianday({$date2}))";
+        } else { // mysql / mariadb
+            return "DATEDIFF({$date1}, {$date2})";
+        }
+    }
 }

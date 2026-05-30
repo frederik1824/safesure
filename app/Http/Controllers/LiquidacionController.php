@@ -39,18 +39,21 @@ class LiquidacionController extends Controller
                         ->when($responsableId, fn($q) => $q->where('responsable_id', $responsableId))
                         ->when($proveedorId, fn($q) => $q->where('proveedor_id', $proveedorId));
 
+        $diffNowSql = \App\Models\Afiliado::getDaysDifferenceSql('CURRENT_TIMESTAMP', 'created_at');
+        $diffUpdatedSql = \App\Models\Afiliado::getDaysDifferenceSql('updated_at', 'created_at');
+
         $totales = [
             'pendiente_monto' => (clone $totalsQuery)->where('liquidado', false)->sum('costo_entrega'),
             'pendiente_conteo' => (clone $totalsQuery)->where('liquidado', false)->count(),
             'liquidado_monto' => (clone $totalsQuery)->where('liquidado', true)->sum('costo_entrega'),
-            'fuera_sla' => (clone $totalsQuery)->where('liquidado', false)->whereRaw("DATEDIFF(now(), created_at) > 20")->count()
+            'fuera_sla' => (clone $totalsQuery)->where('liquidado', false)->whereRaw("{$diffNowSql} > 20")->count()
         ];
 
         // Eficiencia por Responsable (Punto 2)
         $eficiencia = \App\Models\Responsable::withCount([
             'afiliados as total' => fn($q) => $q->whereHas('estado', fn($e) => $e->where('nombre', 'like', 'completado')),
             'afiliados as fuera_sla' => fn($q) => $q->whereHas('estado', fn($e) => $e->where('nombre', 'like', 'completado'))
-                                                 ->whereRaw("DATEDIFF(updated_at, created_at) > 20")
+                                                 ->whereRaw("{$diffUpdatedSql} > 20")
         ])->get()->map(function($r) {
             $r->porcentaje_alerta = $r->total > 0 ? ($r->fuera_sla / $r->total) * 100 : 0;
             return $r;

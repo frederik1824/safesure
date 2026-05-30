@@ -78,14 +78,16 @@ class ReporteController extends Controller
         $salidas_count = $salidas_query->count();
 
         // Dynamic logistics metrics
+        $diffSql = \App\Models\Afiliado::getDaysDifferenceSql('fecha_entrega_safesure', 'created_at');
+        
         $avgCycleTime = (clone $query)->finished()
             ->whereNotNull('fecha_entrega_safesure')
-            ->selectRaw('AVG(DATEDIFF(fecha_entrega_safesure, created_at)) as avg_days')
+            ->selectRaw("AVG({$diffSql}) as avg_days")
             ->first()->avg_days ?? 0;
 
         $completedCount = (clone $query)->finished()->whereNotNull('fecha_entrega_safesure')->count();
         $onTimeCount = (clone $query)->finished()->whereNotNull('fecha_entrega_safesure')
-            ->whereRaw('DATEDIFF(fecha_entrega_safesure, created_at) < 20')
+            ->whereRaw("{$diffSql} < 20")
             ->count();
         $otdRate = $completedCount > 0 ? ($onTimeCount / $completedCount) * 100 : 100;
 

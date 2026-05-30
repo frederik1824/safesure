@@ -63,17 +63,20 @@ class SlaAlerts extends Component
         }
 
         // Obtener los días de inactividad calculados en SQL (MySQL DATEDIFF)
-        $query->addSelect(DB::raw('DATEDIFF(NOW(), (SELECT MAX(fecha_contacto) FROM interaccion_empresas WHERE empresa_id = empresas.id)) as days_inactive'));
+        $subquery = '(SELECT MAX(fecha_contacto) FROM interaccion_empresas WHERE empresa_id = empresas.id)';
+        $diffSql = \App\Models\Afiliado::getDaysDifferenceSql('CURRENT_TIMESTAMP', $subquery);
+
+        $query->addSelect(DB::raw("{$diffSql} as days_inactive"));
 
         // Conteos globales para las Cards (antes de filtros de búsqueda/nivel)
-        $totalCritical = (clone $query)->where(function($q) {
-            $q->whereRaw('DATEDIFF(NOW(), (SELECT MAX(fecha_contacto) FROM interaccion_empresas WHERE empresa_id = empresas.id)) >= 15')
+        $totalCritical = (clone $query)->where(function($q) use ($diffSql) {
+            $q->whereRaw("{$diffSql} >= 15")
               ->orWhereNotExists(function($sq) {
                   $sq->select(DB::raw(1))->from('interaccion_empresas')->whereColumn('empresa_id', 'empresas.id');
               });
         })->count();
 
-        $totalWarning = (clone $query)->whereRaw('DATEDIFF(NOW(), (SELECT MAX(fecha_contacto) FROM interaccion_empresas WHERE empresa_id = empresas.id)) BETWEEN 7 AND 14')->count();
+        $totalWarning = (clone $query)->whereRaw("{$diffSql} BETWEEN 7 AND 14")->count();
 
         // Aplicamos Filtros de UI
         if ($this->search) {
@@ -85,8 +88,8 @@ class SlaAlerts extends Component
         
         // Filtro por Nivel de SLA
         if ($this->level === 'critical') {
-            $query->where(function($q) {
-                $q->whereRaw('DATEDIFF(NOW(), (SELECT MAX(fecha_contacto) FROM interaccion_empresas WHERE empresa_id = empresas.id)) >= 15')
+            $query->where(function($q) use ($diffSql) {
+                $q->whereRaw("{$diffSql} >= 15")
                   ->orWhereNotExists(function($sq) {
                       $sq->select(DB::raw(1))
                          ->from('interaccion_empresas')
@@ -94,7 +97,7 @@ class SlaAlerts extends Component
                   });
             });
         } elseif ($this->level === 'warning') {
-            $query->whereRaw('DATEDIFF(NOW(), (SELECT MAX(fecha_contacto) FROM interaccion_empresas WHERE empresa_id = empresas.id)) BETWEEN 7 AND 14');
+            $query->whereRaw("{$diffSql} BETWEEN 7 AND 14");
         }
 
         // Ordenamiento
