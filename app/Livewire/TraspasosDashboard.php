@@ -247,66 +247,10 @@ class TraspasosDashboard extends Component
 
         $traspasos = $query->orderBy($this->orderBy, $this->orderDir)->get();
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="traspasos_' . now()->format('Ymd_His') . '.csv"',
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0'
-        ];
-
-        $callback = function() use ($traspasos) {
-            $file = fopen('php://output', 'w');
-            
-            // Add UTF-8 BOM for Excel compatibility
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-
-            // CSV Headers
-            fputcsv($file, [
-                'ID CMD',
-                'Nombre Afiliado',
-                'Cédula',
-                'Sexo',
-                'Fecha Nacimiento',
-                'Edad',
-                'Agente',
-                'Estado',
-                'Dependientes',
-                'Fecha Solicitud',
-                'Fecha Efectivo',
-                'Periodo',
-                'Estado Unipago',
-                'Motivo Rechazo',
-                'Fecha Rechazo'
-            ], ';');
-
-            foreach ($traspasos as $tr) {
-                $edad = $tr->fecha_nacimiento ? Carbon::parse($tr->fecha_nacimiento)->age : 'N/D';
-                $sexoLargo = $tr->sexo === 'M' ? 'Masculino' : ($tr->sexo === 'F' ? 'Femenino' : $tr->sexo);
-
-                fputcsv($file, [
-                    $tr->firebase_document_id,
-                    $tr->nombre_afiliado,
-                    $tr->cedula_afiliado,
-                    $sexoLargo,
-                    $tr->fecha_nacimiento ? $tr->fecha_nacimiento->format('d/m/Y') : '',
-                    $edad,
-                    $tr->agente,
-                    $tr->estado,
-                    $tr->cantidad_dependientes,
-                    $tr->fecha_solicitud ? $tr->fecha_solicitud->format('d/m/Y') : '',
-                    $tr->fecha_efectivo ? $tr->fecha_efectivo->format('d/m/Y') : '',
-                    $tr->periodo,
-                    $tr->status_unipago,
-                    $tr->motivo_rechazo,
-                    $tr->fecha_rechazo ? $tr->fecha_rechazo->format('d/m/Y') : ''
-                ], ';');
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\TraspasosExport($traspasos), 
+            'traspasos_' . now()->format('Ymd_His') . '.xlsx'
+        );
     }
 
     public function render()

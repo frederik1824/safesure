@@ -178,55 +178,10 @@ class ReporteController extends Controller
 
     public function export(Request $request)
     {
-        $query = Afiliado::with(['corte', 'estado', 'responsable', 'empresaModel'])
-            ->when($request->fecha_desde, fn($q) => $q->whereDate('created_at', '>=', $request->fecha_desde))
-            ->when($request->fecha_hasta, fn($q) => $q->whereDate('created_at', '<=', $request->fecha_hasta))
-            ->when($request->corte_id, fn($q) => $q->where('corte_id', $request->corte_id))
-            ->when($request->responsable_id, fn($q) => $q->where('responsable_id', $request->responsable_id))
-            ->when($request->empresa_id, fn($q) => $q->where('empresa_id', $request->empresa_id));
-
-        $afiliados = $query->get();
-        
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="reporte_supervision_'.date('Y-m-d').'.csv"',
-        ];
-
-        $callback = function() use ($afiliados) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, [
-                'ID', 'Nombre Completo', 'Cedula', 'Contrato', 'Empresa', 'RNC Empresa', 
-                'Corte', 'Estado', 'Responsable', 'Fecha Ingreso', 'Fecha Entrega Prov', 
-                'SLA Status', 'Costo Entrega', 'Liquidado',
-                'Número de Solicitud', 'Cantidad de Dependientes', 'Sexo', 'Fecha de Nacimiento'
-            ]);
-
-            foreach ($afiliados as $a) {
-                fputcsv($file, [
-                    $a->id,
-                    $a->nombre_completo,
-                    $a->cedula,
-                    $a->contrato,
-                    $a->empresaModel?->nombre ?? $a->empresa,
-                    $a->rnc_empresa,
-                    $a->corte?->nombre ?? 'N/A',
-                    $a->estado?->nombre ?? 'N/A',
-                    $a->responsable?->nombre ?? 'N/A',
-                    $a->created_at->format('Y-m-d'),
-                    $a->fecha_entrega_proveedor?->format('Y-m-d') ?? '',
-                    $a->sla_status,
-                    $a->costo_entrega,
-                    $a->liquidado ? 'SI' : 'NO',
-                    $a->numero_solicitud,
-                    $a->cantidad_dependientes,
-                    $a->sexo === 'M' ? 'Masculino' : ($a->sexo === 'F' ? 'Femenino' : ($a->sexo ?: 'N/D')),
-                    $a->fecha_nacimiento ? $a->fecha_nacimiento->format('Y-m-d') : ''
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\SupervisionExport($request->all()), 
+            'reporte_supervision_' . now()->format('Ymd_His') . '.xlsx'
+        );
     }
 
     public function heatmap(Request $request)
