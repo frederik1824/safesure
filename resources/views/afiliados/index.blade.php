@@ -220,16 +220,18 @@
                                         <i class="ph-bold ph-check-square"></i>
                                     </button>
                                     @endif
-                                    @if(isset($impresoEstadoId) && $afiliado->estado_id != $impresoEstadoId)
+                                    @if(isset($impresoEstadoId) && $afiliado->estado_id != $impresoEstadoId && $afiliado->estado_id != 9)
                                     <button type="button" onclick="quickImpreso('{{ $afiliado->uuid }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
                                             class="w-9 h-9 flex items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all" title="Marcar como Impreso">
                                         <i class="ph-bold ph-newspaper"></i>
                                     </button>
                                     @endif
+                                    @if($afiliado->estado_id != 9)
                                     <button type="button" onclick="quickComplete('{{ $afiliado->uuid }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
                                             class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all" title="Marcar como Completado">
                                         <i class="ph-bold ph-check-circle"></i>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

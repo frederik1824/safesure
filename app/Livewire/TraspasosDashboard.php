@@ -257,17 +257,29 @@ class TraspasosDashboard extends Component
     {
         $this->checkSyncStatus();
 
+        // Base query for monthly / filtered KPI metrics
+        $kpiQuery = Traspaso::query();
+        if ($this->filterPeriodo !== 'all') {
+            $kpiQuery->where('periodo', $this->filterPeriodo);
+        }
+        if (!empty($this->fechaSolicitudDesde)) {
+            $kpiQuery->whereDate('fecha_solicitud', '>=', $this->fechaSolicitudDesde);
+        }
+        if (!empty($this->fechaSolicitudHasta)) {
+            $kpiQuery->whereDate('fecha_solicitud', '<=', $this->fechaSolicitudHasta);
+        }
+
         // Contadores KPI
-        $kpiTotal = Traspaso::count();
-        $kpiEfectivos = Traspaso::where('estado', 'EFECTIVO')->count();
-        $kpiRechazados = Traspaso::where('status_unipago', 'RECHAZADO')->count();
-        $kpiPendientes = Traspaso::where('status_unipago', 'PENDIENTE')->count();
+        $kpiTotal = (clone $kpiQuery)->count();
+        $kpiEfectivos = (clone $kpiQuery)->where('estado', 'EFECTIVO')->count();
+        $kpiRechazados = (clone $kpiQuery)->where('status_unipago', 'RECHAZADO')->count();
+        $kpiPendientes = (clone $kpiQuery)->where('status_unipago', 'PENDIENTE')->count();
 
         // Totales de dependientes segregados
-        $kpiTotalDeps = Traspaso::sum('cantidad_dependientes');
-        $kpiEfectivosDeps = Traspaso::where('estado', 'EFECTIVO')->sum('cantidad_dependientes');
-        $kpiRechazadosDeps = Traspaso::where('status_unipago', 'RECHAZADO')->sum('cantidad_dependientes');
-        $kpiPendientesDeps = Traspaso::where('status_unipago', 'PENDIENTE')->sum('cantidad_dependientes');
+        $kpiTotalDeps = (clone $kpiQuery)->sum('cantidad_dependientes');
+        $kpiEfectivosDeps = (clone $kpiQuery)->where('estado', 'EFECTIVO')->sum('cantidad_dependientes');
+        $kpiRechazadosDeps = (clone $kpiQuery)->where('status_unipago', 'RECHAZADO')->sum('cantidad_dependientes');
+        $kpiPendientesDeps = (clone $kpiQuery)->where('status_unipago', 'PENDIENTE')->sum('cantidad_dependientes');
 
         // Analítica: Top 5 Agentes Promotores
         $topAgentes = Cache::remember('traspasos_top_agentes', 60, function() {
