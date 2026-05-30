@@ -176,6 +176,18 @@ class ReporteController extends Controller
         ));
     }
 
+    public function reporteDelDia(Request $request)
+    {
+        $fecha = $request->input('fecha', now()->format('Y-m-d'));
+        
+        $afiliados = Afiliado::with(['estado', 'responsable', 'empresaModel'])
+            ->whereDate('fecha_entrega_safesure', $fecha)
+            ->whereIn('estado_id', [9, 10])
+            ->get();
+            
+        return view('reportes.reporte_del_dia', compact('afiliados', 'fecha'));
+    }
+
     public function export(Request $request)
     {
         return \Maatwebsite\Excel\Facades\Excel::download(

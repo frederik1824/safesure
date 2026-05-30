@@ -46,6 +46,10 @@
                     <p class="text-xs text-slate-400 font-medium">Comparativa de entrega y cierre por período.</p>
                 </div>
                 <div class="flex items-center gap-3">
+                    <a href="{{ route('reportes.del_dia') }}" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-[0.65rem] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">print</span>
+                        Reporte del Día (CMD)
+                    </a>
                     <a href="{{ route('reportes.supervision') }}" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-[0.65rem] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-slate-800/20 flex items-center gap-2">
                         <span class="material-symbols-outlined text-sm">monitoring</span>
                         Panel de Supervisión

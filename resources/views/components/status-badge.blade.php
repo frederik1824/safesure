@@ -7,6 +7,7 @@
     // Premium Color Mapping
     $style = match(true) {
         $id == 9 => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-100', 'dot' => 'bg-emerald-500'],
+        str_contains($nombre, 'impreso') => ['bg' => 'bg-indigo-50', 'text' => 'text-indigo-700', 'border' => 'border-indigo-100', 'dot' => 'bg-indigo-500'],
         in_array($id, [10, 11]) => ['bg' => 'bg-blue-50', 'text' => 'text-blue-700', 'border' => 'border-blue-100', 'dot' => 'bg-blue-500'],
         in_array($id, [1, 7]) => ['bg' => 'bg-slate-50', 'text' => 'text-slate-600', 'border' => 'border-slate-100', 'dot' => 'bg-slate-400'],
         in_array($id, [3, 2, 5]) => ['bg' => 'bg-amber-50', 'text' => 'text-amber-700', 'border' => 'border-amber-100', 'dot' => 'bg-amber-500'],

@@ -9,10 +9,27 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = \App\Models\User::with(['roles', 'responsable'])->get();
-        return view('users.index', compact('users'));
+        $query = \App\Models\User::with(['roles', 'responsable']);
+        
+        if ($request->filled('responsable_id')) {
+            $rid = $request->input('responsable_id');
+            if ($rid === 'cmd') {
+                $query->where(function($q) {
+                    $q->whereNull('responsable_id')->orWhere('responsable_id', 1);
+                });
+            } elseif ($rid === 'safe') {
+                $query->whereNotNull('responsable_id')->where('responsable_id', '!=', 1);
+            } else {
+                $query->where('responsable_id', $rid);
+            }
+        }
+
+        $users = $query->get();
+        $responsables = \App\Models\Responsable::all();
+
+        return view('users.index', compact('users', 'responsables'));
     }
 
     public function create()

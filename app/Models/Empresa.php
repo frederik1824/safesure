@@ -76,14 +76,15 @@ class Empresa extends Model
      */
     public function getSlaStatusAttribute()
     {
-        $ultimaInteraccion = $this->interacciones()->latest()->first();
+        $ultimaInteraccion = $this->interacciones()->first();
         
         if (!$ultimaInteraccion) {
             $clase = 'critical';
             $mensaje = 'Sin actividad registrada';
             $dias = null;
         } else {
-            $dias = $ultimaInteraccion->created_at->diffInDays(now());
+            $fecha = $ultimaInteraccion->fecha_contacto ?: $ultimaInteraccion->created_at;
+            $dias = $fecha ? \Carbon\Carbon::parse($fecha)->diffInDays(now()) : 0;
             if ($dias >= 15) {
                 $clase = 'critical';
                 $mensaje = "Inactiva por $dias días";
@@ -163,10 +164,14 @@ class Empresa extends Model
      */
     public function resolveRouteBinding($value, $field = null)
     {
-        return $this->where('rnc', $value)
-            ->orWhere('uuid', $value)
-            ->orWhere('id', $value)
-            ->firstOrFail();
+        $query = $this->where('uuid', $value)
+            ->orWhere('rnc', $value);
+            
+        if (is_numeric($value)) {
+            $query->orWhere('id', $value);
+        }
+        
+        return $query->firstOrFail();
     }
 
     /**

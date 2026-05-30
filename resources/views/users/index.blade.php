@@ -21,6 +21,28 @@
         </a>
     </div>
 
+    <!-- Filters Bar -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-wrap gap-4 items-center justify-between">
+        <form method="GET" action="{{ route('usuarios.index') }}" class="flex items-center gap-3 w-full md:w-auto">
+            <span class="material-symbols-outlined text-slate-400">filter_list</span>
+            <label for="responsable_id" class="text-xs font-bold text-slate-500 uppercase tracking-wider">Filtrar por Entidad / Responsable:</label>
+            <select name="responsable_id" id="responsable_id" onchange="this.form.submit()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                <option value="">Todos los Usuarios</option>
+                <option value="safe" {{ request('responsable_id') === 'safe' ? 'selected' : '' }}>Solo SAFESURE (Gestores)</option>
+                <option value="cmd" {{ request('responsable_id') === 'cmd' ? 'selected' : '' }}>Solo ARS CMD (Externos)</option>
+                <optgroup label="Responsable Asignado">
+                    @foreach($responsables as $resp)
+                        <option value="{{ $resp->id }}" {{ request('responsable_id') == $resp->id ? 'selected' : '' }}>{{ $resp->nombre }}</option>
+                    @endforeach
+                </optgroup>
+            </select>
+        </form>
+        
+        <div class="text-xs font-semibold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+            Total: <span class="font-bold text-slate-700">{{ $users->count() }}</span> usuario(s)
+        </div>
+    </div>
+
     <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
         <table class="w-full text-left border-collapse">
             <thead>

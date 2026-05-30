@@ -13,13 +13,26 @@
                 Centro de Operaciones Safesure Enterprise
             </p>
         </div>
-        <div class="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="px-4 py-2 text-right">
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Estado del Sistema</p>
-                <p class="text-xs font-black text-slate-800">Sincronización Activa</p>
-            </div>
-            <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 border border-emerald-100">
-                <i class="ph-bold ph-check-circle text-2xl"></i>
+        
+        <div class="flex flex-wrap items-center gap-4">
+            {{-- Filtro de Mes Premium --}}
+            <form action="{{ route('dashboard') }}" method="GET" class="flex items-center">
+                <select name="mes" onchange="this.form.submit()" class="text-xs font-black text-slate-600 bg-white border border-slate-200 rounded-2xl px-5 py-3 outline-none hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm cursor-pointer">
+                    <option value="">Todos los Períodos</option>
+                    @foreach($monthsList as $val => $label)
+                        <option value="{{ $val }}" {{ request('mes') === $val ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </form>
+
+            <div class="flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="px-4 py-2 text-right">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Estado del Sistema</p>
+                    <p class="text-xs font-black text-slate-800">Sincronización Activa</p>
+                </div>
+                <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 border border-emerald-100">
+                    <i class="ph-bold ph-check-circle text-2xl"></i>
+                </div>
             </div>
         </div>
     </div>

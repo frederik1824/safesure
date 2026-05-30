@@ -50,6 +50,19 @@ class AfiliadoService
 
         return \Illuminate\Support\Facades\DB::transaction(function () use ($afiliado, $finalEstadoId, $oldEstado, $newEstado, $userId, $observacion) {
             $afiliado->estado_id = $finalEstadoId;
+            
+            // Stamp fecha_entrega_safesure automatically if transition is to a received or completed state
+            $nombreEstado = strtolower($newEstado->nombre ?? '');
+            if (in_array($finalEstadoId, [9, 10]) || 
+                str_contains($nombreEstado, 'recibo') || 
+                str_contains($nombreEstado, 'recep') || 
+                str_contains($nombreEstado, 'completado') || 
+                str_contains($nombreEstado, 'entregado')) {
+                if (is_null($afiliado->fecha_entrega_safesure)) {
+                    $afiliado->fecha_entrega_safesure = now();
+                }
+            }
+
             $afiliado->save();
 
             // Rule 6: Audit/Traceability

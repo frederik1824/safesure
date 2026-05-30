@@ -114,6 +114,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('permission:view_reports')->group(function() {
         Route::get('reportes', [\App\Http\Controllers\ReporteController::class, 'index'])->name('reportes.index');
         Route::get('reportes/supervision', [\App\Http\Controllers\ReporteController::class, 'supervision'])->name('reportes.supervision');
+        Route::get('reportes/del-dia', [\App\Http\Controllers\ReporteController::class, 'reporteDelDia'])->name('reportes.del_dia');
         Route::get('reportes/export', [\App\Http\Controllers\ReporteController::class, 'export'])->name('reportes.export');
         Route::get('reportes/heatmap', [\App\Http\Controllers\ReporteController::class, 'heatmap'])->name('reportes.heatmap');
         Route::get('reportes/alertas-sla', [\App\Http\Controllers\ReporteController::class, 'slaAlerts'])->name('reportes.sla_alerts');
