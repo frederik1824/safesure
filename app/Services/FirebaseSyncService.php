@@ -286,7 +286,15 @@ class FirebaseSyncService
             }
 
             foreach ($filters as $field => $value) {
-                if (is_int($value)) {
+                if (is_bool($value)) {
+                    $filterList[] = [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => $field],
+                            'op' => 'EQUAL',
+                            'value' => ['booleanValue' => $value]
+                        ]
+                    ];
+                } elseif (is_int($value)) {
                     $filterList[] = [
                         'fieldFilter' => [
                             'field' => ['fieldPath' => $field],
@@ -458,8 +466,9 @@ class FirebaseSyncService
         try {
             $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents:runQuery";
             
-            // Convertir fecha a formato ISO Firebase
-            $sinceDate = \Carbon\Carbon::parse($since)->toIso8601ZuluString('microsecond');
+            // Convertir fecha a formato ISO Firebase con buffer de 24 horas para evitar pérdidas por offsets e inconsistencias de formato de zona horaria
+            $sinceCarbon = \Carbon\Carbon::parse($since);
+            $querySinceDate = $sinceCarbon->copy()->subHours(24)->toIso8601ZuluString('microsecond');
             $op = ($cursor && !empty($cursor['id'])) ? 'GREATER_THAN_OR_EQUAL' : 'GREATER_THAN';
 
             $structuredQuery = [
@@ -468,7 +477,7 @@ class FirebaseSyncService
                     'fieldFilter' => [
                         'field' => ['fieldPath' => 'updated_at'],
                         'op' => $op,
-                        'value' => ['stringValue' => $sinceDate]
+                        'value' => ['stringValue' => $querySinceDate]
                     ]
                 ],
                 'orderBy' => [
@@ -541,7 +550,15 @@ class FirebaseSyncService
 
             $filterList = [];
             foreach ($filters as $field => $value) {
-                if (is_int($value)) {
+                if (is_bool($value)) {
+                    $filterList[] = [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => $field],
+                            'op' => 'EQUAL',
+                            'value' => ['booleanValue' => $value]
+                        ]
+                    ];
+                } elseif (is_int($value)) {
                     $filterList[] = [
                         'fieldFilter' => [
                             'field' => ['fieldPath' => $field],

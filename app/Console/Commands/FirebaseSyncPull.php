@@ -23,7 +23,9 @@ class FirebaseSyncPull extends Command
                             {--hours= : Sincronización incremental de las últimas N horas}
                             {--log-id= : ID de log para seguimiento UI}
                             {--collection= : Colección específica (afiliados, empresas)}
-                            {--responsable-id= : Filtrar solo por este ID de responsable}';
+                            {--responsable-id= : Filtrar solo por este ID de responsable}
+                            {--verificadas : Sincronizar solo empresas verificadas}
+                            {--reales : Sincronizar solo empresas reales}';
     
     protected $description = 'Sincronización Cloud Resiliente con Control de Cuota y Checkpoints.';
     
@@ -84,11 +86,18 @@ class FirebaseSyncPull extends Command
             $collectionsToSync = [];
             
             if (!$target || $target === 'empresas') {
+                $filters = [];
+                if ($this->option('verificadas')) {
+                    $filters['es_verificada'] = true;
+                }
+                if ($this->option('reales')) {
+                    $filters['es_real'] = true;
+                }
                 $collectionsToSync[] = [
                     'name' => 'empresas',
                     'model' => Empresa::class,
                     'key' => 'uuid',
-                    'filters' => []
+                    'filters' => $filters
                 ];
             }
             
@@ -279,6 +288,27 @@ class FirebaseSyncPull extends Command
                         continue;
                     }
 
+                    // Guardar cursor para paginar incluso si se descarta/omite cronológicamente
+                    if ($mapped && is_array($mapped)) {
+                        $lastProcessedDoc = [
+                            'updated_at' => $mapped['updated_at'] ?? $mapped['firebase_updated_at_meta'] ?? null,
+                            'id' => $mapped['firebase_id'] ?? null
+                        ];
+                    }
+
+                    // Filtrar cronológicamente si es incremental (para compensar diferencias de formato/zona horaria en Firestore)
+                    if ($since) {
+                        $remoteUpdatedAt = isset($mapped['firebase_updated_at_meta']) 
+                            ? \Carbon\Carbon::parse($mapped['firebase_updated_at_meta']) 
+                            : (isset($mapped['updated_at']) ? \Carbon\Carbon::parse($mapped['updated_at']) : null);
+                        
+                        if ($remoteUpdatedAt && $remoteUpdatedAt->lt(\Carbon\Carbon::parse($since))) {
+                            // Este registro es más antiguo que el checkpoint real (cayó en el buffer de 24h), lo omitimos
+                            $bar->advance();
+                            continue;
+                        }
+                    }
+
                     // SEGURIDAD: Validar que el registro pertenezca al responsable autorizado
                     if ($collectionName === 'afiliados' && $this->option('responsable-id')) {
                         $remoteResponsableId = isset($mapped['responsable_id']) ? (int)$mapped['responsable_id'] : null;
@@ -295,9 +325,23 @@ class FirebaseSyncPull extends Command
                         // Buscar el registro local de forma resiliente anti-duplicados (ej: cédulas con/sin guiones)
                         if ($collectionName === 'afiliados') {
                             $cleanCedulaInput = preg_replace('/[^0-9]/', '', $mapped['cedula'] ?? $mapped['firebase_id'] ?? 'INVALID');
+                            
+                            // 1. Intentar búsqueda rápida indexada directa
+                            $formattedCedula = '';
+                            if (strlen($cleanCedulaInput) === 11) {
+                                $formattedCedula = substr($cleanCedulaInput, 0, 3) . '-' . substr($cleanCedulaInput, 3, 7) . '-' . substr($cleanCedulaInput, 10, 1);
+                            }
+                            
                             $model = $modelClass::withoutGlobalScopes()
-                                ->whereRaw("REPLACE(cedula, '-', '') = ?", [$cleanCedulaInput])
+                                ->whereIn('cedula', [$cleanCedulaInput, $formattedCedula])
                                 ->first();
+                                
+                            // 2. Fallback de emergencia si no se encuentra
+                            if (!$model) {
+                                $model = $modelClass::withoutGlobalScopes()
+                                    ->whereRaw("REPLACE(cedula, '-', '') = ?", [$cleanCedulaInput])
+                                    ->first();
+                            }
                         } else {
                             $model = $modelClass::withoutGlobalScopes()->where($uniqueKey, $mapped[$uniqueKey] ?? 'INVALID')->first();
                         }
@@ -352,14 +396,6 @@ class FirebaseSyncPull extends Command
                         $processedInThisSession++;
                         $checkpoint->increment('records_processed');
                         $this->globalSynced++;
-                        
-                        // Guardar último cursor para reanudar/paginar
-                        if ($mapped && is_array($mapped)) {
-                            $lastProcessedDoc = [
-                                'updated_at' => $mapped['updated_at'] ?? $mapped['firebase_updated_at_meta'] ?? null,
-                                'id' => $mapped['firebase_id'] ?? null
-                            ];
-                        }
 
                         // Registrar telemetría en tiempo real a caché de alto rendimiento
                         if ($this->syncLog) {
@@ -379,7 +415,7 @@ class FirebaseSyncPull extends Command
                     }
 
                     // Actualizar log de la UI periódicamente para rendimiento
-                    $totalProcessed = $this->globalSynced + $this->failed + $this->skipped;
+                    $totalProcessed = $this->globalSynced + $this->failed;
                     if ($this->syncLog && $totalProcessed % 20 === 0) {
                         $this->syncLog->update([
                             'records_synced' => $this->globalSynced,
