@@ -31,41 +31,41 @@
             font-family: 'Outfit', sans-serif;
         }
         
-        /* Navy & Gold Brand Colors */
+        /* Navy & Teal Brand Colors */
         .bg-brand-navy {
-            background-color: #0a1d37;
+            background-color: #003b8f;
         }
         .text-brand-navy {
-            color: #0a1d37;
+            color: #003b8f;
         }
         .border-brand-navy {
-            border-color: #0a1d37;
+            border-color: #003b8f;
         }
         .bg-brand-gold {
-            background-color: #d97706;
+            background-color: #0d9488;
         }
         .text-brand-gold {
-            color: #d97706;
+            color: #0d9488;
         }
         .border-brand-gold {
-            border-color: #d97706;
+            border-color: #0d9488;
         }
         
         .brand-gradient-navy {
-            background: linear-gradient(135deg, #071424 0%, #0a1d37 50%, #0f2e54 100%);
+            background: linear-gradient(135deg, #002254 0%, #003b8f 50%, #004ea6 100%);
         }
         .brand-gradient-gold-text {
-            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            background: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
         /* Glassmorphism navigation */
         .nav-glass-corporate {
-            background: rgba(10, 29, 55, 0.95);
+            background: rgba(0, 59, 143, 0.95);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border-bottom: 2px solid #d97706;
+            border-bottom: 2px solid #0d9488;
         }
         
         /* Premium Card Interactions mimicking max.com.do */
@@ -77,11 +77,11 @@
         }
         .max-style-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(10, 29, 55, 0.1);
-            border-color: #d97706;
+            box-shadow: 0 20px 25px -5px rgba(0, 59, 143, 0.1);
+            border-color: #0d9488;
         }
         .max-style-card:hover .card-icon-container {
-            background-color: #d97706;
+            background-color: #0d9488;
             color: #ffffff;
             transform: scale(1.05);
         }
@@ -92,8 +92,8 @@
             transition: all 0.3s ease;
         }
         .service-panel-card:hover {
-            border-bottom-color: #d97706;
-            box-shadow: 0 10px 15px -3px rgba(10, 29, 55, 0.05);
+            border-bottom-color: #0d9488;
+            box-shadow: 0 10px 15px -3px rgba(0, 59, 143, 0.05);
         }
 
         .ars-logo-gray {
@@ -109,38 +109,36 @@
         
         /* Quick access tab borders */
         .tab-button-active {
-            border-bottom: 3px solid #d97706;
-            color: #d97706;
+            border-bottom: 3px solid #0d9488;
+            color: #0d9488;
         }
     </style>
 </head>
-<body class="antialiased selection:bg-amber-500/10 selection:text-amber-600 overflow-x-hidden min-h-screen flex flex-col justify-between" x-data="{ activeServiceTab: 'empresas', showDropdown: false }">
+<body class="antialiased selection:bg-teal-500/10 selection:text-teal-600 overflow-x-hidden min-h-screen flex flex-col justify-between" x-data="{ activeServiceTab: 'empresas', showDropdown: false }">
 
     <!-- Global Commercial Navbar (Inspirada en MAX) -->
     <header class="fixed top-0 left-0 right-0 z-50 nav-glass-corporate shadow-md transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <a href="#" class="flex items-center gap-3 group">
-                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 shadow-lg shadow-amber-500/20 transform group-hover:rotate-6 transition-transform duration-300">
-                    <i class="ph-bold ph-shield-check text-2xl text-white"></i>
-                </div>
+                <img src="{{ asset('images/discan-logo.jpg') }}" alt="DISCAN Logo" class="h-12 w-auto rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105">
                 <div class="flex flex-col">
-                    <span class="text-xl font-black tracking-tight text-white leading-none">DISCAN</span>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-amber-400 mt-1 leading-none">Corredores de Seguros</span>
+                    <span class="text-xl font-display font-black tracking-tight text-white leading-none">DISCAN</span>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-teal-400 mt-1 leading-none">Corredores de Seguros</span>
                 </div>
             </a>
 
             <!-- Menu Navigation Dropdowns & Links -->
             <nav class="hidden lg:flex items-center gap-8">
-                <a href="#inicio" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors">Inicio</a>
+                <a href="#inicio" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-teal-400 transition-colors">Inicio</a>
                 
                 <!-- Interactive Hover Dropdown for Seguros -->
                 <div class="relative" x-data="{ openMenu: false }" @mouseenter="openMenu = true" @mouseleave="openMenu = false">
-                    <button class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors flex items-center gap-1">
+                    <button class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-teal-400 transition-colors flex items-center gap-1">
                         <span>Nuestros Seguros</span>
                         <i class="ph-bold ph-caret-down text-[10px]"></i>
                     </button>
-                    <div x-show="openMenu" x-transition class="absolute top-full left-0 w-64 bg-slate-900 border-t-2 border-amber-500 rounded-b-xl shadow-2xl py-3 px-4 space-y-2 mt-1">
-                        <div class="text-[9px] font-black uppercase tracking-widest text-amber-500 pb-1 border-b border-slate-800">Líneas de Cobertura</div>
+                    <div x-show="openMenu" x-transition class="absolute top-full left-0 w-64 bg-slate-900 border-t-2 border-teal-500 rounded-b-xl shadow-2xl py-3 px-4 space-y-2 mt-1">
+                        <div class="text-[9px] font-black uppercase tracking-widest text-teal-500 pb-1 border-b border-slate-800">Líneas de Cobertura</div>
                         <a href="#seguros" class="block text-xs font-bold text-slate-300 hover:text-white py-1">Seguros para Empresas</a>
                         <a href="#seguros" class="block text-xs font-bold text-slate-300 hover:text-white py-1">Seguros de Salud Familiar</a>
                         <a href="#seguros" class="block text-xs font-bold text-slate-300 hover:text-white py-1">Seguros Internacionales</a>
@@ -149,22 +147,22 @@
                     </div>
                 </div>
 
-                <a href="#servicios" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors">Servicios</a>
-                <a href="#nosotros" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors">Quiénes Somos</a>
-                <a href="#ventaja" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors">Ventaja Logística</a>
-                <a href="#blog" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-amber-400 transition-colors">DISCAN te Informa</a>
+                <a href="#servicios" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-teal-400 transition-colors">Servicios</a>
+                <a href="#nosotros" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-teal-400 transition-colors">Quiénes Somos</a>
+                <a href="#ventaja" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-teal-400 transition-colors">Ventaja Logística</a>
+                <a href="#blog" class="text-[11px] font-black uppercase tracking-wider text-slate-200 hover:text-teal-400 transition-colors">DISCAN te Informa</a>
             </nav>
 
             <!-- Corporate Operations Portal & Quote CTA -->
             <div class="flex items-center gap-4">
                 @if (Route::has('login'))
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg text-xs font-black uppercase tracking-wider shadow-md shadow-amber-500/10 transition-all flex items-center gap-2">
+                        <a href="{{ url('/dashboard') }}" class="px-5 py-2.5 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white rounded-lg text-xs font-black uppercase tracking-wider shadow-md shadow-teal-500/10 transition-all flex items-center gap-2">
                             <i class="ph-bold ph-layout text-sm"></i>
                             <span>Portal de Control</span>
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="hidden sm:inline-flex text-xs font-black uppercase tracking-wider text-slate-300 hover:text-amber-400 transition-colors px-3 py-2">
+                        <a href="{{ route('login') }}" class="hidden sm:inline-flex text-xs font-black uppercase tracking-wider text-slate-300 hover:text-teal-400 transition-colors px-3 py-2">
                             Acceso Personal
                         </a>
                         <a href="{{ route('login') }}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-black uppercase tracking-wider border border-slate-700 shadow-sm transition-all flex items-center gap-1.5">
@@ -173,7 +171,7 @@
                         </a>
                     @endauth
                 @endif
-                <a href="#contacto" class="hidden md:inline-flex px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-amber-500/10">
+                <a href="#contacto" class="hidden md:inline-flex px-5 py-2.5 bg-teal-500 hover:bg-teal-600 text-slate-950 rounded-lg text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-teal-500/10">
                     Cotizar Póliza
                 </a>
             </div>
@@ -184,7 +182,7 @@
     <section id="inicio" class="pt-36 pb-28 px-6 brand-gradient-navy text-white relative overflow-hidden">
         
         <!-- Background graphics -->
-        <div class="absolute -top-40 -right-40 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -top-40 -right-40 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
 
@@ -192,7 +190,7 @@
             
             <!-- Left Copwriting Column -->
             <div class="lg:col-span-8 space-y-6 text-left">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-black uppercase tracking-widest text-amber-400">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-black uppercase tracking-widest text-teal-400">
                     <i class="ph-bold ph-award"></i> Asesoría de Seguros Oficial y Certificada en RD
                 </div>
                 
@@ -207,25 +205,25 @@
                 <!-- Value Indicators -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-4 max-w-3xl border-t border-slate-800">
                     <div>
-                        <span class="text-3xl font-black font-mono tracking-tighter text-amber-400 block">+15,000</span>
+                        <span class="text-3xl font-black font-mono tracking-tighter text-teal-400 block">+15,000</span>
                         <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mt-0.5">Afiliados Protegidos</span>
                     </div>
                     <div>
-                        <span class="text-3xl font-black font-mono tracking-tighter text-amber-400 block">+350</span>
+                        <span class="text-3xl font-black font-mono tracking-tighter text-teal-400 block">+350</span>
                         <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mt-0.5">Empresas Clientes</span>
                     </div>
                     <div>
-                        <span class="text-3xl font-black font-mono tracking-tighter text-amber-400 block">100%</span>
+                        <span class="text-3xl font-black font-mono tracking-tighter text-teal-400 block">100%</span>
                         <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mt-0.5">Asesoría Gratuita</span>
                     </div>
                     <div>
-                        <span class="text-3xl font-black font-mono tracking-tighter text-amber-400 block">24/7</span>
+                        <span class="text-3xl font-black font-mono tracking-tighter text-teal-400 block">24/7</span>
                         <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mt-0.5">Gestión de Siniestros</span>
                     </div>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-4 pt-4">
-                    <a href="#contacto" class="px-8 py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-xs font-black uppercase tracking-wider shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2">
+                    <a href="#contacto" class="px-8 py-4 bg-teal-500 hover:bg-teal-600 text-slate-950 rounded-lg text-xs font-black uppercase tracking-wider shadow-lg shadow-teal-500/20 transition-all flex items-center gap-2">
                         <span>SOLICITAR COTIZACIÓN PERSONALIZADA</span>
                         <i class="ph-bold ph-calculator text-sm"></i>
                     </a>
@@ -239,7 +237,7 @@
             <div class="lg:col-span-4 relative hidden lg:block">
                 <div class="w-full aspect-[4/5] rounded-[2rem] border-4 border-slate-800 bg-slate-900/50 shadow-2xl relative overflow-hidden flex flex-col justify-end p-8">
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
-                    <div class="w-16 h-16 rounded-2xl bg-amber-500 flex items-center justify-center text-slate-950 shadow-xl mb-4 relative z-20">
+                    <div class="w-16 h-16 rounded-2xl bg-teal-500 flex items-center justify-center text-slate-950 shadow-xl mb-4 relative z-20">
                         <i class="ph-bold ph-handshake text-3xl"></i>
                     </div>
                     <h3 class="text-lg font-black text-white relative z-20 uppercase tracking-tight">Tranquilidad Total</h3>
@@ -257,7 +255,7 @@
             <!-- Service 1: Reembolsos -->
             <div class="service-panel-card p-6 rounded-2xl shadow-lg flex flex-col justify-between">
                 <div class="space-y-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
                         <i class="ph-bold ph-receipt text-xl"></i>
                     </div>
                     <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Solicitud de Reembolso</h4>
@@ -271,7 +269,7 @@
             <!-- Service 2: Siniestros -->
             <div class="service-panel-card p-6 rounded-2xl shadow-lg flex flex-col justify-between">
                 <div class="space-y-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
                         <i class="ph-bold ph-bell-ringing text-xl"></i>
                     </div>
                     <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Notificación de Siniestro</h4>
@@ -285,13 +283,13 @@
             <!-- Service 3: Salud 24/7 -->
             <div class="service-panel-card p-6 rounded-2xl shadow-lg flex flex-col justify-between">
                 <div class="space-y-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
                         <i class="ph-bold ph-first-aid text-xl"></i>
                     </div>
                     <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Línea Salud 24/7</h4>
                     <p class="text-[10px] text-slate-400 leading-relaxed">Teléfono directo de intermediación y soporte para autorizaciones médicas y urgencias clínicas.</p>
                 </div>
-                <a href="tel:8095550199" class="inline-flex px-4 py-2 mt-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[10px] font-black uppercase tracking-wider text-center transition-colors">
+                <a href="tel:8095550199" class="inline-flex px-4 py-2 mt-4 bg-teal-500 hover:bg-teal-600 text-slate-950 rounded-lg text-[10px] font-black uppercase tracking-wider text-center transition-colors">
                     (809) 555-0199
                 </a>
             </div>
@@ -299,7 +297,7 @@
             <!-- Service 4: Riesgos Generales -->
             <div class="service-panel-card p-6 rounded-2xl shadow-lg flex flex-col justify-between">
                 <div class="space-y-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
                         <i class="ph-bold ph-headset text-xl"></i>
                     </div>
                     <h4 class="text-xs font-black text-slate-800 uppercase tracking-wider">Riesgos Generales</h4>
@@ -319,7 +317,7 @@
             
             <!-- Left Info Column -->
             <div class="lg:col-span-5 space-y-6">
-                <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">RESPALDO TOTAL</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-200/50">RESPALDO TOTAL</span>
                 <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight leading-tight">
                     ¿Por qué confiar en DISCAN para administrar sus seguros?
                 </h2>
@@ -370,7 +368,7 @@
         <div class="max-w-7xl mx-auto space-y-16">
             
             <div class="text-center max-w-xl mx-auto space-y-3">
-                <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">NUESTROS SEGUROS</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-200/50">NUESTROS SEGUROS</span>
                 <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Líneas de Cobertura y Servicios</h2>
                 <p class="text-sm text-slate-400 font-medium">Conozca la amplia cartera de seguros que intermediamos y administramos para empresas y particulares.</p>
             </div>
@@ -399,7 +397,7 @@
                             Planes médicos colectivos premium para sus colaboradores. Reducimos la siniestralidad y negociamos beneficios en maternidad y odontología.
                         </p>
                     </div>
-                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'colectivo';" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'colectivo';" class="text-[10px] font-black uppercase tracking-wider text-teal-600 flex items-center gap-1.5 hover:underline pt-4">
                         <span>Cotizar Colectivo</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
@@ -415,7 +413,7 @@
                             Aseguramos la tranquilidad de su hogar con coberturas de consulta médica, emergencias 24/7 y hospitalización en las clínicas más prestigiosas del país.
                         </p>
                     </div>
-                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'familiar';" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'familiar';" class="text-[10px] font-black uppercase tracking-wider text-teal-600 flex items-center gap-1.5 hover:underline pt-4">
                         <span>Ver planes familiares</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
@@ -431,7 +429,7 @@
                             Acceso médico catastrófico de lujo global. Coberturas millonarias en los mejores centros oncológicos de EE.UU. y Europa.
                         </p>
                     </div>
-                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'internacional';" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                    <a href="#contacto" @click="document.getElementById('tipo_plan').value = 'internacional';" class="text-[10px] font-black uppercase tracking-wider text-teal-600 flex items-center gap-1.5 hover:underline pt-4">
                         <span>Ver cobertura global</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
@@ -447,7 +445,7 @@
                             Protegemos la movilidad corporativa e individual. Pólizas para vehículos ejecutivos, flotas comerciales y camiones con auxilio vial express.
                         </p>
                     </div>
-                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-teal-600 flex items-center gap-1.5 hover:underline pt-4">
                         <span>Cotizar Vehículo</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
@@ -463,7 +461,7 @@
                             Resguardo físico ante incendios, terremotos, robo y huracanes para su infraestructura corporativa o de residencia familiar.
                         </p>
                     </div>
-                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-teal-600 flex items-center gap-1.5 hover:underline pt-4">
                         <span>Saber más</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
@@ -479,7 +477,7 @@
                             Garantías para licitaciones públicas y privadas. Fianzas de fiel cumplimiento de contrato, de vicios ocultos y anticipo.
                         </p>
                     </div>
-                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-teal-600 flex items-center gap-1.5 hover:underline pt-4">
                         <span>Solicitar Fianza</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
@@ -495,7 +493,7 @@
                             Pólizas Todo Riesgo de Construcción (CAR). Coberturas para maquinaria contratista y daños a terceros en obras civiles.
                         </p>
                     </div>
-                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-teal-600 flex items-center gap-1.5 hover:underline pt-4">
                         <span>Ver cobertura de obra</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
@@ -511,7 +509,7 @@
                             Aseguramiento de servidores, equipos médicos e informáticos y avería de maquinaria pesada industrial.
                         </p>
                     </div>
-                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1.5 hover:underline pt-4">
+                    <a href="#contacto" class="text-[10px] font-black uppercase tracking-wider text-teal-600 flex items-center gap-1.5 hover:underline pt-4">
                         <span>Ver detalles</span> <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
@@ -523,13 +521,13 @@
 
     <!-- Technological Edge: The SysSAFE Logistics Advantage Section -->
     <section id="ventaja" class="py-24 px-6 bg-slate-900 text-white relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-0 right-0 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
             
             <!-- Left Copwriting -->
             <div class="lg:col-span-6 space-y-6">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950 border border-slate-800 text-[10px] font-black uppercase tracking-widest text-amber-400">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950 border border-slate-800 text-[10px] font-black uppercase tracking-widest text-teal-400">
                     <i class="ph-bold ph-lightning text-xs"></i> Tecnología Logística Exclusiva
                 </div>
                 
@@ -547,7 +545,7 @@
                 <!-- 3 Pillars of Logistics -->
                 <div class="space-y-4 pt-2">
                     <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-slate-950 text-amber-500 flex items-center justify-center shrink-0 border border-slate-800">
+                        <div class="w-10 h-10 rounded-xl bg-slate-950 text-teal-500 flex items-center justify-center shrink-0 border border-slate-800">
                             <i class="ph-bold ph-truck text-lg"></i>
                         </div>
                         <div>
@@ -557,7 +555,7 @@
                     </div>
 
                     <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-slate-950 text-amber-500 flex items-center justify-center shrink-0 border border-slate-800">
+                        <div class="w-10 h-10 rounded-xl bg-slate-950 text-teal-500 flex items-center justify-center shrink-0 border border-slate-800">
                             <i class="ph-bold ph-signature text-lg"></i>
                         </div>
                         <div>
@@ -567,7 +565,7 @@
                     </div>
 
                     <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-xl bg-slate-950 text-amber-500 flex items-center justify-center shrink-0 border border-slate-800">
+                        <div class="w-10 h-10 rounded-xl bg-slate-950 text-teal-500 flex items-center justify-center shrink-0 border border-slate-800">
                             <i class="ph-bold ph-arrow-counter-clockwise text-lg"></i>
                         </div>
                         <div>
@@ -583,7 +581,7 @@
                 <div class="bg-slate-950 p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl space-y-6">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-teal-500 animate-ping"></span>
                             <span class="text-xs font-black uppercase text-slate-200 tracking-wider">SysSAFE Control Engine</span>
                         </div>
                         <span class="text-[9px] font-mono text-slate-500 font-bold uppercase">Módulos de Auditoría</span>
@@ -593,7 +591,7 @@
                     <div class="space-y-6 relative before:absolute before:top-4 before:bottom-4 before:left-5 before:border-l before:border-slate-800 before:border-dashed">
                         
                         <div class="flex items-center gap-4 relative">
-                            <div class="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-amber-500 flex items-center justify-center z-10 shrink-0">
+                            <div class="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-teal-500 flex items-center justify-center z-10 shrink-0">
                                 <i class="ph-bold ph-arrows-clockwise text-sm"></i>
                             </div>
                             <div>
@@ -603,7 +601,7 @@
                         </div>
 
                         <div class="flex items-center gap-4 relative">
-                            <div class="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-amber-500 flex items-center justify-center z-10 shrink-0">
+                            <div class="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 text-teal-500 flex items-center justify-center z-10 shrink-0">
                                 <i class="ph-bold ph-printer text-sm"></i>
                             </div>
                             <div>
@@ -613,7 +611,7 @@
                         </div>
 
                         <div class="flex items-center gap-4 relative">
-                            <div class="w-10 h-10 rounded-full bg-amber-950 border border-amber-800 text-amber-400 flex items-center justify-center z-10 shrink-0">
+                            <div class="w-10 h-10 rounded-full bg-teal-950 border border-teal-800 text-teal-400 flex items-center justify-center z-10 shrink-0">
                                 <i class="ph-bold ph-check-square-offset text-sm"></i>
                             </div>
                             <div>
@@ -638,27 +636,27 @@
             <div class="grid grid-cols-2 md:grid-cols-6 gap-8 items-center text-center">
                 <div class="ars-logo-gray flex flex-col items-center">
                     <span class="text-lg font-black text-slate-700 tracking-tight">ARS Humano</span>
-                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Socio Platino</span>
+                    <span class="text-[8px] font-black uppercase text-teal-600 tracking-widest">Socio Platino</span>
                 </div>
                 <div class="ars-logo-gray flex flex-col items-center">
                     <span class="text-lg font-black text-slate-700 tracking-tight">ARS Universal</span>
-                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Cobertura Total</span>
+                    <span class="text-[8px] font-black uppercase text-teal-600 tracking-widest">Cobertura Total</span>
                 </div>
                 <div class="ars-logo-gray flex flex-col items-center">
                     <span class="text-lg font-black text-slate-700 tracking-tight">MAPFRE Salud</span>
-                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Seguro Global</span>
+                    <span class="text-[8px] font-black uppercase text-teal-600 tracking-widest">Seguro Global</span>
                 </div>
                 <div class="ars-logo-gray flex flex-col items-center">
                     <span class="text-lg font-black text-slate-700 tracking-tight">ARS Reservas</span>
-                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Red Preferida</span>
+                    <span class="text-[8px] font-black uppercase text-teal-600 tracking-widest">Red Preferida</span>
                 </div>
                 <div class="ars-logo-gray flex flex-col items-center">
                     <span class="text-lg font-black text-slate-700 tracking-tight">ARS Monumental</span>
-                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Red Norte</span>
+                    <span class="text-[8px] font-black uppercase text-teal-600 tracking-widest">Red Norte</span>
                 </div>
                 <div class="ars-logo-gray flex flex-col items-center">
                     <span class="text-lg font-black text-slate-700 tracking-tight">ARS CMD</span>
-                    <span class="text-[8px] font-black uppercase text-amber-600 tracking-widest">Gremio Oficial</span>
+                    <span class="text-[8px] font-black uppercase text-teal-600 tracking-widest">Gremio Oficial</span>
                 </div>
             </div>
         </div>
@@ -669,7 +667,7 @@
         <div class="max-w-7xl mx-auto space-y-16">
             
             <div class="text-center max-w-xl mx-auto space-y-3">
-                <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">DISCAN TE INFORMA</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-200/50">DISCAN TE INFORMA</span>
                 <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Noticias y Consejos de Seguros</h2>
                 <p class="text-sm text-slate-400 font-medium">Manténgase al día con las últimas regulaciones de salud y consejos de corretaje de seguros en República Dominicana.</p>
             </div>
@@ -681,10 +679,10 @@
                 <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm flex flex-col justify-between max-style-card">
                     <div>
                         <div class="h-44 bg-slate-900 relative flex items-center justify-center p-6 text-center text-white">
-                            <span class="text-xs font-black uppercase tracking-widest text-amber-400 block border border-amber-500/20 px-4 py-2 rounded-xl">SALUD & COPAGO</span>
+                            <span class="text-xs font-black uppercase tracking-widest text-teal-400 block border border-teal-500/20 px-4 py-2 rounded-xl">SALUD & COPAGO</span>
                         </div>
                         <div class="p-6 space-y-3">
-                            <h3 class="text-base font-extrabold text-slate-800 hover:text-amber-600 transition-colors">
+                            <h3 class="text-base font-extrabold text-slate-800 hover:text-teal-600 transition-colors">
                                 Te aclaramos algunas dudas sobre el copago y las pólizas médicas
                             </h3>
                             <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
@@ -694,7 +692,7 @@
                     </div>
                     <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between">
                         <span class="text-[10px] font-bold text-slate-400">Mayo, 2026</span>
-                        <a href="#contacto" class="text-[10px] font-black uppercase text-amber-600 hover:underline">Leer artículo</a>
+                        <a href="#contacto" class="text-[10px] font-black uppercase text-teal-600 hover:underline">Leer artículo</a>
                     </div>
                 </div>
 
@@ -702,10 +700,10 @@
                 <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm flex flex-col justify-between max-style-card">
                     <div>
                         <div class="h-44 bg-slate-900 relative flex items-center justify-center p-6 text-center text-white">
-                            <span class="text-xs font-black uppercase tracking-widest text-amber-400 block border border-amber-500/20 px-4 py-2 rounded-xl">CORRETAJE DE SEGUROS</span>
+                            <span class="text-xs font-black uppercase tracking-widest text-teal-400 block border border-teal-500/20 px-4 py-2 rounded-xl">CORRETAJE DE SEGUROS</span>
                         </div>
                         <div class="p-6 space-y-3">
-                            <h3 class="text-base font-extrabold text-slate-800 hover:text-amber-600 transition-colors">
+                            <h3 class="text-base font-extrabold text-slate-800 hover:text-teal-600 transition-colors">
                                 Beneficios de contratar a un Corredor de Seguros para su Empresa
                             </h3>
                             <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
@@ -715,7 +713,7 @@
                     </div>
                     <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between">
                         <span class="text-[10px] font-bold text-slate-400">Mayo, 2026</span>
-                        <a href="#contacto" class="text-[10px] font-black uppercase text-amber-600 hover:underline">Leer artículo</a>
+                        <a href="#contacto" class="text-[10px] font-black uppercase text-teal-600 hover:underline">Leer artículo</a>
                     </div>
                 </div>
 
@@ -723,10 +721,10 @@
                 <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm flex flex-col justify-between max-style-card">
                     <div>
                         <div class="h-44 bg-slate-900 relative flex items-center justify-center p-6 text-center text-white">
-                            <span class="text-xs font-black uppercase tracking-widest text-amber-400 block border border-amber-500/20 px-4 py-2 rounded-xl">RIESGOS GENERALES</span>
+                            <span class="text-xs font-black uppercase tracking-widest text-teal-400 block border border-teal-500/20 px-4 py-2 rounded-xl">RIESGOS GENERALES</span>
                         </div>
                         <div class="p-6 space-y-3">
-                            <h3 class="text-base font-extrabold text-slate-800 hover:text-amber-600 transition-colors">
+                            <h3 class="text-base font-extrabold text-slate-800 hover:text-teal-600 transition-colors">
                                 Cómo proteger los activos de su negocio ante incendios y catástrofes
                             </h3>
                             <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
@@ -736,7 +734,7 @@
                     </div>
                     <div class="p-6 pt-0 border-t border-slate-100 flex items-center justify-between">
                         <span class="text-[10px] font-bold text-slate-400">Mayo, 2026</span>
-                        <a href="#contacto" class="text-[10px] font-black uppercase text-amber-600 hover:underline">Leer artículo</a>
+                        <a href="#contacto" class="text-[10px] font-black uppercase text-teal-600 hover:underline">Leer artículo</a>
                     </div>
                 </div>
 
@@ -774,7 +772,7 @@
         <div class="max-w-4xl mx-auto space-y-12">
             
             <div class="text-center max-w-xl mx-auto space-y-3">
-                <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">COTIZACIÓN DE SEGUROS</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-200/50">COTIZACIÓN DE SEGUROS</span>
                 <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Solicite una Cotización Sin Compromiso</h2>
                 <p class="text-sm text-slate-400 font-medium">Utilice nuestro asistente interactivo para indicarnos qué seguro requiere y analizaremos las mejores propuestas de las ARS dominicanas.</p>
             </div>
@@ -782,17 +780,17 @@
             <!-- Form Progress Steps -->
             <div class="flex items-center justify-center gap-3 max-w-md mx-auto">
                 <div class="flex items-center gap-1.5">
-                    <span :class="step >= 1 ? 'bg-slate-900 text-white border-amber-500' : 'bg-slate-100 text-slate-400 border-slate-200'" class="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all">1</span>
+                    <span :class="step >= 1 ? 'bg-slate-900 text-white border-teal-500' : 'bg-slate-100 text-slate-400 border-slate-200'" class="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all">1</span>
                     <span class="text-[10px] font-bold text-slate-700">Riesgo</span>
                 </div>
-                <div class="w-12 h-0.5 bg-slate-200 relative"><div :class="step >= 2 ? 'w-full' : 'w-0'" class="absolute inset-0 bg-amber-500 transition-all duration-300"></div></div>
+                <div class="w-12 h-0.5 bg-slate-200 relative"><div :class="step >= 2 ? 'w-full' : 'w-0'" class="absolute inset-0 bg-teal-500 transition-all duration-300"></div></div>
                 <div class="flex items-center gap-1.5">
-                    <span :class="step >= 2 ? 'bg-slate-900 text-white border-amber-500' : 'bg-slate-100 text-slate-400 border-slate-200'" class="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all">2</span>
+                    <span :class="step >= 2 ? 'bg-slate-900 text-white border-teal-500' : 'bg-slate-100 text-slate-400 border-slate-200'" class="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all">2</span>
                     <span class="text-[10px] font-bold text-slate-700">Contacto</span>
                 </div>
-                <div class="w-12 h-0.5 bg-slate-200 relative"><div :class="step >= 3 ? 'w-full' : 'w-0'" class="absolute inset-0 bg-amber-500 transition-all duration-300"></div></div>
+                <div class="w-12 h-0.5 bg-slate-200 relative"><div :class="step >= 3 ? 'w-full' : 'w-0'" class="absolute inset-0 bg-teal-500 transition-all duration-300"></div></div>
                 <div class="flex items-center gap-1.5">
-                    <span :class="step >= 3 ? 'bg-slate-900 text-white border-amber-500' : 'bg-slate-100 text-slate-400 border-slate-200'" class="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all">3</span>
+                    <span :class="step >= 3 ? 'bg-slate-900 text-white border-teal-500' : 'bg-slate-100 text-slate-400 border-slate-200'" class="w-6 h-6 rounded-full border flex items-center justify-center text-[10px] font-bold transition-all">3</span>
                     <span class="text-[10px] font-bold text-slate-700">Asesoría</span>
                 </div>
             </div>
@@ -810,7 +808,7 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <!-- Option Corporate -->
-                            <div @click="profile = 'empresa'" :class="profile === 'empresa' ? 'border-amber-500 bg-amber-50/10 ring-2 ring-amber-500/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-amber-400 transition-all space-y-3">
+                            <div @click="profile = 'empresa'" :class="profile === 'empresa' ? 'border-teal-500 bg-teal-50/10 ring-2 ring-teal-500/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-teal-400 transition-all space-y-3">
                                 <div class="w-9 h-9 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center">
                                     <i class="ph-bold ph-buildings text-lg"></i>
                                 </div>
@@ -821,7 +819,7 @@
                             </div>
 
                             <!-- Option Family -->
-                            <div @click="profile = 'familiar'" :class="profile === 'familiar' ? 'border-amber-500 bg-amber-50/10 ring-2 ring-amber-500/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-amber-400 transition-all space-y-3">
+                            <div @click="profile = 'familiar'" :class="profile === 'familiar' ? 'border-teal-500 bg-teal-50/10 ring-2 ring-teal-500/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-teal-400 transition-all space-y-3">
                                 <div class="w-9 h-9 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center">
                                     <i class="ph-bold ph-users text-lg"></i>
                                 </div>
@@ -832,7 +830,7 @@
                             </div>
 
                             <!-- Option International -->
-                            <div @click="profile = 'internacional'" :class="profile === 'internacional' ? 'border-amber-500 bg-amber-50/10 ring-2 ring-amber-500/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-amber-400 transition-all space-y-3">
+                            <div @click="profile = 'internacional'" :class="profile === 'internacional' ? 'border-teal-500 bg-teal-50/10 ring-2 ring-teal-500/10' : 'border-slate-200'" class="p-5 rounded-2xl border-2 cursor-pointer hover:border-teal-400 transition-all space-y-3">
                                 <div class="w-9 h-9 rounded-xl bg-slate-50 text-slate-700 flex items-center justify-center">
                                     <i class="ph-bold ph-globe text-lg"></i>
                                 </div>
@@ -861,24 +859,24 @@
                         <div class="space-y-4">
                             <div class="space-y-1">
                                 <label for="form_nombre" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Nombre Completo</label>
-                                <input type="text" id="form_nombre" x-model="name" placeholder="Ej. Juan Pérez" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
+                                <input type="text" id="form_nombre" x-model="name" placeholder="Ej. Juan Pérez" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="space-y-1">
                                     <label for="form_telefono" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Teléfono (WhatsApp)</label>
-                                    <input type="tel" id="form_telefono" x-model="phone" placeholder="Ej. 809-555-0199" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
+                                    <input type="tel" id="form_telefono" x-model="phone" placeholder="Ej. 809-555-0199" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
                                 </div>
                                 <div class="space-y-1">
                                     <label for="form_email" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Correo Electrónico</label>
-                                    <input type="email" id="form_email" x-model="email" placeholder="Ej. juan@ejemplo.com" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
+                                    <input type="email" id="form_email" x-model="email" placeholder="Ej. juan@ejemplo.com" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
                                 </div>
                             </div>
 
                             <!-- Conditionally show company field if profile is Empresa -->
                             <div class="space-y-1" x-show="profile === 'empresa'">
                                 <label for="form_empresa" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Nombre de la Empresa</label>
-                                <input type="text" id="form_empresa" x-model="company" placeholder="Ej. DISCAN SRL" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
+                                <input type="text" id="form_empresa" x-model="company" placeholder="Ej. DISCAN SRL" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-0 rounded-lg text-xs font-medium transition-all">
                             </div>
                         </div>
 
@@ -903,7 +901,7 @@
                         <div class="space-y-4">
                             <div class="space-y-1">
                                 <label for="tipo_plan" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Tipo de Seguro Requerido</label>
-                                <select id="tipo_plan" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs text-slate-700 font-medium transition-all">
+                                <select id="tipo_plan" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-0 rounded-lg text-xs text-slate-700 font-medium transition-all">
                                     <option value="colectivo" :selected="profile === 'empresa'">Plan Médico Colectivo (Para mi Empresa)</option>
                                     <option value="familiar" :selected="profile === 'familiar'">Plan Médico Familiar / Individual</option>
                                     <option value="internacional" :selected="profile === 'internacional'">Plan de Salud Internacional Premium</option>
@@ -912,7 +910,7 @@
 
                             <div class="space-y-1">
                                 <label for="form_ars" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">¿Tiene alguna ARS o Aseguradora de Interés Preferente?</label>
-                                <select id="form_ars" x-model="arsInterest" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-amber-500 focus:ring-0 rounded-lg text-xs text-slate-700 font-medium transition-all">
+                                <select id="form_ars" x-model="arsInterest" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-0 rounded-lg text-xs text-slate-700 font-medium transition-all">
                                     <option value="cualquiera">No tengo preferencia (Quiero comparar todas)</option>
                                     <option value="humano">ARS Humano</option>
                                     <option value="universal">ARS Universal</option>
@@ -925,11 +923,11 @@
                             <div class="space-y-1">
                                 <label for="form_metodo" class="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Método de Contacto Preferido</label>
                                 <div class="grid grid-cols-2 gap-4 pt-1">
-                                    <div @click="timePreference = 'whatsapp'" :class="timePreference === 'whatsapp' ? 'border-amber-500 bg-amber-50/10' : 'border-slate-200'" class="p-3.5 border rounded-xl flex items-center gap-2 cursor-pointer transition-all">
+                                    <div @click="timePreference = 'whatsapp'" :class="timePreference === 'whatsapp' ? 'border-teal-500 bg-teal-50/10' : 'border-slate-200'" class="p-3.5 border rounded-xl flex items-center gap-2 cursor-pointer transition-all">
                                         <i class="ph-bold ph-whatsapp-logo text-xl text-emerald-500"></i>
                                         <span class="text-xs font-bold text-slate-700">WhatsApp</span>
                                     </div>
-                                    <div @click="timePreference = 'llamada'" :class="timePreference === 'llamada' ? 'border-amber-500 bg-amber-50/10' : 'border-slate-200'" class="p-3.5 border rounded-xl flex items-center gap-2 cursor-pointer transition-all">
+                                    <div @click="timePreference = 'llamada'" :class="timePreference === 'llamada' ? 'border-teal-500 bg-teal-50/10' : 'border-slate-200'" class="p-3.5 border rounded-xl flex items-center gap-2 cursor-pointer transition-all">
                                         <i class="ph-bold ph-phone text-xl text-blue-500"></i>
                                         <span class="text-xs font-bold text-slate-700">Llamada</span>
                                     </div>
@@ -941,7 +939,7 @@
                             <button type="button" @click="step = 2" class="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-xs font-black uppercase tracking-wider transition-all">
                                 Atrás
                             </button>
-                            <button type="submit" class="px-7 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-xs font-black uppercase tracking-wider shadow-md shadow-amber-500/10 transition-all flex items-center gap-1.5">
+                            <button type="submit" class="px-7 py-3 bg-teal-500 hover:bg-teal-600 text-slate-950 rounded-lg text-xs font-black uppercase tracking-wider shadow-md shadow-teal-500/10 transition-all flex items-center gap-1.5">
                                 <span>ENVIAR SOLICITUD</span>
                                 <i class="ph-bold ph-paper-plane-right"></i>
                             </button>
@@ -959,7 +957,7 @@
         <div class="max-w-4xl mx-auto space-y-12">
             
             <div class="text-center max-w-xl mx-auto space-y-3">
-                <span class="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200/50">PREGUNTAS FRECUENTES</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-200/50">PREGUNTAS FRECUENTES</span>
                 <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Preguntas Frecuentes</h2>
                 <p class="text-sm text-slate-400 font-medium">Aclare de forma transparente cómo funciona la intermediación a través de un corredor oficial de seguros médicos.</p>
             </div>
@@ -969,7 +967,7 @@
                 <div class="border border-slate-200 rounded-xl overflow-hidden transition-all shadow-sm">
                     <button @click="activeFaq === 1 ? activeFaq = null : activeFaq = 1" class="w-full p-5 text-left flex items-center justify-between gap-4 bg-white hover:bg-slate-50 transition-colors">
                         <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿La intermediación y consultoría técnica de DISCAN tiene algún costo para el cliente?</span>
-                        <i :class="activeFaq === 1 ? 'ph-bold ph-caret-up text-amber-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
+                        <i :class="activeFaq === 1 ? 'ph-bold ph-caret-up text-teal-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
                     </button>
                     <div x-show="activeFaq === 1" x-transition class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
                         **No tiene absolutamente ningún costo para usted.** En la República Dominicana, la Ley de Seguros establece que las Administradoras de Riesgos de Salud (ARS) y aseguradoras pagan las comisiones directamente a los corredores y asesores autorizados. El costo de su póliza médica será el mismo (o menor por negociación grupal) que si contratara directamente, pero con la ventaja de tener un equipo experto que defiende sus derechos sin costo.
@@ -980,7 +978,7 @@
                 <div class="border border-slate-200 rounded-xl overflow-hidden transition-all shadow-sm">
                     <button @click="activeFaq === 2 ? activeFaq = null : activeFaq = 2" class="w-full p-5 text-left flex items-center justify-between gap-4 bg-white hover:bg-slate-50 transition-colors">
                         <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿Puedo cambiar mi corredor actual por DISCAN manteniendo mi ARS actual?</span>
-                        <i :class="activeFaq === 2 ? 'ph-bold ph-caret-up text-amber-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
+                        <i :class="activeFaq === 2 ? 'ph-bold ph-caret-up text-teal-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
                     </button>
                     <div x-show="activeFaq === 2" x-transition class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
                         **Sí, de forma sumamente sencilla.** Solo requiere la firma de una carta de nombramiento oficial de corretaje. Su póliza médica, red de clínicas, coberturas y tarifas con su ARS actual permanecerán exactamente iguales, pero ganará el soporte técnico experto de DISCAN para sus reclamaciones y la ventaja del control logístico express **SysSAFE** para sus empleados.
@@ -991,7 +989,7 @@
                 <div class="border border-slate-200 rounded-xl overflow-hidden transition-all shadow-sm">
                     <button @click="activeFaq === 3 ? activeFaq = null : activeFaq = 3" class="w-full p-5 text-left flex items-center justify-between gap-4 bg-white hover:bg-slate-50 transition-colors">
                         <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿Cuál es la red de cobertura nacional que ofrecen sus seguros de salud?</span>
-                        <i :class="activeFaq === 3 ? 'ph-bold ph-caret-up text-amber-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
+                        <i :class="activeFaq === 3 ? 'ph-bold ph-caret-up text-teal-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
                     </button>
                     <div x-show="activeFaq === 3" x-transition class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
                         Al intermediar con todas las ARS acreditadas (Humano, Universal, Mapfre, Reservas, Monumental), podemos ofrecer planes con acceso a la red médica premium del país, que incluye prestigiosos centros de salud como la **Clínica Abreu, Centro de Diagnóstico Medicina Avanzada y Telemedicina (CEDIMAT), Hospital General Plaza de la Salud, y Clínica Corazones Unidos**, entre otros.
@@ -1002,7 +1000,7 @@
                 <div class="border border-slate-200 rounded-xl overflow-hidden transition-all shadow-sm">
                     <button @click="activeFaq === 4 ? activeFaq = null : activeFaq = 4" class="w-full p-5 text-left flex items-center justify-between gap-4 bg-white hover:bg-slate-50 transition-colors">
                         <span class="text-xs font-extrabold uppercase text-slate-800 tracking-wide">¿Cómo ayuda SysSAFE a agilizar los procesos de Recursos Humanos?</span>
-                        <i :class="activeFaq === 4 ? 'ph-bold ph-caret-up text-amber-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
+                        <i :class="activeFaq === 4 ? 'ph-bold ph-caret-up text-teal-600' : 'ph-bold ph-caret-down text-slate-500'" class="text-base transition-transform duration-300"></i>
                     </button>
                     <div x-show="activeFaq === 4" x-transition class="p-6 bg-white border-t border-slate-100 text-xs text-slate-500 leading-relaxed font-medium">
                         **SysSAFE** elimina todo el descontrol y fricción. Cuando la ARS emite los carnets físicos o contratos, nuestro sistema los clasifica por ruta inteligente, asigna un mensajero exclusivo y notifica a Recursos Humanos en tiempo real. Al momento de la entrega, se realiza una firma digital en dispositivo móvil que constituye el **acuse de recibo conforme e inmutable**, garantizando un control de entrega física al 100%.
@@ -1020,12 +1018,12 @@
             <!-- Logo area -->
             <div class="space-y-4">
                 <a href="#" class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-slate-950 font-black">
                         <i class="ph-bold ph-shield-check text-xl text-white"></i>
                     </div>
                     <div class="flex flex-col">
                         <span class="text-lg font-black tracking-tight text-white leading-none">DISCAN</span>
-                        <span class="text-[8px] font-black uppercase tracking-widest text-amber-400 mt-1 leading-none">Corredores de Seguros</span>
+                        <span class="text-[8px] font-black uppercase tracking-widest text-teal-400 mt-1 leading-none">Corredores de Seguros</span>
                     </div>
                 </a>
                 <p class="text-xs text-slate-500 leading-relaxed font-medium">
@@ -1049,15 +1047,15 @@
                 <h4 class="text-xs font-black uppercase tracking-widest text-white">Contacto y Soporte</h4>
                 <ul class="space-y-2.5 text-xs text-slate-400 font-medium">
                     <li class="flex items-center gap-2">
-                        <i class="ph-bold ph-phone text-amber-500"></i>
+                        <i class="ph-bold ph-phone text-teal-500"></i>
                         <span>(809) 555-0199</span>
                     </li>
                     <li class="flex items-center gap-2">
-                        <i class="ph-bold ph-envelope text-amber-500"></i>
+                        <i class="ph-bold ph-envelope text-teal-500"></i>
                         <span>info@discan.cloud</span>
                     </li>
                     <li class="flex items-center gap-2">
-                        <i class="ph-bold ph-map-pin text-amber-500"></i>
+                        <i class="ph-bold ph-map-pin text-teal-500"></i>
                         <span>Av. Winston Churchill, Santo Domingo, R.D.</span>
                     </li>
                 </ul>

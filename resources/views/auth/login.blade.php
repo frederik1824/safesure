@@ -5,7 +5,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Acceso Seguro - Safesure Platform</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-web-ss.png') }}">
+    <link rel="icon" type="image/jpg" href="{{ asset('images/discan-logo.jpg') }}">
     
     <!-- Modern Corporate Typography -->
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
@@ -23,8 +23,8 @@
                     colors: {
                         'slate-dark': '#0B0F1A',
                         'slate-card': '#111827',
-                        'ss-blue': '#3B82F6',
-                        'ss-navy': '#1E293B',
+                        'brand-teal': '#0d9488',
+                        'brand-navy': '#003b8f',
                     },
                     fontFamily: {
                         'sans': ['Inter', 'sans-serif'],
@@ -57,20 +57,20 @@
         }
 
         .input-pro:focus {
-            border-color: #3B82F6;
+            border-color: #0d9488;
             background: #111827;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
             outline: none;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            background: linear-gradient(135deg, #0d9488 0%, #003b8f 100%);
             transition: all 0.3s ease;
         }
 
         .btn-primary:hover {
             transform: translateY(-1px);
-            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 20px -5px rgba(13, 148, 136, 0.4);
         }
     </style>
 </head>
@@ -87,11 +87,11 @@
         <!-- Sidebar: Info & Branding -->
         <div class="hidden lg:flex p-12 flex-col justify-between bg-[#0F172A] border-r border-white/5 relative">
             <div class="relative z-10">
-                <img src="{{ asset('images/logo-web-ss.png') }}" class="h-10 w-auto mb-16 grayscale brightness-200" alt="Safesure">
+                <img src="{{ asset('images/discan-logo.jpg') }}" class="h-14 w-auto mb-16 rounded-xl" alt="DISCAN">
                 
                 <h1 class="text-4xl font-display font-bold text-white leading-tight mb-6">
                     Infraestructura <br/>
-                    <span class="text-blue-500">Logística de Salud</span>
+                    <span class="text-brand-teal">Logística de Salud</span>
                 </h1>
                 
                 <p class="text-slate-400 text-lg leading-relaxed max-w-xs">
@@ -101,8 +101,8 @@
 
             <div class="relative z-10">
                 <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 backdrop-blur-sm">
-                    <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                        <i class="ph-bold ph-shield-check text-blue-400 text-xl"></i>
+                    <div class="w-10 h-10 rounded-lg bg-brand-teal/20 flex items-center justify-center">
+                        <i class="ph-bold ph-shield-check text-brand-teal text-xl"></i>
                     </div>
                     <div>
                         <p class="text-xs font-bold text-white">Seguridad Activa</p>
@@ -115,7 +115,7 @@
         <!-- Main Form Area -->
         <div class="p-8 lg:p-16 flex flex-col justify-center">
             <div class="lg:hidden mb-12 flex justify-center">
-                <img src="{{ asset('images/logo-web-ss.png') }}" class="h-10 w-auto" alt="Safesure">
+                <img src="{{ asset('images/discan-logo.jpg') }}" class="h-14 w-auto rounded-xl" alt="DISCAN">
             </div>
 
             <div class="mb-10 text-center lg:text-left">
@@ -156,7 +156,7 @@
                     <div class="flex justify-between items-center px-1">
                         <label for="password" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Contraseña</label>
                         @if (Route::has('password.request'))
-                            <a href="{{ route('password.request') }}" class="text-[11px] font-semibold text-blue-500 hover:text-blue-400 transition-colors">Olvidé mi clave</a>
+                            <a href="{{ route('password.request') }}" class="text-[11px] font-semibold text-brand-teal hover:text-brand-teal/80 transition-colors">Olvidé mi clave</a>
                         @endif
                     </div>
                     <div class="relative">
@@ -191,7 +191,7 @@
 
             <div class="mt-12 pt-8 border-t border-white/5 text-center">
                 <p class="text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em]">
-                    © {{ date('Y') }} Safesure Logistics Group
+                    © {{ date('Y') }} DISCAN Distribuciones
                 </p>
             </div>
         </div>

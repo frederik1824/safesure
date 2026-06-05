@@ -69,6 +69,18 @@ class SyncControlCenter extends Component
     public $lastSyncDate = null;
     public $savingsCount = 0; // Registros omitidos por hash
 
+    // Nuevas propiedades de Telemetría
+    public $totalProcessed = 0;
+    public $totalPending = 0;
+    public $elapsedTime = '00:00';
+    public $processingSpeed = 0;
+    public $lastProcessedDoc = 'Ninguno';
+    public $syncStatus = 'idle';
+    public $recordsAdded = 0;
+    public $recordsUpdated = 0;
+    public $recordsSkipped = 0;
+    public $recordsFailed = 0;
+
     public function mount()
     {
         $this->updateStatus();
@@ -125,10 +137,28 @@ class SyncControlCenter extends Component
                 ->first();
             
             if ($this->recentLog) {
-                $this->totalRecords = $this->recentLog->total_records ?: 1;
+                $this->totalRecords = $this->recentLog->total_records ?: 0;
                 $this->recordsSynced = $this->recentLog->records_synced;
-                $this->progressPercentage = min(round(($this->recordsSynced / $this->totalRecords) * 100), 100);
+                $this->recordsAdded = $this->recentLog->records_added ?: 0;
+                $this->recordsUpdated = $this->recentLog->records_updated ?: 0;
+                $this->recordsSkipped = $this->recentLog->records_skipped ?: 0;
+                $this->recordsFailed = $this->recentLog->records_failed ?: 0;
+                $this->syncStatus = $this->recentLog->status;
+
+                // Total procesados = agregados + actualizados + omitidos + fallidos
+                $this->totalProcessed = $this->recordsAdded + $this->recordsUpdated + $this->recordsSkipped + $this->recordsFailed;
                 
+                // Si totalProcessed supera totalRecords, ajustamos totalRecords
+                if ($this->totalProcessed > $this->totalRecords) {
+                    $this->totalRecords = $this->totalProcessed;
+                }
+
+                $this->totalPending = max(0, $this->totalRecords - $this->totalProcessed);
+                
+                // Progreso real
+                $this->progressPercentage = $this->totalRecords > 0 
+                    ? min(100, round(($this->recordsSynced / $this->totalRecords) * 100)) 
+                    : 0;
 
                 // Estimar el conteo en la nube basado en el último éxito total
                 $lastSuccess = FirebaseSyncLog::where('status', 'completed')
@@ -153,6 +183,22 @@ class SyncControlCenter extends Component
                         'time' => $this->recentLog->completed_at ? $this->recentLog->completed_at->format('H:i:s') : 'N/A'
                     ];
                 }
+
+                // Tiempo transcurrido
+                $started = $this->recentLog->started_at;
+                $completed = $this->recentLog->completed_at ?: now();
+                if ($started) {
+                    $seconds = max(0, $completed->diffInSeconds($started));
+                    $minutes = floor($seconds / 60);
+                    $remSeconds = $seconds % 60;
+                    $this->elapsedTime = sprintf('%02d:%02d', $minutes, $remSeconds);
+                } else {
+                    $this->elapsedTime = '00:00';
+                }
+
+                // Velocidad y último documento desde la caché
+                $this->processingSpeed = \Illuminate\Support\Facades\Cache::get("firebase_sync_speed_{$this->recentLog->id}", 0);
+                $this->lastProcessedDoc = \Illuminate\Support\Facades\Cache::get("firebase_sync_last_doc_{$this->recentLog->id}", 'Ninguno');
             }
 
             // Check cloud status
@@ -186,17 +232,6 @@ class SyncControlCenter extends Component
                 ->orderBy('id', 'desc')
                 ->limit(15)
                 ->get();
-            
-            // pendingJobs already calculated above — no duplicate needed
-            
-            // Cálculo de progreso para la barra visual
-            if ($this->recentLog) {
-                $this->totalRecords = $this->recentLog->total_records ?: 0;
-                $this->recordsSynced = $this->recentLog->records_synced ?: 0;
-                $this->progressPercentage = $this->totalRecords > 0 
-                    ? min(100, round(($this->recordsSynced / $this->totalRecords) * 100)) 
-                    : 0;
-            }
             
             $this->systemStatus['firebase'] = $this->isCircuitOpen ? 'limited' : 'online';
             $this->systemStatus['workers'] = $this->pendingJobs > 50 ? 'busy' : 'active';

@@ -56,7 +56,7 @@
                     <p class="text-[9px] text-slate-400 font-bold uppercase">Total Base</p>
                 </div>
                 <div class="text-right">
-                    <p class="text-sm font-bold text-amber-600">{{ number_format($stat->pendiente) }}</p>
+                    <p class="text-sm font-bold text-teal-600">{{ number_format($stat->pendiente) }}</p>
                     <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Pendiente</p>
                 </div>
             </div>
@@ -155,7 +155,11 @@
                         <tr class="group transition-all duration-300 hover:-translate-y-0.5">
                             <td class="bg-white py-4 px-6 rounded-l-[20px] shadow-sm group-hover:shadow-md transition-all border-y border-l border-slate-100 group-hover:border-blue-200 relative overflow-hidden">
                                 <div class="absolute left-0 top-0 bottom-0 w-1 bg-slate-100 group-hover:bg-blue-600 transition-all"></div>
-                                <input name="selected[]" value="{{ $afiliado->id }}" class="rounded text-slate-900 focus:ring-slate-500 border-slate-300 w-4 h-4 cursor-pointer affiliate-checkbox" type="checkbox"/>
+                                @if($afiliado->estado_id == 9)
+                                    <input type="checkbox" disabled class="rounded text-slate-300 border-slate-200 w-4 h-4 cursor-not-allowed opacity-40" title="Afiliado ya Completado" />
+                                @else
+                                    <input name="selected[]" value="{{ $afiliado->id }}" class="rounded text-slate-900 focus:ring-slate-500 border-slate-300 w-4 h-4 cursor-pointer affiliate-checkbox" type="checkbox"/>
+                                @endif
                             </td>
                             <td class="bg-white py-4 px-2 shadow-sm group-hover:shadow-md transition-all border-y border-slate-100 group-hover:border-blue-200">
                                 <div class="flex items-center gap-3">
@@ -228,7 +232,7 @@
                                     @endif
                                     @if($afiliado->estado_id != 9)
                                     <button type="button" onclick="quickComplete('{{ $afiliado->uuid }}', '{{ addslashes($afiliado->nombre_completo) }}')" 
-                                            class="w-9 h-9 flex items-center justify-center rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all" title="Marcar como Completado">
+                                            class="w-9 h-9 flex items-center justify-center rounded-xl bg-teal-50 text-teal-600 hover:bg-teal-600 hover:text-white transition-all" title="Marcar como Completado">
                                         <i class="ph-bold ph-check-circle"></i>
                                     </button>
                                     @endif
@@ -288,7 +292,7 @@
             <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
                 <div class="flex items-center justify-between mb-4">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Distribución de Carga</span>
-                    <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
                         <i class="ph ph-users-three text-base"></i>
                     </div>
                 </div>
@@ -336,8 +340,8 @@
                 <button type="button" onclick="openAssignModal()" class="px-4 py-2 bg-slate-800 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 group">
                     <i class="ph-bold ph-user-plus text-slate-400 group-hover:text-blue-200"></i> Reasignar
                 </button>
-                <button type="button" onclick="openStatusModal()" class="px-4 py-2 bg-slate-800 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 group">
-                    <i class="ph-bold ph-arrows-clockwise text-slate-400 group-hover:text-amber-200"></i> Cambiar Estado
+                <button type="button" onclick="openStatusModal()" class="px-4 py-2 bg-slate-800 hover:bg-teal-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 group">
+                    <i class="ph-bold ph-arrows-clockwise text-slate-400 group-hover:text-teal-200"></i> Cambiar Estado
                 </button>
                 <button type="button" onclick="clearSelection()" class="px-3 py-2 text-slate-400 hover:text-white transition-colors" title="Cancelar">
                     <i class="ph-bold ph-x"></i>
@@ -382,6 +386,45 @@
         </form>
     </div>
 
+    <!-- Bulk Status Modal -->
+    <div id="statusModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <form method="POST" action="{{ route('afiliados.bulk_status') }}" id="statusForm" class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md border border-slate-100 scale-in-center">
+            @csrf
+            @if(isset($segment)) <input type="hidden" name="segment" value="{{ $segment }}"> @endif
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center">
+                    <i class="ph-bold ph-arrows-clockwise text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800 tracking-tight">Cambiar Estado Masivo</h3>
+                    <p class="text-xs text-slate-400 font-medium">Procesando <span id="statusSelectedCountDisplay" class="font-bold text-teal-600">0</span> registros seleccionados</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Seleccionar Nuevo Estado</label>
+                    <select name="estado_id" required class="w-full bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/10 focus:border-teal-500 p-3 text-xs font-bold text-slate-700 transition-all">
+                        <option value="">Seleccione uno...</option>
+                        @foreach(\App\Models\Estado::all() as $est)
+                            <option value="{{ $est->id }}">{{ $est->nombre }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Observación (Opcional)</label>
+                    <textarea name="observacion" placeholder="Motivo o comentario del cambio masivo..." class="w-full bg-slate-50 border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/10 focus:border-teal-500 p-3 text-xs font-medium text-slate-700 transition-all h-20 resize-none"></textarea>
+                </div>
+            </div>
+
+            <div id="hiddenStatusSelectedInputs"></div>
+
+            <div class="flex items-center justify-end gap-3 mt-8">
+                <button type="button" onclick="closeStatusModal()" class="px-5 py-2.5 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">Cancelar</button>
+                <button type="submit" class="px-6 py-2.5 bg-teal-600 text-white rounded-xl text-xs font-bold hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/20">Confirmar Operación</button>
+            </div>
+        </form>
+    </div>
 
     <!-- Quick View Modal (Global) -->
     <div id="quickViewModal" class="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4">
@@ -589,6 +632,25 @@
             window.closeAssignModal = () => {
                 document.getElementById('assignModal').classList.add('hidden');
                 document.getElementById('assignModal').classList.remove('flex');
+            };
+
+            window.openStatusModal = () => {
+                if (selectedIds.size === 0) return;
+                document.getElementById('statusSelectedCountDisplay').innerText = selectedIds.size;
+                const container = document.getElementById('hiddenStatusSelectedInputs');
+                container.innerHTML = '';
+                selectedIds.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden'; input.name = 'selected[]'; input.value = id;
+                    container.appendChild(input);
+                });
+                document.getElementById('statusModal').classList.remove('hidden');
+                document.getElementById('statusModal').classList.add('flex');
+            };
+
+            window.closeStatusModal = () => {
+                document.getElementById('statusModal').classList.add('hidden');
+                document.getElementById('statusModal').classList.remove('flex');
             };
 
             window.quickAcuse = (uuid, name) => {

@@ -28,7 +28,17 @@
                 </p>
             </div>
 
-            <div class="flex flex-wrap gap-2.5">
+            <div class="flex flex-wrap items-center gap-2.5">
+                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 shadow-xs">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Período:</span>
+                    <select wire:model.live="filterPeriodo" class="text-xs font-black text-slate-600 bg-transparent border-0 p-0 pr-6 outline-none focus:ring-0 cursor-pointer">
+                        <option value="all">Todos los Períodos</option>
+                        @foreach($periodos as $per)
+                            <option value="{{ $per }}">{{ $per }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <button wire:click="triggerSync(false)" @if($polling) disabled @endif class="px-4 py-2.5 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 rounded-xl text-xs font-semibold tracking-wide transition-all shadow-sm flex items-center gap-2">
                     <i class="ph-bold ph-arrows-clockwise text-sm {{ $polling ? 'animate-spin' : '' }}"></i>
                     <span>SINCRONIZAR AHORA</span>
@@ -237,12 +247,24 @@
                 </p>
             </div>
 
-            @can('access_admin_panel')
-            <a href="{{ route('admin.sync.index', ['activeTab' => 'traspasos']) }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center gap-2">
-                <i class="ph-bold ph-arrows-clockwise text-sm"></i>
-                <span>PANEL DE SINCRONIZACIÓN</span>
-            </a>
-            @endcan
+            <div class="flex flex-wrap items-center gap-2.5">
+                <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 shadow-xs">
+                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Período:</span>
+                    <select wire:model.live="filterPeriodo" class="text-xs font-black text-slate-600 bg-transparent border-0 p-0 pr-6 outline-none focus:ring-0 cursor-pointer">
+                        <option value="all">Todos los Períodos</option>
+                        @foreach($periodos as $per)
+                            <option value="{{ $per }}">{{ $per }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                @can('access_admin_panel')
+                <a href="{{ route('admin.sync.index', ['activeTab' => 'traspasos']) }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold tracking-wide transition-all flex items-center gap-2">
+                    <i class="ph-bold ph-arrows-clockwise text-sm"></i>
+                    <span>PANEL DE SINCRONIZACIÓN</span>
+                </a>
+                @endcan
+            </div>
         </div>
 
         <!-- Success Toast Info inside View -->

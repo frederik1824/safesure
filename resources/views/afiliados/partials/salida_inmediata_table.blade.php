@@ -28,7 +28,11 @@
             @forelse($afiliados as $afiliado)
             <tr class="hover:bg-slate-50/80 transition-all group border-b border-slate-100 last:border-0 dark:border-slate-800">
                 <td class="py-4 px-6">
-                    <input name="selected[]" value="{{ $afiliado->id }}" class="rounded text-primary focus:ring-primary border-slate-300 w-4 h-4 cursor-pointer affiliate-checkbox" type="checkbox"/>
+                    @if($afiliado->estado_id == 9)
+                        <input type="checkbox" disabled class="rounded text-slate-300 border-slate-200 w-4 h-4 cursor-not-allowed opacity-40" title="Afiliado ya Completado" />
+                    @else
+                        <input name="selected[]" value="{{ $afiliado->id }}" class="rounded text-primary focus:ring-primary border-slate-300 w-4 h-4 cursor-pointer affiliate-checkbox" type="checkbox"/>
+                    @endif
                 </td>
                 <td class="py-4 px-2">
                     <div class="flex flex-col">

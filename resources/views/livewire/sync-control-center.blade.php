@@ -255,26 +255,43 @@
                 </div>
             @endif
 
-            @if($polling && $recentLog)
-                <!-- PROCESADOR ACTIVO -->
-                <div class="glass-card p-6 md:p-8 mb-6 border-[#06b6d4]/20 bg-[#06b6d4]/[0.02]">
+            <!-- PANEL DE TELEMETRÍA UNIFICADO NEXUS -->
+            @if($recentLog)
+                <div class="glass-card p-6 md:p-8 mb-6 border-slate-200 {{ $polling ? 'border-[#06b6d4]/40 bg-[#06b6d4]/[0.01] shadow-[0_0_15px_rgba(6,182,212,0.05)]' : '' }}">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-6">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-[#06b6d4]/10 rounded-2xl flex items-center justify-center text-[#0891b2] border border-[#06b6d4]/20">
-                                <i class="ph-bold ph-arrows-clockwise text-2xl animate-spin"></i>
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center border {{ $polling ? 'bg-[#06b6d4]/10 text-[#0891b2] border-[#06b6d4]/20 animate-pulse' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
+                                @if($polling)
+                                    <i class="ph-bold ph-arrows-clockwise text-2xl animate-spin"></i>
+                                @else
+                                    <i class="ph-bold ph-activity text-2xl"></i>
+                                @endif
                             </div>
                             <div>
-                                <h4 class="text-md font-sans font-bold text-slate-900 uppercase tracking-wider">Procesador Nexus Sincronizando</h4>
-                                <p class="text-xs text-slate-600 mt-1">Colección actual: <strong class="text-[#0891b2] capitalize font-mono">{{ $recentLog->process_name ?: 'afiliados' }}</strong> en tiempo real.</p>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-md font-sans font-bold text-slate-900 uppercase tracking-wider">Telemetría de Sincronización Cloud</h4>
+                                    <span class="px-2 py-0.5 text-[8px] font-mono font-bold rounded-md uppercase border {{ $polling ? 'bg-cyan-500/10 text-cyan-700 border-cyan-500/20 animate-pulse' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
+                                        {{ $polling ? 'ACTIVA' : 'INACTIVA' }}
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-1 font-mono">
+                                    Estado: <strong class="uppercase text-slate-700">{{ $syncStatus }}</strong> 
+                                    @if($polling)
+                                        | Colección: <strong class="text-[#0891b2] capitalize font-mono">{{ $recentLog->process_name ?: 'afiliados' }}</strong>
+                                    @endif
+                                </p>
                             </div>
                         </div>
-                        <button wire:click="stopSync" class="px-4 py-2 bg-rose-500/10 border border-rose-500/20 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-2">
-                            <i class="ph-bold ph-stop-circle text-sm"></i>
-                            <span>DETENER PROCESO</span>
-                        </button>
+                        
+                        @if($polling)
+                            <button wire:click="stopSync" class="px-4 py-2 bg-rose-500/10 border border-rose-500/20 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-2 shadow-xs">
+                                <i class="ph-bold ph-stop-circle text-sm"></i>
+                                <span>DETENER PROCESO</span>
+                            </button>
+                        @endif
                     </div>
 
-                    <!-- Sleek Progress Systems -->
+                    <!-- Progreso y estadísticas de barra -->
                     <div class="space-y-3 mb-6">
                         <div class="flex justify-between text-xs font-mono font-bold text-slate-500">
                             <span>PROGRESO DE TRANSFERENCIA</span>
@@ -285,27 +302,51 @@
                         </div>
                     </div>
 
-                    <!-- Mini status grid -->
-                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                        <div class="bg-white/80 p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
-                            <p class="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Sincronizados</p>
-                            <p class="text-lg font-mono font-semibold text-slate-800 mt-1">{{ number_format($recordsSynced) }}</p>
+                    <!-- Telemetry Stats Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-6">
+                        <div class="bg-white/80 p-4 rounded-xl border border-slate-200 shadow-2xs">
+                            <p class="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Encontrados</p>
+                            <p class="text-xl font-mono font-extrabold text-slate-800 mt-1">{{ number_format($totalRecords) }}</p>
                         </div>
-                        <div class="bg-white/80 p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
-                            <p class="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Creados</p>
-                            <p class="text-lg font-mono font-semibold text-emerald-600 mt-1">{{ number_format($recentLog->records_added) }}</p>
+                        <div class="bg-white/80 p-4 rounded-xl border border-slate-200 shadow-2xs">
+                            <p class="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Procesados</p>
+                            <p class="text-xl font-mono font-extrabold text-slate-800 mt-1">{{ number_format($totalProcessed) }}</p>
                         </div>
-                        <div class="bg-white/80 p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
+                        <div class="bg-white/80 p-4 rounded-xl border border-slate-200 shadow-2xs">
+                            <p class="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Pendientes</p>
+                            <p class="text-xl font-mono font-extrabold text-amber-600 mt-1">{{ number_format($totalPending) }}</p>
+                        </div>
+                        <div class="bg-white/80 p-4 rounded-xl border border-slate-200 shadow-2xs">
+                            <p class="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Nuevos</p>
+                            <p class="text-xl font-mono font-extrabold text-emerald-600 mt-1">+{{ number_format($recordsAdded) }}</p>
+                        </div>
+                        <div class="bg-white/80 p-4 rounded-xl border border-slate-200 shadow-2xs">
                             <p class="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Actualizados</p>
-                            <p class="text-lg font-mono font-semibold text-[#0891b2] mt-1">{{ number_format($recentLog->records_updated) }}</p>
+                            <p class="text-xl font-mono font-extrabold text-[#0891b2] mt-1">{{ number_format($recordsUpdated) }}</p>
                         </div>
-                        <div class="bg-white/80 p-3.5 rounded-xl border border-slate-200 text-center shadow-xs">
-                            <p class="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Omitidos</p>
-                            <p class="text-lg font-mono font-semibold text-amber-600 mt-1">{{ number_format($recentLog->records_skipped) }}</p>
+                        <div class="bg-white/80 p-4 rounded-xl border border-slate-200 shadow-2xs">
+                            <p class="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Omitidos / Errores</p>
+                            <div class="flex items-center gap-1.5 mt-1">
+                                <span class="text-xs font-mono font-bold text-slate-500" title="Omitidos">{{ number_format($recordsSkipped) }}</span>
+                                <span class="text-slate-300">/</span>
+                                <span class="text-xs font-mono font-bold text-rose-600" title="Errores">{{ number_format($recordsFailed) }}</span>
+                            </div>
                         </div>
-                        <div class="bg-white/80 p-3.5 rounded-xl border border-slate-200 text-center shadow-xs col-span-2 sm:col-span-1">
-                            <p class="text-[8px] font-mono text-slate-500 uppercase tracking-widest">Errores</p>
-                            <p class="text-lg font-mono font-semibold text-rose-600 mt-1">{{ number_format($recentLog->records_failed) }}</p>
+                    </div>
+
+                    <!-- Live Telemetry Sub-panel -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-600">
+                        <div class="flex items-center justify-between border-b md:border-b-0 md:border-r border-slate-200 pb-2.5 md:pb-0 md:pr-4">
+                            <span class="font-bold">⏱️ TIEMPO TRANSCURRIDO:</span>
+                            <span class="text-slate-800 font-extrabold text-sm">{{ $elapsedTime }}</span>
+                        </div>
+                        <div class="flex items-center justify-between border-b md:border-b-0 md:border-r border-slate-200 py-2.5 md:py-0 md:px-4">
+                            <span class="font-bold">⚡ VELOCIDAD PROMEDIO:</span>
+                            <span class="text-slate-800 font-extrabold text-sm">{{ $processingSpeed }} recs/s</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-2.5 md:pt-0 md:pl-4 overflow-hidden">
+                            <span class="font-bold shrink-0">📂 ÚLTIMO DOCUMENTO:</span>
+                            <span class="text-slate-800 font-extrabold truncate pl-2" title="{{ $lastProcessedDoc }}">{{ $lastProcessedDoc }}</span>
                         </div>
                     </div>
                 </div>

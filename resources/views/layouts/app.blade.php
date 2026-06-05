@@ -17,10 +17,10 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
     
-    <!-- Favicon (Esencial para reputación) -->
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-web-ss.png') }}">
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpg" href="{{ asset('images/discan-logo.jpg') }}">
 
-    <title>{{ config('app.name', 'ARS CMD Dashboard') }}</title>
+    <title>{{ config('app.name', 'DISCAN Enterprise') }}</title>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
@@ -69,8 +69,8 @@
     
     @php
         $isGestora = auth()->check() && auth()->user()->isGestora();
-        $brandPrimary = $isGestora ? "#01579b" : "#00346f"; 
-        $brandSecondary = $isGestora ? "#0288d1" : "#0060ac";
+        $brandPrimary = "#003b8f"; 
+        $brandSecondary = "#0d9488";
     @endphp
 
     <style>
@@ -218,9 +218,9 @@
             </a>
             
             <!-- Logo -->
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
-                <img src="{{ asset('images/logo-web-ss.png') }}" alt="SS" class="h-5 w-auto grayscale contrast-200">
-                <span class="text-sm font-display font-black text-slate-800 tracking-tight">Safesure <span class="font-normal text-slate-400">Enterprise</span></span>
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
+                <img src="{{ asset('images/discan-logo.jpg') }}" alt="DISCAN" class="h-7 w-auto rounded-md">
+                <span class="text-sm font-display font-black text-slate-800 tracking-tight">DISCAN <span class="font-normal text-slate-400">Enterprise</span></span>
             </a>
             
             @if(!$isHome && $activeApp)

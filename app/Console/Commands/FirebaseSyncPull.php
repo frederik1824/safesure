@@ -63,7 +63,7 @@ class FirebaseSyncPull extends Command
         }
 
         try {
-            $this->info("🚀 Iniciando SafeSync Nexus v2...");
+            $this->info("🚀 Iniciando SafeSync Nexus v3...");
             
             // --- PRUEBA DE VUELO (PRE-FLIGHT) ---
             $this->info("🔍 Realizando prueba de conexión con Firebase...");
@@ -71,14 +71,25 @@ class FirebaseSyncPull extends Command
                 throw new \Exception("La prueba de conexión con Firebase falló. Verifique credenciales o cuota agotada.");
             }
             $this->info("✅ Conexión exitosa. Iniciando motor masivo.");
-            // 1. Sincronizar Catálogos Críticos (Pequeños, sin checkpoints)
-            $this->syncStaticCatalog($firebase);
+            
+            // Reset de contadores a nivel de instancia
+            $this->globalSynced = 0;
+            $this->added = 0;
+            $this->updated = 0;
+            $this->skipped = 0;
+            $this->failed = 0;
 
-            // 2. Sincronizar Colecciones Masivas con Checkpoints
+            // Determinar colecciones a sincronizar y contar registros
             $target = $this->option('collection');
-
+            $collectionsToSync = [];
+            
             if (!$target || $target === 'empresas') {
-                $this->safeSyncProcess($firebase, 'empresas', Empresa::class, 'uuid');
+                $collectionsToSync[] = [
+                    'name' => 'empresas',
+                    'model' => Empresa::class,
+                    'key' => 'uuid',
+                    'filters' => []
+                ];
             }
             
             if (!$target || $target === 'afiliados') {
@@ -86,8 +97,58 @@ class FirebaseSyncPull extends Command
                 if ($this->option('responsable-id')) {
                     $filters['responsable_id'] = (int)$this->option('responsable-id');
                 }
-                $this->safeSyncProcess($firebase, 'afiliados', Afiliado::class, 'cedula', $filters);
-                
+                $collectionsToSync[] = [
+                    'name' => 'afiliados',
+                    'model' => Afiliado::class,
+                    'key' => 'cedula',
+                    'filters' => $filters
+                ];
+            }
+
+            // Conteo exacto pre-sincronización (Ahorro de lecturas)
+            $totalRecordsToSync = 0;
+            foreach ($collectionsToSync as &$col) {
+                $checkpoint = CloudSyncCheckpoint::firstOrCreate(
+                    ['process_name' => $col['name']],
+                    ['sync_type' => $this->option('full') ? 'full' : 'incremental', 'status' => 'idle']
+                );
+
+                if ($this->option('full')) {
+                    $col['since'] = null;
+                } else {
+                    $col['since'] = $checkpoint->last_successful_sync_at ? $checkpoint->last_successful_sync_at->toDateTimeString() : null;
+                    if ($this->option('hours')) {
+                        $col['since'] = Carbon::now()->subHours($this->option('hours'))->toDateTimeString();
+                    }
+                }
+
+                $col['count'] = $firebase->getQueryCount($col['name'], $col['since'], $col['filters']);
+                $totalRecordsToSync += $col['count'];
+            }
+            unset($col);
+
+            $this->info("📊 Total exacto de registros a descargar: {$totalRecordsToSync}");
+
+            if ($this->syncLog) {
+                $this->syncLog->update([
+                    'total_records' => $totalRecordsToSync,
+                    'records_synced' => 0,
+                    'records_added' => 0,
+                    'records_updated' => 0,
+                    'records_skipped' => 0,
+                    'records_failed' => 0
+                ]);
+            }
+
+            // 1. Sincronizar Catálogos Críticos (Pequeños, sin checkpoints)
+            $this->syncStaticCatalog($firebase);
+
+            // 2. Sincronizar Colecciones Masivas con Checkpoints y progreso consolidado
+            foreach ($collectionsToSync as $col) {
+                $this->safeSyncProcess($firebase, $col['name'], $col['model'], $col['key'], $col['filters'], $col['since'], $col['count']);
+            }
+
+            if (!$target || $target === 'afiliados') {
                 // Cruce de datos masivo automático
                 $this->info("🔄 Ejecutando cruce automático de fecha de nacimiento y sexo desde Traspasos...");
                 \App\Models\Afiliado::crossUpdateFromTraspasos();
@@ -133,9 +194,10 @@ class FirebaseSyncPull extends Command
     /**
      * Motor de Sincronización Resiliente con Checkpoints y Lotes
      */
-    protected function safeSyncProcess($firebase, $collectionName, $modelClass, $uniqueKey, $filters = [])
+    protected function safeSyncProcess($firebase, $collectionName, $modelClass, $uniqueKey, $filters = [], $since = null, $exactCloudCount = 0)
     {
         $this->info("\n--- Procesando Colección: {$collectionName} ---");
+        $sessionStart = now();
         
         // 1. Obtener o crear checkpoint
         $checkpoint = CloudSyncCheckpoint::firstOrCreate(
@@ -153,29 +215,7 @@ class FirebaseSyncPull extends Command
             ]);
         }
 
-        $since = null;
-        if (!$this->option('full')) {
-            $since = $checkpoint->last_successful_sync_at ? $checkpoint->last_successful_sync_at->toDateTimeString() : null;
-            
-            // Ajuste por --hours si se proporciona manualmente
-            if ($this->option('hours')) {
-                $since = Carbon::now()->subHours($this->option('hours'))->toDateTimeString();
-            }
-        }
-
         $checkpoint->update(['status' => 'running', 'started_at' => now(), 'error_message' => null]);
-
-        // Obtener cantidad real en la nube para estimación precisa del total_records (solo en Reconstrucción Total)
-        if ($this->option('full') && $this->syncLog) {
-            try {
-                $exactCloudCount = $firebase->getCollectionCount($collectionName);
-                if ($exactCloudCount > 0) {
-                    $this->syncLog->update(['total_records' => $exactCloudCount]);
-                }
-            } catch (\Throwable $e) {
-                \Log::warning("SafeSync exact count failed: " . $e->getMessage());
-            }
-        }
 
         try {
             $processedInThisSession = 0;
@@ -183,6 +223,14 @@ class FirebaseSyncPull extends Command
             $pageCursor = null; // Token de página para getCollectionBatched o cursor de getIncremental
             $batchCursor = []; // Cursor de lote independiente para paginación por offset
             $lastProcessedDoc = []; // Para persistencia de checkpoints y actualización incremental
+
+            // Si es incremental y tenemos checkpoint guardado, inicializamos el cursor compuesto para evitar pérdidas
+            if ($since && $checkpoint->last_document_id) {
+                $pageCursor = [
+                    'updated_at' => $since,
+                    'id' => $checkpoint->last_document_id
+                ];
+            }
 
             while ($hasMore) {
                 // Verificar Circuit Breaker antes de cada lote
@@ -217,13 +265,6 @@ class FirebaseSyncPull extends Command
                     continue;
                 }
 
-                // Ajuste dinámico del total si descubrimos que hay más de lo estimado
-                $isFilteredPage = !empty($filters);
-                $hasMorePageToken = !$isFilteredPage && !empty($pageCursor);
-                if ($this->syncLog && ($this->globalSynced + count($data)) > $this->syncLog->total_records) {
-                    $this->syncLog->update(['total_records' => $this->globalSynced + count($data) + ($hasMorePageToken ? 500 : 0)]);
-                }
-
                 $bar = $this->output->createProgressBar(count($data));
                 $bar->start();
 
@@ -249,9 +290,17 @@ class FirebaseSyncPull extends Command
                             continue;
                         }
                     }
+
                     try {
-                        // IMPORTANTE: Usar withoutGlobalScopes para encontrar el registro aunque no pertenezca al usuario actual
-                        $model = $modelClass::withoutGlobalScopes()->where($uniqueKey, $mapped[$uniqueKey] ?? 'INVALID')->first();
+                        // Buscar el registro local de forma resiliente anti-duplicados (ej: cédulas con/sin guiones)
+                        if ($collectionName === 'afiliados') {
+                            $cleanCedulaInput = preg_replace('/[^0-9]/', '', $mapped['cedula'] ?? $mapped['firebase_id'] ?? 'INVALID');
+                            $model = $modelClass::withoutGlobalScopes()
+                                ->whereRaw("REPLACE(cedula, '-', '') = ?", [$cleanCedulaInput])
+                                ->first();
+                        } else {
+                            $model = $modelClass::withoutGlobalScopes()->where($uniqueKey, $mapped[$uniqueKey] ?? 'INVALID')->first();
+                        }
                         
                         if (!$model) {
                             // Crear nuevo registro evitando disparar Push redundante
@@ -281,17 +330,22 @@ class FirebaseSyncPull extends Command
 
                             $this->added++;
                             $checkpoint->increment('records_synced');
-                            $this->addToLiveFeed("Nuevo Registro: " . ($mapped['nombre_completo'] ?? $mapped[$uniqueKey]));
+                            $this->addToLiveFeed("Nuevo Registro: " . ($mapped['nombre_completo'] ?? $mapped['nombre'] ?? $mapped[$uniqueKey]));
                         } else {
-                            // Sincronización inteligente (Hash/Versión)
+                            // Sincronización inteligente (Hash/Versión) con resolución de conflictos
                             $updated = $firebase->syncLocalModel($model, $mapped, (bool)$this->option('full'));
                             if ($updated) {
                                 $this->updated++;
                                 $checkpoint->increment('records_synced');
-                                $this->addToLiveFeed("Actualizado: " . ($mapped['nombre_completo'] ?? $mapped[$uniqueKey]));
+                                $this->addToLiveFeed("Actualizado: " . ($mapped['nombre_completo'] ?? $mapped['nombre'] ?? $mapped[$uniqueKey]));
                             } else {
                                 $this->skipped++;
-                                $this->addToLiveFeed("Omitido (Sin cambios): " . ($mapped['nombre_completo'] ?? $mapped[$uniqueKey]));
+                                // Si quedó marcado en conflicto, lo reflejamos en el feed
+                                if ($model->conflict_status) {
+                                    $this->addToLiveFeed("⚠️ Conflicto: " . ($mapped['nombre_completo'] ?? $mapped['nombre'] ?? $mapped[$uniqueKey]) . " modificado local y remotamente");
+                                } else {
+                                    $this->addToLiveFeed("Omitido (Sin cambios): " . ($mapped['nombre_completo'] ?? $mapped['nombre'] ?? $mapped[$uniqueKey]));
+                                }
                             }
                         }
 
@@ -302,9 +356,19 @@ class FirebaseSyncPull extends Command
                         // Guardar último cursor para reanudar/paginar
                         if ($mapped && is_array($mapped)) {
                             $lastProcessedDoc = [
-                                'updated_at' => $mapped['firebase_updated_at_meta'] ?? $mapped['updated_at'] ?? null,
+                                'updated_at' => $mapped['updated_at'] ?? $mapped['firebase_updated_at_meta'] ?? null,
                                 'id' => $mapped['firebase_id'] ?? null
                             ];
+                        }
+
+                        // Registrar telemetría en tiempo real a caché de alto rendimiento
+                        if ($this->syncLog) {
+                            $lastDocName = $mapped['nombre_completo'] ?? $mapped['nombre'] ?? $mapped[$uniqueKey] ?? 'Registro';
+                            Cache::put("firebase_sync_last_doc_{$this->syncLog->id}", $lastDocName, 600);
+                            
+                            $elapsed = max(1, now()->diffInSeconds($checkpoint->started_at));
+                            $speed = round($processedInThisSession / $elapsed, 2);
+                            Cache::put("firebase_sync_speed_{$this->syncLog->id}", $speed, 600);
                         }
 
                     } catch (\Throwable $e) {
@@ -362,7 +426,36 @@ class FirebaseSyncPull extends Command
                         'status' => 'in_progress'
                     ]);
                 }
-                // broadcast(new \App\Events\SyncProgressEvent("Lote de " . count($data) . " registros procesado."));
+            }
+
+            // Sincronización de Eliminaciones (Soft Delete local en carga completa)
+            if (!$since) {
+                $this->comment("🔍 Buscando registros eliminados en la nube para depuración local...");
+                $query = $modelClass::withoutGlobalScopes()
+                    ->where(function($q) use ($sessionStart) {
+                        $q->where('firebase_synced_at', '<', $sessionStart)
+                          ->orWhereNull('firebase_synced_at');
+                    });
+
+                if (!empty($filters)) {
+                    foreach ($filters as $field => $value) {
+                        $query->where($field, $value);
+                    }
+                }
+
+                $deletedCount = 0;
+                $query->chunkById(200, function($recordsToDelete) use (&$deletedCount) {
+                    foreach ($recordsToDelete as $r) {
+                        $name = $r->nombre_completo ?? $r->nombre ?? $r->id;
+                        $r->delete(); // Soft Delete
+                        $deletedCount++;
+                        $this->addToLiveFeed("Eliminado local (borrado en Nube): {$name}");
+                    }
+                });
+
+                if ($deletedCount > 0) {
+                    $this->info("🗑️ Se han eliminado {$deletedCount} registros locales obsoletos.");
+                }
             }
 
             $checkpoint->update([

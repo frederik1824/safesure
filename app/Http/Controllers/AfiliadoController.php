@@ -544,7 +544,15 @@ class AfiliadoController extends Controller
             // Determinar la observación final (prioridad al motivo rápido)
             $observacionFinal = $request->motivo_rapido ?: ($request->observacion ?? 'Cambio de estado masivo.');
 
+            $idCompletado = \App\Models\Estado::where('nombre', 'Completado')->first()?->id;
+
+            $updatedCount = 0;
             foreach($afiliados as $afiliado) {
+                // Exclude completed affiliates from state update to prevent Rule 5.3 exception
+                if ($afiliado->estado_id == $idCompletado && !isset($afiliado->bypassing_reopen)) {
+                    continue;
+                }
+
                 /** @var Afiliado $afiliado */
                 $this->afiliadoService->updateStatus(
                     $afiliado,
@@ -552,9 +560,10 @@ class AfiliadoController extends Controller
                     $observacionFinal,
                     auth()->id()
                 );
+                $updatedCount++;
             }
             DB::commit();
-            return back()->with('success', count($request->selected) . ' afiliados actualizados exitosamente.');
+            return back()->with('success', $updatedCount . ' afiliados actualizados exitosamente.');
         } catch (Exception $e) {
             DB::rollBack();
             return back()->with('error', $e->getMessage());

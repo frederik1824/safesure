@@ -257,6 +257,23 @@ class TraspasosDashboard extends Component
     {
         $this->checkSyncStatus();
 
+        // Cargar listas únicas para filtros (disponibles en ambas vistas)
+        $agentes = Cache::remember('traspasos_unique_agentes', 60, function() {
+            return Traspaso::distinct()->pluck('agente')->filter()->toArray();
+        });
+
+        $periodos = Cache::remember('traspasos_unique_periodos', 60, function() {
+            return Traspaso::distinct()->orderBy('periodo', 'desc')->pluck('periodo')->filter()->toArray();
+        });
+
+        $estados = Cache::remember('traspasos_unique_estados', 60, function() {
+            return Traspaso::distinct()->pluck('estado')->filter()->toArray();
+        });
+
+        $statusUnipagos = Cache::remember('traspasos_unique_unipagos', 60, function() {
+            return Traspaso::distinct()->pluck('status_unipago')->filter()->toArray();
+        });
+
         // Base query for monthly / filtered KPI metrics
         $kpiQuery = Traspaso::query();
         if ($this->filterPeriodo !== 'all') {
@@ -356,27 +373,11 @@ class TraspasosDashboard extends Component
                 'chartTotalTransfers' => $chartTotalTransfers,
                 'chartEffectiveTransfers' => $chartEffectiveTransfers,
                 'chartTotalDependents' => $chartTotalDependents,
+                'periodos' => $periodos,
             ]);
         }
 
         // 2. Lógica para la Vista del Listado Administrativo
-        // Cargar listas únicas para filtros
-        $agentes = Cache::remember('traspasos_unique_agentes', 60, function() {
-            return Traspaso::distinct()->pluck('agente')->filter()->toArray();
-        });
-
-        $periodos = Cache::remember('traspasos_unique_periodos', 60, function() {
-            return Traspaso::distinct()->pluck('periodo')->filter()->toArray();
-        });
-
-        $estados = Cache::remember('traspasos_unique_estados', 60, function() {
-            return Traspaso::distinct()->pluck('estado')->filter()->toArray();
-        });
-
-        $statusUnipagos = Cache::remember('traspasos_unique_unipagos', 60, function() {
-            return Traspaso::distinct()->pluck('status_unipago')->filter()->toArray();
-        });
-
         // Consulta filtrada
         $query = Traspaso::query();
 

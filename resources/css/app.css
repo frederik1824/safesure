@@ -2,8 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 :root {
-    --brand-primary: #00346f;
-    --brand-secondary: #0288d1;
+    --brand-primary: #003b8f;
+    --brand-secondary: #0d9488;
 }
 
 @tailwind base;

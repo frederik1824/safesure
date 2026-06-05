@@ -16,33 +16,18 @@ class DashboardController extends Controller
         $rid = $user->responsable_id ?? 'admin';
         $ttl = 300; // 5 minutos de Caché Térmica
 
-        $mes = $request->input('mes');
-        $cachePrefix = "dashboard_{$rid}" . ($mes ? "_" . str_replace('-', '_', $mes) : "");
+        $mes = null;
+        $cachePrefix = "dashboard_{$rid}";
 
-        // Generar lista de los últimos 12 meses en español
         $monthsList = [];
-        for ($i = 0; $i < 12; $i++) {
-            $date = now()->subMonths($i);
-            $monthsList[$date->format('Y-m')] = ucfirst($date->translatedFormat('F Y'));
-        }
 
-        // Helper para aplicar filtro de mes en consultas de Afiliados
-        $applyDateFilter = function ($query) use ($mes) {
-            if ($mes && preg_match('/^\d{4}-\d{2}$/', $mes)) {
-                $parts = explode('-', $mes);
-                $query->whereYear('created_at', $parts[0])
-                      ->whereMonth('created_at', $parts[1]);
-            }
+        // Helper para aplicar filtro de mes en consultas de Afiliados (no-op)
+        $applyDateFilter = function ($query) {
             return $query;
         };
 
-        // Helper para aplicar filtro de mes en consultas de Empresas
-        $applyDateFilterEmpresas = function ($query) use ($mes) {
-            if ($mes && preg_match('/^\d{4}-\d{2}$/', $mes)) {
-                $parts = explode('-', $mes);
-                $query->whereYear('created_at', $parts[0])
-                      ->whereMonth('created_at', $parts[1]);
-            }
+        // Helper para aplicar filtro de mes en consultas de Empresas (no-op)
+        $applyDateFilterEmpresas = function ($query) {
             return $query;
         };
 

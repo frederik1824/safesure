@@ -18,7 +18,6 @@ class DeleteFromFirebaseJob implements ShouldQueue
     public $documentId;
     
     public $tries = 3;
-    public $queue = 'sync-high';
     public $backoff = [10, 60, 300];
 
     /**
@@ -28,6 +27,7 @@ class DeleteFromFirebaseJob implements ShouldQueue
     {
         $this->collection = $collection;
         $this->documentId = $documentId;
+        $this->queue = 'sync-high';
     }
 
     /**

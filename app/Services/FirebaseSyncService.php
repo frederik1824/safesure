@@ -256,6 +256,92 @@ class FirebaseSyncService
         }
     }
 
+    /**
+     * Gets the exact total number of documents in a collection matching specific query filters.
+     * Costs only 1 read flat.
+     */
+    public function getQueryCount(string $collectionName, ?string $since = null, array $filters = []): int
+    {
+        if ($this->isCircuitOpen()) return 0;
+        $token = $this->getAccessToken();
+        if (!$token) return 0;
+
+        try {
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$this->projectId}/databases/(default)/documents:runAggregationQuery";
+            
+            $structuredQuery = [
+                'from' => [['collectionId' => $collectionName]]
+            ];
+
+            $filterList = [];
+            if ($since) {
+                $sinceDate = \Carbon\Carbon::parse($since)->toIso8601ZuluString('microsecond');
+                $filterList[] = [
+                    'fieldFilter' => [
+                        'field' => ['fieldPath' => 'updated_at'],
+                        'op' => 'GREATER_THAN',
+                        'value' => ['stringValue' => $sinceDate]
+                    ]
+                ];
+            }
+
+            foreach ($filters as $field => $value) {
+                if (is_int($value)) {
+                    $filterList[] = [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => $field],
+                            'op' => 'EQUAL',
+                            'value' => ['integerValue' => $value]
+                        ]
+                    ];
+                } else {
+                    $filterList[] = [
+                        'fieldFilter' => [
+                            'field' => ['fieldPath' => $field],
+                            'op' => 'EQUAL',
+                            'value' => ['stringValue' => (string)$value]
+                        ]
+                    ];
+                }
+            }
+
+            if (count($filterList) > 1) {
+                $structuredQuery['where'] = ['compositeFilter' => ['op' => 'AND', 'filters' => $filterList]];
+            } elseif (count($filterList) === 1) {
+                $structuredQuery['where'] = $filterList[0];
+            }
+
+            $body = [
+                'structuredAggregationQuery' => [
+                    'structuredQuery' => $structuredQuery,
+                    'aggregations' => [
+                        [
+                            'count' => new \stdClass(),
+                            'alias' => 'total_count'
+                        ]
+                    ]
+                ]
+            ];
+
+            $response = $this->client->post($baseUrl, [
+                'headers' => ['Authorization' => "Bearer {$token}"],
+                'json' => $body
+            ]);
+
+            $this->trackReads(1);
+
+            $data = json_decode($response->getBody()->getContents(), true);
+            if (is_array($data) && isset($data[0]['result']['aggregateFields']['total_count']['integerValue'])) {
+                return (int)$data[0]['result']['aggregateFields']['total_count']['integerValue'];
+            }
+
+            return 0;
+        } catch (\Throwable $e) {
+            Log::error("Firebase runAggregationQuery getQueryCount error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     public function getCollectionBatched(string $collectionName, int $pageSize = 300, ?string $pageToken = null): array
     {
         if ($this->isCircuitOpen()) return ['data' => [], 'nextPageToken' => null];
@@ -374,28 +460,30 @@ class FirebaseSyncService
             
             // Convertir fecha a formato ISO Firebase
             $sinceDate = \Carbon\Carbon::parse($since)->toIso8601ZuluString('microsecond');
+            $op = ($cursor && !empty($cursor['id'])) ? 'GREATER_THAN_OR_EQUAL' : 'GREATER_THAN';
 
             $structuredQuery = [
                 'from' => [['collectionId' => $collection]],
                 'where' => [
                     'fieldFilter' => [
                         'field' => ['fieldPath' => 'updated_at'],
-                        'op' => 'GREATER_THAN',
+                        'op' => $op,
                         'value' => ['stringValue' => $sinceDate]
                     ]
                 ],
                 'orderBy' => [
-                    ['field' => ['fieldPath' => 'updated_at'], 'direction' => 'ASCENDING']
+                    ['field' => ['fieldPath' => 'updated_at'], 'direction' => 'ASCENDING'],
+                    ['field' => ['fieldPath' => '__name__'], 'direction' => 'ASCENDING']
                 ],
                 'limit' => $limit
             ];
 
             // Paginación basada en cursor si se proporciona
-            if ($cursor) {
+            if ($cursor && !empty($cursor['updated_at']) && !empty($cursor['id'])) {
                 $structuredQuery['startAt'] = [
                     'values' => [
-                        ['stringValue' => $cursor['updated_at'] ?? ''],
-                        // ['referenceValue' => $cursor['id']] // Opcional para desambiguar
+                        ['stringValue' => $cursor['updated_at']],
+                        ['referenceValue' => "projects/{$this->projectId}/databases/(default)/documents/{$collection}/" . $cursor['id']]
                     ],
                     'before' => false // false = startAfter
                 ];
@@ -796,12 +884,15 @@ class FirebaseSyncService
 
         // --- DETECCIÓN DE CONFLICTOS (Bidirectional Architecture) ---
         $isLocallyModified = ($model->firebase_sync_status === 'pending' || $model->firebase_sync_status === 'modified');
-        $hasRemoteChanges = ($remoteVersion > $localVersion);
+        $hasRemoteChanges = ($remoteVersion > $localVersion || ($remoteUpdatedAt && $localUpdatedAt && $remoteUpdatedAt->gt($localUpdatedAt)));
 
-        if ($isLocallyModified && $hasRemoteChanges) {
+        if (!$force && $isLocallyModified && $hasRemoteChanges) {
             $model->conflict_status = true;
+            $model->firebase_sync_status = 'conflict';
             $model->firebase_error_log = "⚠️ CONFLICTO DETECTADO: Cambios locales y remotos detectados simultáneamente.";
             Log::warning("SafeSync Conflict: Registro {$model->id} modificado en ambas fuentes.");
+            $model->saveQuietly();
+            return false;
         }
 
         if ($force || $remoteVersion > $localVersion || ($remoteUpdatedAt && (!$localUpdatedAt || $remoteUpdatedAt->gt($localUpdatedAt)))) {
