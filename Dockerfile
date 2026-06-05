@@ -20,8 +20,12 @@ RUN apk add --no-cache \
 
 ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
-# Use the installer to add extensions (much faster as it uses pre-compiled binaries where possible)
-RUN install-php-extensions gd bcmath zip pdo_mysql pdo_pgsql pgsql intl opcache redis
+RUN install-php-extensions gd bcmath zip pdo_mysql pdo_pgsql pgsql intl opcache
+RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+    && git clone --depth 1 https://github.com/phpredis/phpredis.git /usr/src/php/ext/redis \
+    && docker-php-ext-install redis \
+    && rm -rf /usr/src/php/ext/redis \
+    && apk del .build-deps
 
 # Get composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
