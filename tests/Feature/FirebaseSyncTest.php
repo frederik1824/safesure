@@ -185,4 +185,47 @@ class FirebaseSyncTest extends TestCase
         // 4. Assert local affiliate is soft-deleted!
         $this->assertSoftDeleted('afiliados', ['id' => $afiliado->id]);
     }
+
+    /**
+     * Test real syncLocalModel method for gating, state normalization, and date stamping.
+     */
+    public function test_sync_local_model_gating_and_normalization(): void
+    {
+        $service = new FirebaseSyncService();
+
+        // 1. Create a local affiliate in state 1 (Pendiente)
+        $afiliado = new Afiliado([
+            'nombre_completo' => 'Jose M. Lopez',
+            'cedula' => '001-9999999-1',
+            'corte_id' => 1,
+            'estado_id' => 1,
+            'firebase_sync_status' => 'synced',
+            'firebase_sync_version' => 1,
+        ]);
+        $afiliado->is_firebase_sync = true;
+        $afiliado->save();
+
+        // 2. Incoming data with state 20
+        $remoteData = [
+            'firebase_id' => '00199999991',
+            'cedula' => '001-9999999-1',
+            'nombre_completo' => 'Jose M. Lopez',
+            'estado_id' => 20, // duplicates state 9
+            'firebase_sync_version' => 2,
+            'firebase_updated_at_meta' => now()->toIso8601String(),
+        ];
+
+        // 3. Run syncLocalModel
+        $updated = $service->syncLocalModel($afiliado, $remoteData);
+
+        // Assertions
+        $this->assertTrue($updated);
+        $af = $afiliado->fresh();
+        
+        // State 20 is normalized to 9, then gated to 7 (Pendiente de recepción)
+        $this->assertEquals(7, $af->estado_id);
+        
+        // Delivery date is automatically stamped because remote status was a completion state
+        $this->assertNotNull($af->fecha_entrega_safesure);
+    }
 }

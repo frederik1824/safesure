@@ -15,6 +15,8 @@ use App\Traits\HasDynamicSql;
 class Afiliado extends Model
 {
     use Auditable, HasUuids, SoftDeletes, HasDynamicSql;
+
+    public $is_firebase_sync = false;
     
     // Constantes de Estado Operativo
     const ESTADO_ENTREGADO = 6;
@@ -99,6 +101,14 @@ class Afiliado extends Model
                 }
             }
         });
+    }
+
+    /**
+     * Mutador para unificar de forma transparente el estado ID 20 al ID 9 (Completado).
+     */
+    public function setEstadoIdAttribute($value)
+    {
+        $this->attributes['estado_id'] = ($value == 20) ? 9 : $value;
     }
 
     /**

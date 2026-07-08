@@ -29,4 +29,14 @@ class HistorialEstado extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function setEstadoAnteriorIdAttribute($value)
+    {
+        $this->attributes['estado_anterior_id'] = ($value == 20) ? 9 : $value;
+    }
+
+    public function setEstadoNuevoIdAttribute($value)
+    {
+        $this->attributes['estado_nuevo_id'] = ($value == 20) ? 9 : $value;
+    }
 }

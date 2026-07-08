@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Empresa extends Model
 {
     use Auditable, HasUuids, SoftDeletes;
+
+    public $is_firebase_sync = false;
     
     /**
      * Define which columns should be generated as UUIDs.

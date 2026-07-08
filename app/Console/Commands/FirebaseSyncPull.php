@@ -351,6 +351,26 @@ class FirebaseSyncPull extends Command
                             $fillable = (new $modelClass)->getFillable();
                             $filtered = array_intersect_key($mapped, array_flip($fillable));
                             
+                            // Normalización y reglas de negocio para Afiliados provenientes de Firebase
+                            if ($collectionName === 'afiliados') {
+                                // 1. Normalizar de forma redundante estado ID 20 a 9
+                                if (isset($filtered['estado_id']) && $filtered['estado_id'] == 20) {
+                                    $filtered['estado_id'] = 9;
+                                }
+
+                                // 2. Estampado automático de fecha_entrega_safesure si el estado es 9 (Completado), 10 (Acuse recibido) o 6 (Carnet entregado) y está vacía
+                                if (in_array($filtered['estado_id'] ?? null, [9, 10, 6])) {
+                                    if (empty($filtered['fecha_entrega_safesure'])) {
+                                        $filtered['fecha_entrega_safesure'] = now()->toIso8601String();
+                                    }
+                                }
+
+                                // 3. Regla de Gating: Convertir estado 9 (Completado) remoto a 7 (Pendiente de recepción) local
+                                if (isset($filtered['estado_id']) && $filtered['estado_id'] == 9) {
+                                    $filtered['estado_id'] = 7;
+                                }
+                            }
+                            
                             $model = new $modelClass($filtered);
                             // Metadatos de sincronización SafeSync
                             if ($model instanceof \App\Models\Afiliado) {

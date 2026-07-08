@@ -31,6 +31,13 @@ class AfiliadoObserver
         // 2. Aplicar reglas de negocio
         $this->rules->normalizeAddress($afiliado);
         $this->rules->validateSaving($afiliado);
+
+        // 3. Estampado automático de fecha_entrega_safesure si el estado es 9 (Completado), 10 (Acuse recibido) o 6 (Carnet entregado) y está vacía
+        if (in_array($afiliado->estado_id, [9, 10, 6])) {
+            if (empty($afiliado->fecha_entrega_safesure)) {
+                $afiliado->fecha_entrega_safesure = now();
+            }
+        }
     }
 
     /**

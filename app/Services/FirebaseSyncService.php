@@ -905,7 +905,7 @@ class FirebaseSyncService
 
         if (!$force && $isLocallyModified && $hasRemoteChanges) {
             $model->conflict_status = true;
-            $model->firebase_sync_status = 'conflict';
+            $model->firebase_sync_status = 'error';
             $model->firebase_error_log = "⚠️ CONFLICTO DETECTADO: Cambios locales y remotos detectados simultáneamente.";
             Log::warning("SafeSync Conflict: Registro {$model->id} modificado en ambas fuentes.");
             $model->saveQuietly();
@@ -922,6 +922,26 @@ class FirebaseSyncService
             unset($remoteData['firebase_id'], $remoteData['id'], $remoteData['firebase_updated_at_meta'], $remoteData['last_sync_hash']);
             $fillableData = array_intersect_key($remoteData, array_flip($model->getFillable()));
             
+            // Normalización y reglas de negocio para Afiliados provenientes de Firebase
+            if ($model instanceof \App\Models\Afiliado) {
+                // 1. Normalizar de forma redundante estado ID 20 a 9
+                if (isset($fillableData['estado_id']) && $fillableData['estado_id'] == 20) {
+                    $fillableData['estado_id'] = 9;
+                }
+
+                // 2. Estampado automático de fecha_entrega_safesure si el estado es 9 (Completado), 10 (Acuse recibido) o 6 (Carnet entregado) y está vacía
+                if (in_array($fillableData['estado_id'] ?? null, [9, 10, 6])) {
+                    if (empty($model->fecha_entrega_safesure) && empty($fillableData['fecha_entrega_safesure'])) {
+                        $fillableData['fecha_entrega_safesure'] = now()->toIso8601String();
+                    }
+                }
+
+                // 3. Regla de Gating: Convertir estado 9 (Completado) remoto a 7 (Pendiente de recepción) local
+                if (isset($fillableData['estado_id']) && $fillableData['estado_id'] == 9) {
+                    $fillableData['estado_id'] = 7;
+                }
+            }
+
             $model->fill($fillableData);
             
             // Metadatos de sincronización SafeSync
@@ -1049,6 +1069,14 @@ class FirebaseSyncService
         }
         if (isset($mapped['sexo']) && is_string($mapped['sexo'])) {
             $mapped['sexo'] = strtoupper(substr(trim($mapped['sexo']), 0, 1));
+        }
+
+        // Normalización de estado ID 20 a 9 (unificación de estados de cierre)
+        if (isset($mapped['estado_id']) && $mapped['estado_id'] == 20) {
+            $mapped['estado_id'] = 9;
+        }
+        if (isset($mapped['estado']) && is_array($mapped['estado']) && isset($mapped['estado']['id']) && $mapped['estado']['id'] == 20) {
+            $mapped['estado']['id'] = 9;
         }
 
         return $mapped;
