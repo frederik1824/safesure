@@ -26,8 +26,8 @@ Authorization: Bearer safesure_api_secret_token_2026_xyz
 
 ## 🚦 2. Especificación de Endpoints
 
-La URL base para todas las llamadas es:
-`http://{DOMINIO_DEL_SERVIDOR}/api/v1/safesure`
+La URL base para todas las llamadas en producción es:
+`https://discan.cloud/api/v1/safesure`
 
 ### 2.1 Obtener Catálogo de Estados
 Retorna el catálogo de estados disponibles en el sistema. Es útil para mapear los IDs correspondientes.
@@ -59,7 +59,7 @@ Retorna el listado paginado de los afiliados que están bajo la responsabilidad 
     *   `estado_id` (int): Filtrar por el ID del estado.
     *   `cedula` (string): Buscar un afiliado específico por su número de cédula.
     *   `updated_after` (string): Sincronización Incremental. Retorna los registros modificados a partir de esta fecha (Formatos: ISO 8601 `2026-08-20T12:00:00Z` o `2026-08-20 12:00:00`).
-    *   `per_page` (int): Cantidad de registros por página (Mínimo: 1, Máximo: 250, Por defecto: 50).
+    *   `per_page` (int): Cantidad de registros por página (Mínimo: 1, Maximo: 250, Por defecto: 50).
 *   **Respuesta Exitosa (200 OK):**
     ```json
     {
@@ -170,7 +170,7 @@ Permite a SAFESURE subir el archivo digitalizado (imagen o PDF) del acuse de rec
         "id": 1557,
         "tipo_documento": "acuse_recibo",
         "status": "recibido",
-        "file_path": "http://{DOMINIO}/storage/evidencias/079-0017790-7/lJn3IlQ2bXCK.jpg",
+        "file_path": "https://discan.cloud/storage/evidencias/079-0017790-7/lJn3IlQ2bXCK.jpg",
         "observaciones": "Acuse firmado por titular"
       },
       "data": { ... }
@@ -183,13 +183,13 @@ Permite a SAFESURE subir el archivo digitalizado (imagen o PDF) del acuse de rec
 
 ### Listar afiliados en ruta
 ```bash
-curl -X GET "http://192.168.23.5:8082/api/v1/safesure/afiliados?estado_id=3" \
+curl -X GET "https://discan.cloud/api/v1/safesure/afiliados?estado_id=3" \
      -H "X-API-Key: safesure_api_secret_token_2026_xyz"
 ```
 
 ### Reportar carnet no localizado
 ```bash
-curl -X POST "http://192.168.23.5:8082/api/v1/safesure/afiliados/079-0017790-7/estado" \
+curl -X POST "https://discan.cloud/api/v1/safesure/afiliados/079-0017790-7/estado" \
      -H "X-API-Key: safesure_api_secret_token_2026_xyz" \
      -H "Content-Type: application/json" \
      -d '{
@@ -200,7 +200,7 @@ curl -X POST "http://192.168.23.5:8082/api/v1/safesure/afiliados/079-0017790-7/e
 
 ### Subir foto de acuse recibido
 ```bash
-curl -X POST "http://192.168.23.5:8082/api/v1/safesure/afiliados/079-0017790-7/evidencia" \
+curl -X POST "https://discan.cloud/api/v1/safesure/afiliados/079-0017790-7/evidencia" \
      -H "X-API-Key: safesure_api_secret_token_2026_xyz" \
      -F "file=@/documentos/acuse_firmado.jpg" \
      -F "tipo_documento=acuse_recibo" \
